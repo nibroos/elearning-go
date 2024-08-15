@@ -25,7 +25,7 @@ func registerHandler(c *fiber.Ctx) error {
 	defer mu.Unlock()
 
 	go func() {
-		_, err := db.Exec("INSERT INTO users (username, password) VALUES ($1, $2)", user.Username, user.Password)
+		_, err := DB.Exec("INSERT INTO users (username, password) VALUES ($1, $2)", user.Username, user.Password)
 		if err != nil {
 			log.Println("Error inserting user:", err)
 		}
