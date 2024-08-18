@@ -1,0 +1,8 @@
+# Config file for Air
+root = "."
+tmp_dir = "tmp"
+build = "go build -o ./tmp/main ./cmd/main.go"
+bin = "tmp/main"
+watch = ["."]
+exclude_dir = ["tmp", "vendor"]
+exclude_file = ["air.toml"]

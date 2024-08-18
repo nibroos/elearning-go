@@ -7,15 +7,21 @@
         context: ../gateway
         dockerfile: Dockerfile
       ports:
-        - "80:80"
+        - "${GATEWAY_PORT:-80}:80"
       container_name: gateway
       networks:
         - learning-network
       depends_on:
         - users-service
-        - master-service
-        - activities-service
-        - postgres
+        # - master-service
+        # - activities-service
+      environment:
+        - USERS_SERVICE_HOST=users-service
+        - USERS_SERVICE_PORT=${USERS_SERVICE_PORT:-50051}
+        - MASTER_SERVICE_HOST=master-service
+        - MASTER_SERVICE_PORT=${MASTER_SERVICE_PORT:-8082}
+        - ACTIVITIES_SERVICE_HOST=activities-service
+        - ACTIVITIES_SERVICE_PORT=${ACTIVITIES_SERVICE_PORT:-50052}
 
     users-service:
       build: 
@@ -25,51 +31,57 @@
       networks:
         - learning-network
       ports:
-        - "8081:8081"
+        - "${USERS_SERVICE_PORT:-50051}:${USERS_SERVICE_PORT:-50051}"
       depends_on:
         - postgres
       volumes:
         - ./users-service:/app
+      environment:
+        - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB}?sslmode=disable
 
-    master-service:
-      build: 
-        context: ../master-service
-        dockerfile: Dockerfile
-      container_name: master-service
-      networks:
-        - learning-network
-      ports:
-        - "8082:8082"
-      depends_on:
-        - postgres
-      volumes:
-        - ./master-service:/app
+    # master-service:
+    #   build: 
+    #     context: ../master-service
+    #     dockerfile: Dockerfile
+    #   container_name: master-service
+    #   networks:
+    #     - learning-network
+    #   ports:
+    #     - "${MASTER_SERVICE_PORT:-8082}:${MASTER_SERVICE_PORT:-8082}"
+    #   depends_on:
+    #     - postgres
+    #   volumes:
+    #     - ./master-service:/app
+    #   environment:
+    #     - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB}?sslmode=disable
 
-    activities-service:
-      build: 
-        context: ../activities-service
-        dockerfile: Dockerfile
-      container_name: activities-service
-      networks:
-        - learning-network
-      ports:
-        - "8083:8083"
-      depends_on:
-        - postgres
-      volumes:
-        - ./activities-service:/app
+    # activities-service:
+    #   build: 
+    #     context: ../activities-service
+    #     dockerfile: Dockerfile
+    #   container_name: activities-service
+    #   networks:
+    #     - learning-network
+    #   ports:
+    #     - "${ACTIVITIES_SERVICE_PORT:-50052}:${ACTIVITIES_SERVICE_PORT:-50052}"
+    #   depends_on:
+    #     - postgres
+    #   volumes:
+    #     - ./activities-service:/app
+    #   environment:
+    #     - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB}?sslmode=disable
 
     postgres:
       image: postgres:13-alpine
       environment:
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: secret
-        POSTGRES_DB: learningdb
+        POSTGRES_USER: ${POSTGRES_USER:-postgres}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+        POSTGRES_DB: ${POSTGRES_DB:-learningdb}
       container_name: postgres
       networks:
         - learning-network
       ports:
-        - "5432:5432"
+        - "${POSTGRES_PORT:-5432}:5432"
       volumes:
         - postgres-data:/var/lib/postgresql/data
 
