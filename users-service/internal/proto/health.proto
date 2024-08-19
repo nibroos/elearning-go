@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package health;
 
-option go_package = "github.com/nibroos/elearning-go/users-service/internal/proto";
+option go_package = "github.com/username/reponame/users-service/internal/proto;proto";
 
 service HealthService {
     rpc CheckHealth(HealthRequest) returns (HealthResponse);

@@ -3,9 +3,9 @@ package controller
 import (
 	"net"
 
+	pb "github.com/nibroos/elearning-go/users-service/internal/proto"
 	"github.com/nibroos/elearning-go/users-service/internal/repository"
 	"github.com/nibroos/elearning-go/users-service/internal/service"
-	pb "github.com/nibroos/elearning-go/users-service/proto"
 	"google.golang.org/grpc"
 )
 
