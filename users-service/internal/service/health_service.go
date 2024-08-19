@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	pb "github.com/nibroos/elearning-go/users-service/internal/proto"
+	pb "github.com/nibroos/elearning-go/users-service/users-service/internal/proto"
 )
 
 type HealthService struct {

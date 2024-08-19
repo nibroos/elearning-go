@@ -6,9 +6,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/nibroos/users-service/internal/config"
-	"github.com/nibroos/users-service/internal/controller"
-	"github.com/nibroos/users-service/internal/repository"
+	"github.com/nibroos/elearning-go/users-service/internal/config"
+	"github.com/nibroos/elearning-go/users-service/internal/controller"
+	"github.com/nibroos/elearning-go/users-service/internal/repository"
 )
 
 func main() {

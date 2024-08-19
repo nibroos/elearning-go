@@ -2,7 +2,7 @@ package repository
 
 import (
 	"github.com/jmoiron/sqlx"
-	"github.com/nibroos/users-service/internal/model"
+	"github.com/nibroos/elearning-go/users-service/internal/model"
 )
 
 type UserRepository interface {

@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	"github.com/your-username/users-service/internal/model"
-	"github.com/your-username/users-service/internal/repository"
-	pb "github.com/your-username/users-service/proto"
+	"github.com/nibroos/elearning-go/users-service/internal/model"
+	"github.com/nibroos/elearning-go/users-service/internal/repository"
+	pb "github.com/nibroos/elearning-go/users-service/proto"
 )
 
 type UserService struct {

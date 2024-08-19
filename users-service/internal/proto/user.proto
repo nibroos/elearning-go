@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package user;
 
-option go_package = "github.com/nibroos/users-service/proto";
+option go_package = "github.com/nibroos/elearning-go/users-service/proto";
 
 service UserService {
     rpc CreateUser (CreateUserRequest) returns (UserResponse);

@@ -4,8 +4,8 @@ import (
 	"log"
 	"net"
 
-	pb "github.com/nibroos/users-service/internal/proto"
-	"github.com/nibroos/users-service/internal/service"
+	pb "github.com/nibroos/elearning-go/users-service/internal/proto"
+	"github.com/nibroos/elearning-go/users-service/internal/service"
 
 	"google.golang.org/grpc"
 )
