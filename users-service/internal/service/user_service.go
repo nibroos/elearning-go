@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/nibroos/elearning-go/users-service/internal/model"
+	pb "github.com/nibroos/elearning-go/users-service/internal/proto"
 	"github.com/nibroos/elearning-go/users-service/internal/repository"
-	pb "github.com/nibroos/elearning-go/users-service/proto"
 )
 
 type UserService struct {

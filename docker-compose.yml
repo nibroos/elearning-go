@@ -30,33 +30,33 @@ services:
     volumes:
       - ./users-service:/app
 
-  master-service:
-    build: 
-      context: ../master-service
-      dockerfile: Dockerfile
-    container_name: master-service
-    networks:
-      - learning-network
-    ports:
-      - "8082:8082"
-    depends_on:
-      - postgres
-    volumes:
-      - ./master-service:/app
+  # master-service:
+  #   build: 
+  #     context: ../master-service
+  #     dockerfile: Dockerfile
+  #   container_name: master-service
+  #   networks:
+  #     - learning-network
+  #   ports:
+  #     - "8082:8082"
+  #   depends_on:
+  #     - postgres
+  #   volumes:
+  #     - ./master-service:/app
 
-  activities-service:
-    build: 
-      context: ../activities-service
-      dockerfile: Dockerfile
-    container_name: activities-service
-    networks:
-      - learning-network
-    ports:
-      - "8083:8083"
-    depends_on:
-      - postgres
-    volumes:
-      - ./activities-service:/app
+  # activities-service:
+  #   build: 
+  #     context: ../activities-service
+  #     dockerfile: Dockerfile
+  #   container_name: activities-service
+  #   networks:
+  #     - learning-network
+  #   ports:
+  #     - "8083:8083"
+  #   depends_on:
+  #     - postgres
+  #   volumes:
+  #     - ./activities-service:/app
 
   postgres:
     image: postgres:13-alpine
