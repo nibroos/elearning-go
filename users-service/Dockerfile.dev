@@ -1,0 +1,23 @@
+# Start with a minimal base image
+FROM golang:1.22-alpine as builder
+
+# Install Air for hot-reloading
+RUN go install github.com/air-verse/air@latest
+
+# Set the Current Working Directory inside the container
+WORKDIR /app
+
+# Copy go.mod and go.sum files
+COPY go.mod go.sum ./
+
+# Download all dependencies
+RUN go mod download
+
+# Copy the source code from the users-service directory into the container
+COPY . .
+
+# Tidy modules
+RUN go mod tidy
+
+# Command to run Air for hot-reloading
+CMD ["air"]

@@ -1,8 +1,12 @@
 # Start with a minimal base image
-FROM golang:1.20-alpine as builder
+FROM golang:1.22-alpine as builder
 
 # Install Air
-RUN go install github.com/cosmtrek/air@latest
+# RUN go install github.com/air-verse/air@latest
+
+RUN git clone https://github.com/cosmtrek/air.git
+WORKDIR /app/air
+RUN go install
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -13,8 +17,14 @@ COPY go.mod go.sum ./
 # Download all dependencies
 RUN go mod download
 
+RUN ls .
+
 # Copy the source from the current directory to the working directory inside the container
 COPY . .
+
+RUN ls .
+
+RUN go mod tidy
 
 # Build the Go app
 RUN go build -o main ./cmd/main.go

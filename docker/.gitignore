@@ -1,3 +1,6 @@
 postgres
 server_setup.bash
 prod-docker-compose.yml
+learn-concur
+users-service
+.env
