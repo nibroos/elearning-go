@@ -16,6 +16,9 @@ RUN go mod download
 # Copy the source code from the users-service directory into the container
 COPY . .
 
+# Copy the .env file from the main Docker directory
+COPY /app/docker/.env .env
+
 # Tidy modules
 RUN go mod tidy
 

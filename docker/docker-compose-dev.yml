@@ -28,8 +28,8 @@ services:
 
   users-service:
     build: 
-      context: ../users-service
-      dockerfile: Dockerfile.dev
+      context: ../
+      dockerfile: users-service/Dockerfile.dev
     container_name: users-service-learninggo
     networks:
       - learning-network
@@ -42,6 +42,7 @@ services:
       - ./../users-service:/app
     environment:
       - POSTGRES_HOST=postgres
+
 
   # master-service:
   #   build: 
