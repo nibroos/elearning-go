@@ -19,9 +19,9 @@ func NewUserService(repo repository.UserRepository) *UserService {
 
 func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.UserResponse, error) {
     user := &model.User{
-        Name:     req.Name,
-        Email:    req.Email,
-        Password: req.Password,
+        Name:           req.Name,
+        Email:          req.Email,
+        Password:       req.Password,
     }
 
     err := s.repo.CreateUser(user)
@@ -30,10 +30,10 @@ func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest)
     }
 
     return &pb.UserResponse{User: &pb.User{
-        Id:       int32(user.ID),
-        Name:     user.Name,
-        Email:    user.Email,
-        Password: user.Password,
+        Id:             int32(user.ID),
+        Name:           user.Name,
+        Email:          user.Email,
+        Password:       user.Password,
     }}, nil
 }
 
@@ -44,19 +44,19 @@ func (s *UserService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.
     }
 
     return &pb.UserResponse{User: &pb.User{
-        Id:       int32(user.ID),
-        Name:     user.Name,
-        Email:    user.Email,
-        Password: user.Password,
+        Id:             int32(user.ID),
+        Name:           user.Name,
+        Email:          user.Email,
+        Password:       user.Password,
     }}, nil
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
     user := &model.User{
-        ID:       int(req.Id),
-        Name:     req.Name,
-        Email:    req.Email,
-        Password: req.Password,
+        ID:             int(req.Id),
+        Name:           req.Name,
+        Email:          req.Email,
+        Password:       req.Password,
     }
 
     err := s.repo.UpdateUser(user)
@@ -65,10 +65,10 @@ func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest)
     }
 
     return &pb.UserResponse{User: &pb.User{
-        Id:       int32(user.ID),
-        Name:     user.Name,
-        Email:    user.Email,
-        Password: user.Password,
+        Id:             int32(user.ID),
+        Name:           user.Name,
+        Email:          user.Email,
+        Password:       user.Password,
     }}, nil
 }
 

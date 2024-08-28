@@ -28,7 +28,7 @@ POSTGRES_PORT=5432
 
 Change bash directory to each server.
 > ${arg} means replace all of it match your args without space
-- Create mirgration : `make migrate create ${your_migration_name}`
+- Create mirgration : `make migrate create name=${your_migration_name}`
 - Run migration : `make migrate-up`
 - Stepback migraiton: `make migrate-down`
 - Generate proto file, leave the proto args blank if you want to generate all proto file: `make proto ${your-proto.proto}`
