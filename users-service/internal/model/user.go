@@ -1,8 +1,9 @@
 package model
 
 type User struct {
-    ID              int    `db:"id"`
-    Name       string `db:"first_name"`
+    ID              int32    `db:"id"`
+    Name            string `db:"name"`
+    Username        string `db:"username"`
     Email           string `db:"email"`
     Password        string `db:"password"`
 }

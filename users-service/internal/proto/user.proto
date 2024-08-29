@@ -5,6 +5,7 @@ package user;
 option go_package = "github.com/nibroos/elearning-go/users-service/internal/proto";
 
 service UserService {
+    rpc GetUsers (GetUsersRequest) returns (GetUsersResponse);
     rpc CreateUser (CreateUserRequest) returns (UserResponse);
     rpc GetUser (GetUserRequest) returns (UserResponse);
     rpc UpdateUser (UpdateUserRequest) returns (UserResponse);
@@ -16,6 +17,7 @@ message User {
     string name = 2;
     string email = 3;
     string password = 4;
+    string username = 5;
 }
 
 message CreateUserRequest {
@@ -46,3 +48,14 @@ message UserResponse {
 message DeleteUserResponse {
     string message = 1;
 }
+
+message GetUsersRequest {
+    string global = 1;
+    string name = 2;
+    string email = 3;
+}
+
+message GetUsersResponse {
+    repeated User users = 1;
+}
+

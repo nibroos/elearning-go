@@ -1,82 +1,87 @@
 package service
 
 import (
-	"context"
-
 	"github.com/nibroos/elearning-go/users-service/internal/model"
-	pb "github.com/nibroos/elearning-go/users-service/internal/proto"
 	"github.com/nibroos/elearning-go/users-service/internal/repository"
 )
 
-type UserService struct {
+type UserService interface {
+    GetUsers(searchParams map[string]string) ([]model.User, error)
+}
+
+type userService struct {
     repo repository.UserRepository
-    pb.UnimplementedUserServiceServer
+    // pb.UnimplementedUserServiceServer
 }
 
-func NewUserService(repo repository.UserRepository) *UserService {
-    return &UserService{repo: repo}
+func NewUserService(repo repository.UserRepository) UserService {
+    return &userService{repo: repo}
 }
 
-func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.UserResponse, error) {
-    user := &model.User{
-        Name:           req.Name,
-        Email:          req.Email,
-        Password:       req.Password,
-    }
-
-    err := s.repo.CreateUser(user)
-    if err != nil {
-        return nil, err
-    }
-
-    return &pb.UserResponse{User: &pb.User{
-        Id:             int32(user.ID),
-        Name:           user.Name,
-        Email:          user.Email,
-        Password:       user.Password,
-    }}, nil
+func (s *userService) GetUsers(searchParams map[string]string) ([]model.User, error) {
+    return s.repo.GetUsers(searchParams)
 }
 
-func (s *UserService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.UserResponse, error) {
-    user, err := s.repo.GetUserByID(int(req.Id))
-    if err != nil {
-        return nil, err
-    }
+// func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.UserResponse, error) {
+//     user := &model.User{
+//         Name:           req.Name,
+//         Email:          req.Email,
+//         Password:       req.Password,
+//     }
 
-    return &pb.UserResponse{User: &pb.User{
-        Id:             int32(user.ID),
-        Name:           user.Name,
-        Email:          user.Email,
-        Password:       user.Password,
-    }}, nil
-}
+//     err := s.repo.CreateUser(user)
+//     if err != nil {
+//         return nil, err
+//     }
 
-func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
-    user := &model.User{
-        ID:             int(req.Id),
-        Name:           req.Name,
-        Email:          req.Email,
-        Password:       req.Password,
-    }
+//     return &pb.UserResponse{User: &pb.User{
+//         Id:             int32(user.ID),
+//         Name:           user.Name,
+//         Email:          user.Email,
+//         Password:       user.Password,
+//     }}, nil
+// }
 
-    err := s.repo.UpdateUser(user)
-    if err != nil {
-        return nil, err
-    }
+// func (s *UserService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.UserResponse, error) {
+//     user, err := s.repo.GetUserByID(int(req.Id))
+//     if err != nil {
+//         return nil, err
+//     }
 
-    return &pb.UserResponse{User: &pb.User{
-        Id:             int32(user.ID),
-        Name:           user.Name,
-        Email:          user.Email,
-        Password:       user.Password,
-    }}, nil
-}
+//     return &pb.UserResponse{User: &pb.User{
+//         Id:             int32(user.ID),
+//         Name:           user.Name,
+//         Email:          user.Email,
+//         Password:       user.Password,
+//     }}, nil
+// }
 
-func (s *UserService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
-    err := s.repo.DeleteUser(int(req.Id))
-    if err != nil {
-        return nil, err
-    }
+// func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
+//     user := &model.User{
+//         ID:             int(req.Id),
+//         Name:           req.Name,
+//         Email:          req.Email,
+//         Password:       req.Password,
+//     }
 
-    return &pb.DeleteUserResponse{Message: "User deleted successfully"}, nil
-}
+//     err := s.repo.UpdateUser(user)
+//     if err != nil {
+//         return nil, err
+//     }
+
+//     return &pb.UserResponse{User: &pb.User{
+//         Id:             int32(user.ID),
+//         Name:           user.Name,
+//         Email:          user.Email,
+//         Password:       user.Password,
+//     }}, nil
+// }
+
+// func (s *UserService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
+//     err := s.repo.DeleteUser(int(req.Id))
+//     if err != nil {
+//         return nil, err
+//     }
+
+//     return &pb.DeleteUserResponse{Message: "User deleted successfully"}, nil
+// }
