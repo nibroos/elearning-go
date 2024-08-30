@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/nibroos/elearning-go/users-service/internal/controller"
+	controller "github.com/nibroos/elearning-go/users-service/internal/controller/rest"
 )
 
 // SetupRoutes sets up the REST routes for the user service.
@@ -21,7 +21,7 @@ func SetupRoutes(app *fiber.App, userController *controller.UserController) {
 
 	// Define other routes here
 	users.Get("/index-user", userController.CreateUser)
-	users.Get("/show-user", userController.GetUser)
+	users.Get("/show-user", userController.GetUsers())
 	users.Get("/create-user", userController.CreateUser)
 	users.Get("/update-user", userController.UpdateUser)
 	users.Get("/delete-user", userController.DeleteUser)

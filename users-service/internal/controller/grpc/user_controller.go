@@ -2,36 +2,34 @@ package controller
 
 import (
 	"context"
-	"log"
-	"net"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/jmoiron/sqlx"
 	pb "github.com/nibroos/elearning-go/users-service/internal/proto"
 	"github.com/nibroos/elearning-go/users-service/internal/repository"
 	"github.com/nibroos/elearning-go/users-service/internal/service"
-
-	"google.golang.org/grpc"
 )
 
 // UserController holds the methods for handling user-related HTTP requests.
 type UserController struct {
-    service service.UserService
+    userService service.UserService
 	repo repository.UserRepository
+    db *sqlx.DB
 }
 
-func RunGRPCServer(repo repository.UserRepository) error {
-    lis, err := net.Listen("tcp", ":50051")
-    if err != nil {
-        return err
-    }
+// func RunGRPCServer(repo repository.UserRepository) error {
+//     lis, err := net.Listen("tcp", ":50051")
+//     if err != nil {
+//         return err
+//     }
 
-    grpcServer := grpc.NewServer()
-    userService := service.NewUserService(repo)
-    pb.RegisterUserServiceServer(grpcServer, userService)
-    log.Println("gRPC server is running on port 50051")
+//     grpcServer := grpc.NewServer()
+//     userService := service.NewUserService(repo)
+//     pb.RegisterUserServiceServer(grpcServer, userService)
+//     log.Println("gRPC server is running on port 50051")
 
-    return grpcServer.Serve(lis)
-}
+//     return grpcServer.Serve(lis)
+// }
 
 // NewUserController creates a new instance of UserController.
 func NewUserController(repo repository.UserRepository) *UserController {
@@ -45,7 +43,7 @@ func (c *UserController) GetUsers(ctx context.Context, req *pb.GetUsersRequest) 
         "email":  req.GetEmail(),
     }
 
-    users, err := c.service.GetUsers(searchParams)
+    users, err := c.userService.GetUsers(searchParams)
     if err != nil {
         return nil, err
     }
@@ -64,12 +62,34 @@ func (c *UserController) GetUsers(ctx context.Context, req *pb.GetUsersRequest) 
     return &pb.GetUsersResponse{Users: pbUsers}, nil
 }
 
-func (uc *UserController) CreateUser(c *fiber.Ctx) error {
-    // repo := repository.NewUserRepository()
-    // userService := service.NewUserService(repo)
+// func (uc *UserController) CreateUser(c *fiber.Ctx) error {
+//     // repo := repository.NewUserRepository()
+//     // userService := service.NewUserService(repo)
 
-    // userService.CreateUser(c)
-    return c.SendString("Create User")
+//     // userService.CreateUser(c)
+//     return c.SendString("Create User")
+// }
+func (c *UserController) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
+    tx, err := c.db.BeginTxx(ctx, nil)
+    if err != nil {
+        return nil, err
+    }
+    defer tx.Rollback()
+
+    user, err := c.userService.CreateUser(ctx, tx, req.GetName(), req.GetEmail(), req.GetRoleId())
+    if err != nil {
+        return nil, err
+    }
+
+    if err := tx.Commit(); err != nil {
+        return nil, err
+    }
+
+    return &pb.CreateUserResponse{
+        Id:    user.ID,
+        Name:  user.Name,
+        Email: user.Email,
+    }, nil
 }
 
 func (uc *UserController) GetUser(c *fiber.Ctx) error {
