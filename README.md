@@ -26,12 +26,12 @@ POSTGRES_PORT=5432
 
 ## 🛎 Available Commands each Service
 
-Change bash directory to each server.
+Change bash directory to each service.
 > ${arg} means replace all of it match your args without space
 - Create mirgration : `make migrate create name=${your_migration_name}`
 - Run migration : `make migrate-up`
 - Stepback migraiton: `make migrate-down`
-- Generate proto file, leave the proto args blank if you want to generate all proto file: `make proto ${your-proto.proto}`. If its fail, run this command on specific service. for example, in /users-service/ run bash `export PATH="$PATH:$(go env GOPATH)/bin`
+- Generate proto file, leave the proto args blank if you want to generate all proto file: `make proto ${your-proto.proto}`. If its fail, run this command on specific service. for example, in /users-service/ run bash `export PATH="$PATH:$(go env GOPATH)/bin"`
 
 ## 💎 The Package Features
 

@@ -20,10 +20,10 @@ func SetupRoutes(app *fiber.App, userController *controller.UserController) {
 	})
 
 	// Define other routes here
-	users.Get("/index-user", userController.CreateUser)
-	users.Get("/show-user", userController.GetUsers())
-	users.Get("/create-user", userController.CreateUser)
-	users.Get("/update-user", userController.UpdateUser)
-	users.Get("/delete-user", userController.DeleteUser)
-	
+	users.Post("/index-user", userController.GetUsers)
+	users.Post("/show-user", userController.GetUserByID)
+	users.Post("/create-user", userController.CreateUser)
+	// users.Post("/update-user", userController.UpdateUser)
+	// users.Post("/delete-user", userController.DeleteUser)
+
 }

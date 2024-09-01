@@ -12,28 +12,43 @@ import (
 	controller "github.com/nibroos/elearning-go/users-service/internal/controller/rest"
 	"github.com/nibroos/elearning-go/users-service/internal/repository"
 	"github.com/nibroos/elearning-go/users-service/internal/routes"
+	"github.com/nibroos/elearning-go/users-service/internal/service"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func main() {
+	// Load environment variables from .env file
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("No .env file found")
 	}
 
-	db, err := sqlx.Connect("postgres", config.GetDatabaseURL())
+	// Initialize the SQLx database connection
+	sqlDB, err := sqlx.Connect("postgres", config.GetDatabaseURL())
 	if err != nil {
-		log.Fatalf("Failed to connect to the database: %v", err)
+		log.Fatalf("Failed to connect to the SQL database: %v", err)
 	}
 
-	userRepo := repository.NewUserRepository(db)
-    userController := controller.NewUserController(userRepo)
+	// Initialize the Gorm database connection
+	gormDB, err := gorm.Open(postgres.Open(config.GetDatabaseURL()), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("Failed to connect to the Gorm database: %v", err)
+	}
 
+	// Initialize repositories
+	userRepo := repository.NewUserRepository(gormDB, sqlDB)
+
+	// Initialize controllers
+	userController := controller.NewUserController(service.NewUserService(userRepo))
+
+	// Initialize Fiber app
 	app := fiber.New()
 
-    // Setup REST routes
-    routes.SetupRoutes(app, userController)
-    
-    var wg sync.WaitGroup
+	// Setup REST routes
+	routes.SetupRoutes(app, userController)
+
+	var wg sync.WaitGroup
 
 	// Start REST server
 	wg.Add(1)
@@ -45,13 +60,14 @@ func main() {
 	}()
 
 	// Start gRPC server
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := controller.RunGRPCServer(userRepo); err != nil {
-			log.Fatalf("Failed to run gRPC server: %v", err)
-		}
-	}()
+	// wg.Add(1)
+	// go func() {
+	// 	defer wg.Done()
+	// 	if err := controller.RunGRPCServer(userRepo); err != nil {
+	// 		log.Fatalf("Failed to run gRPC server: %v", err)
+	// 	}
+	// }()
 
-    wg.Wait()
+	// Wait for all servers to exit
+	wg.Wait()
 }
