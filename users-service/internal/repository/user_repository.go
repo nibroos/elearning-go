@@ -8,6 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/nibroos/elearning-go/users-service/internal/dtos"
 	"github.com/nibroos/elearning-go/users-service/internal/models"
+	"github.com/nibroos/elearning-go/users-service/internal/utils"
 	"gorm.io/gorm"
 )
 
@@ -30,11 +31,12 @@ func NewUserRepository(db *gorm.DB, sqlDB *sqlx.DB) *UserRepository {
 		sqlDB: sqlDB,
 	}
 }
+
 func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string) ([]dtos.UserListDTO, int, error) {
 	users := []dtos.UserListDTO{}
 	var total int
 
-	query := `SELECT * FROM users WHERE 1=1`
+	query := `SELECT id, username, name, email FROM users WHERE 1=1`
 	var args []interface{}
 
 	i := 1
@@ -56,9 +58,12 @@ func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string
 		return nil, 0, err
 	}
 
-	orderColumn := filters["order_column"]
-	orderDirection := filters["order_direction"]
+	// orderColumn := filters["order_column"]
+	orderColumn := utils.GetStringOrDefault(filters["order_column"], "users.id")
+	orderDirection := utils.GetStringOrDefault(filters["order_direction"], "asc")
 	query += fmt.Sprintf(" ORDER BY %s %s", orderColumn, orderDirection)
+
+	// return utils.DD(ctx, "ABC", []int{1, 2, 3}, map[string]string{"key": "value"})
 
 	perPage, _ := strconv.Atoi(filters["per_page"])
 	currentPage, _ := strconv.Atoi(filters["page"])

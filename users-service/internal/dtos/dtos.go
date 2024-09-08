@@ -1,14 +1,16 @@
 package dtos
 
+import "github.com/nibroos/elearning-go/users-service/internal/utils"
+
 type GetUsersRequest struct {
-	Global         string `json:"global"`
-	Username       string `json:"username"`
-	Name           string `json:"name"`
-	Email          string `json:"email"`
-	PerPage        string `json:"per_page" default:"10"`         // Default per_page to 10
-	Page           string `json:"page" default:"1"`              // Default page to 1
-	OrderColumn    string `json:"order_column" default:"id"`     // Default order column to "id"
-	OrderDirection string `json:"order_direction" default:"asc"` // Default order direction to "asc"
+	Global         string            `json:"global"`
+	Username       string            `json:"username"`
+	Name           string            `json:"name"`
+	Email          string            `json:"email"`
+	PerPage        utils.StringOrInt `json:"per_page" default:"10"`         // Default per_page to 10
+	Page           utils.StringOrInt `json:"page" default:"1"`              // Default page to 1
+	OrderColumn    string            `json:"order_column" default:"id"`     // Default order column to "id"
+	OrderDirection string            `json:"order_direction" default:"asc"` // Default order direction to "asc"
 }
 
 type CreateUserRequest struct {
@@ -24,8 +26,10 @@ type GetUserByIDRequest struct {
 }
 
 type UserListDTO struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	ID       int    `json:"id"`
+	Username string `json:"username"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
 }
 
 type UserDetailDTO struct {

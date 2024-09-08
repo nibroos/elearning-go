@@ -39,6 +39,8 @@ func (s *UserService) GetUsers(ctx context.Context, filters map[string]string) (
 	}()
 
 	wg.Wait()
+	users, total, err = s.repo.GetUsers(ctx, filters)
+
 	return users, total, err
 }
 

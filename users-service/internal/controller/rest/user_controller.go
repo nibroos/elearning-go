@@ -27,42 +27,31 @@ func (c *UserController) GetUsers(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Failed to parse request body",
 			"status":  "error",
+			"err":     err.Error(),
 		})
 	}
-
-	if GetUsersRequest.PerPage == "" {
-		GetUsersRequest.PerPage = "10"
-	}
-	if GetUsersRequest.Page == "" {
-		GetUsersRequest.Page = "1"
-	}
-	if GetUsersRequest.OrderColumn == "" {
-		GetUsersRequest.OrderColumn = "users.name"
-	}
-	if GetUsersRequest.OrderDirection == "" {
-		GetUsersRequest.OrderDirection = "desc"
-	}
+	// return utils.DD(ctx, "ABC", GetUsersRequest, []int{1, 2, 3}, map[string]string{"key": "value"})
 
 	// Convert the filters struct to a map
 	filters := utils.ConvertStructToMap(GetUsersRequest)
 
 	users, total, err := c.service.GetUsers(ctx.Context(), filters)
 	if err != nil {
-		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, "Error fetching users", "error"), http.StatusInternalServerError)
+		// return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, utils.ErrorWithLocation(err), "error"), http.StatusInternalServerError)
+		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, err.Error(), http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 
-	perPage := utils.AtoiDefault(filters["per_page"], 10)
 	currentPage := utils.AtoiDefault(filters["page"], 1)
-	lastPage := (total + perPage - 1) / perPage
+	lastPage := (total + GetUsersRequest.PerPage.Value - 1) / GetUsersRequest.PerPage.Value
 
 	paginationMeta := &utils.PaginationMeta{
 		Total:       total,
-		PerPage:     perPage,
+		PerPage:     GetUsersRequest.PerPage.Value,
 		CurrentPage: currentPage,
 		LastPage:    lastPage,
 	}
 
-	response := utils.WrapResponse(users, paginationMeta, "Users fetched successfully", string(rune(http.StatusOK)))
+	response := utils.WrapResponse(users, paginationMeta, "Users fetched successfully", http.StatusOK)
 	return utils.SendResponse(ctx, response, http.StatusOK)
 }
 
@@ -91,7 +80,7 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 
 	paginationMeta := &utils.PaginationMeta{}
 
-	response := utils.WrapResponse(createdUser, paginationMeta, "Users fetched successfully", string(rune(http.StatusOK)))
+	response := utils.WrapResponse(createdUser, paginationMeta, "Users fetched successfully", http.StatusOK)
 	return utils.SendResponse(ctx, response, http.StatusOK)
 }
 
@@ -109,6 +98,6 @@ func (c *UserController) GetUserByID(ctx *fiber.Ctx) error {
 
 	paginationMeta := &utils.PaginationMeta{}
 
-	response := utils.WrapResponse(user, paginationMeta, "Users fetched successfully", string(rune(http.StatusOK)))
+	response := utils.WrapResponse(user, paginationMeta, "Users fetched successfully", http.StatusOK)
 	return utils.SendResponse(ctx, response, http.StatusOK)
 }
