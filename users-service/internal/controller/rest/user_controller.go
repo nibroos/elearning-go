@@ -35,18 +35,22 @@ func (c *UserController) GetUsers(ctx *fiber.Ctx) error {
 	// Convert the filters struct to a map
 	filters := utils.ConvertStructToMap(GetUsersRequest)
 
+	// utils.DD(ctx.Context(), map[string]interface{}{
+	// 	"filters1": filters,
+	// })
+
 	users, total, err := c.service.GetUsers(ctx.Context(), filters)
 	if err != nil {
-		// return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, utils.ErrorWithLocation(err), "error"), http.StatusInternalServerError)
 		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, err.Error(), http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 
-	currentPage := utils.AtoiDefault(filters["page"], 1)
-	lastPage := (total + GetUsersRequest.PerPage.Value - 1) / GetUsersRequest.PerPage.Value
+	currentPage := utils.GetIntOrDefault(filters["page"], 1)
+	perPage := utils.GetIntOrDefault(filters["per_page"], 10)
+	lastPage := (total + perPage - 1) / perPage
 
-	paginationMeta := &utils.PaginationMeta{
+	paginationMeta := &utils.Meta{
 		Total:       total,
-		PerPage:     GetUsersRequest.PerPage.Value,
+		PerPage:     perPage,
 		CurrentPage: currentPage,
 		LastPage:    lastPage,
 	}
@@ -78,7 +82,7 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusInternalServerError})
 	}
 
-	paginationMeta := &utils.PaginationMeta{}
+	paginationMeta := &utils.Meta{}
 
 	response := utils.WrapResponse(createdUser, paginationMeta, "Users fetched successfully", http.StatusOK)
 	return utils.SendResponse(ctx, response, http.StatusOK)
@@ -96,7 +100,7 @@ func (c *UserController) GetUserByID(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error(), "message": "Invalid request", "status": http.StatusInternalServerError})
 	}
 
-	paginationMeta := &utils.PaginationMeta{}
+	paginationMeta := &utils.Meta{}
 
 	response := utils.WrapResponse(user, paginationMeta, "Users fetched successfully", http.StatusOK)
 	return utils.SendResponse(ctx, response, http.StatusOK)

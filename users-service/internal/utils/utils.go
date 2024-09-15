@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -13,10 +15,6 @@ import (
 )
 
 type Meta struct {
-	Pagination PaginationMeta `json:"pagination"`
-}
-
-type PaginationMeta struct {
 	Total       int `json:"total"`
 	PerPage     int `json:"per_page"`
 	CurrentPage int `json:"current_page"`
@@ -25,7 +23,7 @@ type PaginationMeta struct {
 
 type Response struct {
 	Data    interface{} `json:"data"`
-	Meta    Meta        `json:"meta,omitempty"`
+	Meta    *Meta       `json:"meta,omitempty"`
 	Message string      `json:"message"`
 	Status  int16       `json:"status"`
 }
@@ -33,6 +31,14 @@ type Response struct {
 type StringOrInt struct {
 	Value int
 }
+
+// ContextKey is a type for context keys used in this package
+type ContextKey string
+
+const (
+	// ResponseWriterKey is the context key for the http.ResponseWriter
+	ResponseWriterKey ContextKey = "ResponseWriter"
+)
 
 // JSONError formats and returns an error response
 func JSONError(ctx *fiber.Ctx, status int, err error) error {
@@ -48,15 +54,15 @@ func HashPassword(password string) (string, error) {
 	}
 	return string(hashedPassword), nil
 }
-func WrapResponse(data interface{}, pagination *PaginationMeta, message string, status int16) Response {
+func WrapResponse(data interface{}, pagination *Meta, message string, status int16) Response {
 	meta := Meta{}
 	if pagination != nil {
-		meta.Pagination = *pagination
+		meta = *pagination
 	}
 
 	return Response{
 		Data:    data,
-		Meta:    meta,
+		Meta:    &meta,
 		Message: message,
 		Status:  status,
 	}
@@ -91,6 +97,8 @@ func ConvertStructToMap(filters interface{}) map[string]string {
 			result[key] = strconv.Itoa(v)
 		case string:
 			result[key] = v
+		case StringOrInt:
+			result[key] = strconv.Itoa(v.Value)
 		default:
 			result[key] = fmt.Sprintf("%v", v)
 		}
@@ -123,6 +131,11 @@ func (s *StringOrInt) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON implements the json.Marshaler interface for StringOrInt.
+func (s StringOrInt) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Value)
+}
+
 func DefaultString(value, defaultValue string) string {
 	if value == "" {
 		return defaultValue
@@ -137,25 +150,25 @@ func DefaultInt(value, defaultValue int) int {
 	return value
 }
 
-// DD takes multiple values, creates a JSON response, and stops execution.
-func DD(c *fiber.Ctx, values ...interface{}) error {
-	// Create a map to hold the values
-	response := fiber.Map{}
+// // DD takes multiple values, creates a JSON response, and stops execution.
+// func DD(c *fiber.Ctx, values ...interface{}) error {
+// 	// Create a map to hold the values
+// 	response := fiber.Map{}
 
-	// Dynamically add the passed values to the response
-	for i, value := range values {
-		// The key will be "value_0", "value_1", etc.
-		key := fmt.Sprintf("value_%d", i)
-		response[key] = value
-	}
+// 	// Dynamically add the passed values to the response
+// 	for i, value := range values {
+// 		// The key will be "value_0", "value_1", etc.
+// 		key := fmt.Sprintf("value_%d", i)
+// 		response[key] = value
+// 	}
 
-	// Return a JSON response with status 200 and stop further execution
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":  "debug",
-		"message": "Debugging Output",
-		"data":    response,
-	})
-}
+// 	// Return a JSON response with status 200 and stop further execution
+// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+// 		"status":  "debug",
+// 		"message": "Debugging Output",
+// 		"data":    response,
+// 	})
+// }
 
 // ErrorWithLocation returns an error message with file and line number information.
 func ErrorWithLocation(err error) string {
@@ -193,4 +206,60 @@ func GetStringOrDefault(value interface{}, defaultValue string) string {
 	}
 
 	return defaultValue
+}
+
+// GetIntOrDefault retrieves an int value from a variable or map-based on the provided default value.
+// It accepts both direct int values and string values (which are converted to int).
+// If the value is empty, invalid, or the key does not exist, it returns the provided default value.
+func GetIntOrDefault(value interface{}, defaultValue int) int {
+	// Check if value is an int directly
+	if intValue, ok := value.(int); ok {
+		return intValue
+	}
+
+	// Check if value is a string and convert it to int
+	if str, ok := value.(string); ok {
+		if intValue, err := strconv.Atoi(str); err == nil {
+			return intValue
+		}
+	}
+
+	// Check if value is a map
+	if reflect.TypeOf(value).Kind() == reflect.Map {
+		// Ensure the value is a map of strings to interfaces
+		if m, ok := value.(map[string]interface{}); ok {
+			// Try to retrieve value from map and check if it is a string or int
+			for _, v := range m {
+				if intValue, ok := v.(int); ok {
+					return intValue
+				}
+				if str, ok := v.(string); ok {
+					if intValue, err := strconv.Atoi(str); err == nil {
+						return intValue
+					}
+				}
+			}
+		}
+	}
+
+	return defaultValue
+}
+
+// DD is a helper function to dump the value of a variable, stop the process, and optionally send a response to the client.
+func DD(ctx context.Context, value interface{}) {
+	// Print the value to the console
+	fmt.Printf("%+v\n", value)
+
+	// Convert the value to JSON
+	jsonValue, err := json.MarshalIndent(value, "", "  ")
+	if err != nil {
+		fmt.Println("Failed to marshal value:", err)
+		os.Exit(1)
+	}
+
+	// Print the JSON value to the console
+	fmt.Println(string(jsonValue))
+
+	// Stop the process
+	os.Exit(0)
 }

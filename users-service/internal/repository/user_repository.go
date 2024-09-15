@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/nibroos/elearning-go/users-service/internal/dtos"
@@ -31,7 +30,6 @@ func NewUserRepository(db *gorm.DB, sqlDB *sqlx.DB) *UserRepository {
 		sqlDB: sqlDB,
 	}
 }
-
 func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string) ([]dtos.UserListDTO, int, error) {
 	users := []dtos.UserListDTO{}
 	var total int
@@ -58,15 +56,18 @@ func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string
 		return nil, 0, err
 	}
 
-	// orderColumn := filters["order_column"]
-	orderColumn := utils.GetStringOrDefault(filters["order_column"], "users.id")
+	orderColumn := utils.GetStringOrDefault(filters["order_column"], "id")
 	orderDirection := utils.GetStringOrDefault(filters["order_direction"], "asc")
 	query += fmt.Sprintf(" ORDER BY %s %s", orderColumn, orderDirection)
 
-	// return utils.DD(ctx, "ABC", []int{1, 2, 3}, map[string]string{"key": "value"})
+	perPage := utils.GetIntOrDefault(filters["per_page"], 10)
+	currentPage := utils.GetIntOrDefault(filters["page"], 1)
 
-	perPage, _ := strconv.Atoi(filters["per_page"])
-	currentPage, _ := strconv.Atoi(filters["page"])
+	// utils.DD(ctx, map[string]interface{}{
+	// 	"perPage":     perPage,
+	// 	"currentPage": currentPage,
+	// })
+
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", i, i+1)
 	args = append(args, perPage, (currentPage-1)*perPage)
 
@@ -77,7 +78,6 @@ func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string
 
 	return users, total, nil
 }
-
 func (r *UserRepository) GetUserByID(id uint) (*dtos.UserDetailDTO, error) {
 	var user dtos.UserDetailDTO
 	query := `SELECT * FROM users WHERE id = $1`
