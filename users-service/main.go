@@ -9,7 +9,8 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/nibroos/elearning-go/users-service/internal/config"
-	controller "github.com/nibroos/elearning-go/users-service/internal/controller/rest"
+	restController "github.com/nibroos/elearning-go/users-service/internal/controller/rest"
+	"github.com/nibroos/elearning-go/users-service/internal/middleware"
 	"github.com/nibroos/elearning-go/users-service/internal/repository"
 	"github.com/nibroos/elearning-go/users-service/internal/routes"
 	"github.com/nibroos/elearning-go/users-service/internal/service"
@@ -40,10 +41,14 @@ func main() {
 	userRepo := repository.NewUserRepository(gormDB, sqlDB)
 
 	// Initialize controllers
-	userController := controller.NewUserController(service.NewUserService(userRepo))
+	userController := restController.NewUserController(service.NewUserService(userRepo))
+	// grpcUserController := grpcController.GRPCUserController(grpcServer, service.NewUserService(userRepo))
 
 	// Initialize Fiber app
 	app := fiber.New()
+
+	// Attach middleware
+	app.Use(middleware.ConvertRequestToFilters())
 
 	// Setup REST routes
 	routes.SetupRoutes(app, userController)
@@ -63,7 +68,7 @@ func main() {
 	// wg.Add(1)
 	// go func() {
 	// 	defer wg.Done()
-	// 	if err := controller.RunGRPCServer(userRepo); err != nil {
+	// 	if err := runGRPCServer(grpcUserController); err != nil {
 	// 		log.Fatalf("Failed to run gRPC server: %v", err)
 	// 	}
 	// }()
@@ -71,3 +76,19 @@ func main() {
 	// Wait for all servers to exit
 	wg.Wait()
 }
+
+// func runGRPCServer(grpcUserController grpcController.GRPCUserController) error {
+// 	lis, err := net.Listen("tcp", ":50051")
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	server := grpc.NewServer(
+// 		grpc.UnaryInterceptor(interceptor.UnaryServerInterceptor()),
+// 	)
+
+// 	grpcController.RegisterUserServiceServer(server, grpcUserController)
+
+// 	log.Printf("gRPC server listening on %v", lis.Addr())
+// 	return server.Serve(lis)
+// }

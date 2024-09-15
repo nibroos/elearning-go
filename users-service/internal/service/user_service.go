@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"sync"
 
 	"github.com/nibroos/elearning-go/users-service/internal/dtos"
 	"github.com/nibroos/elearning-go/users-service/internal/models"
@@ -26,58 +25,81 @@ type UserService struct {
 func NewUserService(repo *repository.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
-func (s *UserService) GetUsers(ctx context.Context, filters map[string]string) ([]dtos.UserListDTO, int, error) {
-	var wg sync.WaitGroup
-	var users []dtos.UserListDTO
-	var total int
-	var err error
 
-	wg.Add(1)
+func (s *UserService) GetUsers(ctx context.Context, filters map[string]string) ([]dtos.UserListDTO, int, error) {
+
+	resultChan := make(chan dtos.GetUsersResult, 1)
+
 	go func() {
-		defer wg.Done()
-		users, total, err = s.repo.GetUsers(ctx, filters)
+		users, total, err := s.repo.GetUsers(ctx, filters)
+		resultChan <- dtos.GetUsersResult{Users: users, Total: total, Err: err}
 	}()
 
-	wg.Wait()
-	users, total, err = s.repo.GetUsers(ctx, filters)
-
-	return users, total, err
+	select {
+	case res := <-resultChan:
+		return res.Users, res.Total, res.Err
+	case <-ctx.Done():
+		return nil, 0, ctx.Err()
+	}
 }
 
-func (s *UserService) CreateUser(user *models.User, roleIDs []uint) error {
+func (s *UserService) CreateUser(ctx context.Context, user *models.User, roleIDs []uint32) (*models.User, error) {
 	// Hash password before saving
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	user.Password = hashedPassword
 
 	// Transaction handling
 	tx := s.repo.BeginTransaction()
 	if err := tx.Error; err != nil {
-		return err
+		return nil, err
 	}
 
 	// Create user
 	if err := s.repo.CreateUser(user); err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 
 	// Attach roles
 	if err := s.repo.AttachRoles(tx, user, roleIDs); err != nil {
 		tx.Rollback()
-		return err
+		return nil, err
 	}
 
-	return tx.Commit().Error
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
-func (s *UserService) GetUserByID(id uint) (*dtos.UserDetailDTO, error) {
-	return s.repo.GetUserByID(id)
+func (s *UserService) GetUserByID(ctx context.Context, id uint32) (*dtos.UserDetailDTO, error) {
+	userChan := make(chan *dtos.UserDetailDTO, 1)
+	errChan := make(chan error, 1)
+
+	go func() {
+		user, err := s.repo.GetUserByID(id)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		userChan <- user
+	}()
+
+	select {
+	case user := <-userChan:
+		return user, nil
+	case err := <-errChan:
+		return nil, err
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }
 
-func (s *UserService) UpdateUser(user *models.User, roleIDs []uint) error {
+func (s *UserService) UpdateUser(user *models.User, roleIDs []uint32) error {
 	// TODO update hash password
 	// TODO update user
 	// TODO update roles

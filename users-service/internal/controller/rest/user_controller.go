@@ -19,42 +19,17 @@ func NewUserController(service *service.UserService) *UserController {
 }
 
 func (c *UserController) GetUsers(ctx *fiber.Ctx) error {
-	// Initialize the filters struct
-	var GetUsersRequest dtos.GetUsersRequest
-
-	// Parse the request body into the GetUsersRequest struct
-	if err := ctx.BodyParser(&GetUsersRequest); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Failed to parse request body",
-			"status":  "error",
-			"err":     err.Error(),
-		})
+	filters, ok := ctx.Locals("filters").(map[string]string)
+	if !ok {
+		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, "Invalid filters", http.StatusBadRequest), http.StatusBadRequest)
 	}
-	// return utils.DD(ctx, "ABC", GetUsersRequest, []int{1, 2, 3}, map[string]string{"key": "value"})
-
-	// Convert the filters struct to a map
-	filters := utils.ConvertStructToMap(GetUsersRequest)
-
-	// utils.DD(ctx.Context(), map[string]interface{}{
-	// 	"filters1": filters,
-	// })
 
 	users, total, err := c.service.GetUsers(ctx.Context(), filters)
 	if err != nil {
 		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, err.Error(), http.StatusInternalServerError), http.StatusInternalServerError)
 	}
 
-	currentPage := utils.GetIntOrDefault(filters["page"], 1)
-	perPage := utils.GetIntOrDefault(filters["per_page"], 10)
-	lastPage := (total + perPage - 1) / perPage
-
-	paginationMeta := &utils.Meta{
-		Total:       total,
-		PerPage:     perPage,
-		CurrentPage: currentPage,
-		LastPage:    lastPage,
-	}
-
+	paginationMeta := utils.CreatePaginationMeta(filters, total)
 	response := utils.WrapResponse(users, paginationMeta, "Users fetched successfully", http.StatusOK)
 	return utils.SendResponse(ctx, response, http.StatusOK)
 }
@@ -73,18 +48,19 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 		Address:  req.Address,
 	}
 
-	if err := c.service.CreateUser(&user, req.RoleIDs); err != nil {
+	createdUser, err := c.service.CreateUser(ctx.Context(), &user, req.RoleIDs)
+	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusInternalServerError})
 	}
 
-	createdUser, err := c.service.GetUserByID(user.ID)
+	getUser, err := c.service.GetUserByID(ctx.Context(), uint32(createdUser.ID))
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusInternalServerError})
 	}
 
 	paginationMeta := &utils.Meta{}
 
-	response := utils.WrapResponse(createdUser, paginationMeta, "Users fetched successfully", http.StatusOK)
+	response := utils.WrapResponse(getUser, paginationMeta, "Users fetched successfully", http.StatusOK)
 	return utils.SendResponse(ctx, response, http.StatusOK)
 }
 
@@ -95,13 +71,11 @@ func (c *UserController) GetUserByID(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusBadRequest})
 	}
 
-	user, err := c.service.GetUserByID(req.ID)
+	user, err := c.service.GetUserByID(ctx.Context(), uint32(req.ID))
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error(), "message": "Invalid request", "status": http.StatusInternalServerError})
 	}
 
-	paginationMeta := &utils.Meta{}
-
-	response := utils.WrapResponse(user, paginationMeta, "Users fetched successfully", http.StatusOK)
+	response := utils.WrapResponse(user, nil, "User fetched successfully", http.StatusOK)
 	return utils.SendResponse(ctx, response, http.StatusOK)
 }

@@ -263,3 +263,16 @@ func DD(ctx context.Context, value interface{}) {
 	// Stop the process
 	os.Exit(0)
 }
+
+func CreatePaginationMeta(filters map[string]string, total int) *Meta {
+	currentPage := GetIntOrDefault(filters["page"], 1)
+	perPage := GetIntOrDefault(filters["per_page"], 10)
+	lastPage := (total + perPage - 1) / perPage
+
+	return &Meta{
+		Total:       total,
+		PerPage:     perPage,
+		CurrentPage: currentPage,
+		LastPage:    lastPage,
+	}
+}

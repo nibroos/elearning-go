@@ -14,11 +14,11 @@ type GetUsersRequest struct {
 }
 
 type CreateUserRequest struct {
-	Name     string `json:"name" validate:"required,min=3"`
-	Email    string `json:"email" validate:"required,email"`
-	Address  string `json:"address" validate:"required"`
-	Password string `json:"password" validate:"required,min=8"`
-	RoleIDs  []uint `json:"role_ids" validate:"required"`
+	Name     string   `json:"name" validate:"required,min=3"`
+	Email    string   `json:"email" validate:"required,email"`
+	Address  string   `json:"address" validate:"required"`
+	Password string   `json:"password" validate:"required,min=8"`
+	RoleIDs  []uint32 `json:"role_ids" validate:"required"`
 }
 
 type GetUserByIDRequest struct {
@@ -37,7 +37,13 @@ type UserDetailDTO struct {
 	Name            string   `json:"name"`
 	Email           string   `json:"email"`
 	Address         string   `json:"address"`
-	RoleIDs         []uint   `json:"role_ids"`
-	PermissionIDs   []uint   `json:"permission_ids"`
+	RoleIDs         []uint32 `json:"role_ids"`
+	PermissionIDs   []uint32 `json:"permission_ids"`
 	PermissionNames []string `json:"permission_names"`
+}
+
+type GetUsersResult struct {
+	Users []UserListDTO
+	Total int
+	Err   error
 }

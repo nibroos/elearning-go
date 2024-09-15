@@ -30,6 +30,7 @@ func NewUserRepository(db *gorm.DB, sqlDB *sqlx.DB) *UserRepository {
 		sqlDB: sqlDB,
 	}
 }
+
 func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string) ([]dtos.UserListDTO, int, error) {
 	users := []dtos.UserListDTO{}
 	var total int
@@ -78,14 +79,29 @@ func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string
 
 	return users, total, nil
 }
-func (r *UserRepository) GetUserByID(id uint) (*dtos.UserDetailDTO, error) {
+
+func (r *UserRepository) GetUserByID(id uint32) (*dtos.UserDetailDTO, error) {
 	var user dtos.UserDetailDTO
 	query := `SELECT * FROM users WHERE id = $1`
 	if err := r.sqlDB.Get(&user, query, id); err != nil {
 		return nil, err
 	}
-	// TODO: add roles
-	// TODO: add permissions
+
+	// Fetch roles
+	var roleIDs []uint32
+	roleQuery := `SELECT role_id FROM role_user WHERE user_id = $1`
+	if err := r.sqlDB.Select(&roleIDs, roleQuery, id); err != nil {
+		return nil, err
+	}
+	user.RoleIDs = roleIDs
+
+	// Fetch permissions
+	var permissionIDs []uint32
+	permissionQuery := `SELECT permission_id FROM permission_user WHERE user_id = $1`
+	if err := r.sqlDB.Select(&permissionIDs, permissionQuery, id); err != nil {
+		return nil, err
+	}
+	user.PermissionIDs = permissionIDs
 
 	return &user, nil
 }
@@ -100,7 +116,7 @@ func (r *UserRepository) BeginTransaction() *gorm.DB {
 //	    return err
 //	}
 
-func (r *UserRepository) AttachRoles(tx *gorm.DB, user *models.User, roleIDs []uint) error {
+func (r *UserRepository) AttachRoles(tx *gorm.DB, user *models.User, roleIDs []uint32) error {
 	// Prepare batch insert for new role_user relationships
 	var pools []models.Pool
 	for _, roleID := range roleIDs {
@@ -165,50 +181,3 @@ func (r *UserRepository) UpdateUser(user *models.User) error {
 func (r *UserRepository) DeleteUser(user *models.User) error {
 	return r.db.Delete(user).Error
 }
-
-// func (r *UserRepository) GetUsers(searchParams map[string]string) ([]dtos.UserListDTO, error) {
-//     // var users []models.User
-//     var users []dtos.UserListDTO
-
-//     query := `SELECT * FROM users WHERE 1=1`
-//     args := []interface{}{}
-
-//     if global, exists := searchParams["global"]; exists && global != "" {
-//         query += ` AND (username ILIKE $1 OR email ILIKE $2)`
-//         args = append(args, "%"+global+"%", "%"+global+"%")
-//     }
-
-//     if name, exists := searchParams["name"]; exists && name != "" {
-//         query += ` AND username ILIKE $3`
-//         query += ` AND name ILIKE $4`
-//         args = append(args, "%"+name+"%")
-//         args = append(args, "%"+name+"%")
-//     }
-
-//     if email, exists := searchParams["email"]; exists && email != "" {
-//         query += ` AND email ILIKE $5`
-//         args = append(args, "%"+email+"%")
-//     }
-
-//     query = strings.Replace(query, "$1", fmt.Sprintf("$%d", len(args)-2), -1)
-//     query = strings.Replace(query, "$2", fmt.Sprintf("$%d", len(args)-1), -1)
-//     query = strings.Replace(query, "$3", fmt.Sprintf("$%d", len(args)), -1)
-//     query = strings.Replace(query, "$4", fmt.Sprintf("$%d", len(args)+1), -1)
-//     query = strings.Replace(query, "$5", fmt.Sprintf("$%d", len(args)+2), -1)
-
-//     err := r.sqlDB.Select(&users, query, args...)
-//     if err != nil {
-//         return nil, err
-//     }
-
-//     return users, nil
-// }
-// func (r *UserRepository) UpdateUser(user *model.User) error {
-//     _, err := r.db.NamedExec(`UPDATE users SET name=:name, email=:email, password=:password WHERE id=:id`, user)
-//     return err
-// }
-
-// func (r *UserRepository) DeleteUser(id int) error {
-//     _, err := r.db.Exec(`DELETE FROM users WHERE id = $1`, id)
-//     return err
-// }
