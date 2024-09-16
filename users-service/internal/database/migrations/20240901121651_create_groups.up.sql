@@ -1,12 +1,10 @@
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS pools (
+CREATE TABLE IF NOT EXISTS groups (
   id SERIAL PRIMARY KEY,
-  group1_id INT REFERENCES groups(id),
-  group2_id INT REFERENCES groups(id),
-  mv1_id INT REFERENCES mix_values(id),
-  mv2_id INT REFERENCES mix_values(id),
+  name VARCHAR(255) NOT NULL,
   description VARCHAR(255),
+  status INT,
   options_json JSONB,
   created_by_id INT REFERENCES users(id),
   updated_by_id INT REFERENCES users(id),

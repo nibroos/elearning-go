@@ -46,6 +46,10 @@ migrate-up:
 migrate-down:
 	$(MIGRATE) down 1
 
+.PHONY: migrate-force
+migrate-force:
+	$(MIGRATE) force $(v-force)
+
 .PHONY: build
 build:
 	go build -o bin/app cmd/main.go

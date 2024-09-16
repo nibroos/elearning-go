@@ -81,7 +81,7 @@ func (s *UserService) GetUserByID(ctx context.Context, id uint32) (*dtos.UserDet
 	errChan := make(chan error, 1)
 
 	go func() {
-		user, err := s.repo.GetUserByID(id)
+		user, err := s.repo.GetUserByID(ctx, id)
 		if err != nil {
 			errChan <- err
 			return

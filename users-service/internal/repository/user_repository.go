@@ -80,12 +80,17 @@ func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string
 	return users, total, nil
 }
 
-func (r *UserRepository) GetUserByID(id uint32) (*dtos.UserDetailDTO, error) {
+func (r *UserRepository) GetUserByID(ctx context.Context, id uint32) (*dtos.UserDetailDTO, error) {
 	var user dtos.UserDetailDTO
+
 	query := `SELECT * FROM users WHERE id = $1`
 	if err := r.sqlDB.Get(&user, query, id); err != nil {
 		return nil, err
 	}
+
+	utils.DD(ctx, map[string]interface{}{
+		"user": user,
+	})
 
 	// Fetch roles
 	var roleIDs []uint32

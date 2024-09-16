@@ -35,6 +35,7 @@ type UserListDTO struct {
 type UserDetailDTO struct {
 	ID              uint     `json:"id"`
 	Name            string   `json:"name"`
+	Username        string   `json:"username"`
 	Email           string   `json:"email"`
 	Address         string   `json:"address"`
 	RoleIDs         []uint32 `json:"role_ids"`

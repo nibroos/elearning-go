@@ -2,11 +2,11 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
-	controller "github.com/nibroos/elearning-go/users-service/internal/controller/rest"
+	rest "github.com/nibroos/elearning-go/users-service/internal/controller/rest"
 )
 
 // SetupRoutes sets up the REST routes for the user service.
-func SetupRoutes(app *fiber.App, userController *controller.UserController) {
+func SetupRoutes(app *fiber.App, userController *rest.UserController, seederController *rest.SeederController) {
 	app.Get("/api/v1/users/test", func(c *fiber.Ctx) error {
 		return c.SendString("REST Users Service!")
 	})
@@ -26,4 +26,6 @@ func SetupRoutes(app *fiber.App, userController *controller.UserController) {
 	// users.Post("/update-user", userController.UpdateUser)
 	// users.Post("/delete-user", userController.DeleteUser)
 
+	// Seeder route
+	app.Post("/api/v1/seeders/run", seederController.RunSeeders)
 }

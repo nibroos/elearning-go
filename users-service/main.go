@@ -42,6 +42,7 @@ func main() {
 
 	// Initialize controllers
 	userController := restController.NewUserController(service.NewUserService(userRepo))
+	seederController := restController.NewSeederController(sqlDB.DB)
 	// grpcUserController := grpcController.GRPCUserController(grpcServer, service.NewUserService(userRepo))
 
 	// Initialize Fiber app
@@ -51,7 +52,7 @@ func main() {
 	app.Use(middleware.ConvertRequestToFilters())
 
 	// Setup REST routes
-	routes.SetupRoutes(app, userController)
+	routes.SetupRoutes(app, userController, seederController)
 
 	var wg sync.WaitGroup
 

@@ -2,8 +2,10 @@ package utils
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"reflect"
 	"runtime"
@@ -275,4 +277,31 @@ func CreatePaginationMeta(filters map[string]string, total int) *Meta {
 		CurrentPage: currentPage,
 		LastPage:    lastPage,
 	}
+}
+
+func ExecuteSeeders(db *sql.DB, seedFiles []string) error {
+	for _, file := range seedFiles {
+		err := executeSQLFile(db, file)
+		if err != nil {
+			return fmt.Errorf("error executing %s: %v", file, err)
+		}
+		fmt.Printf("Executed %s successfully\n", file)
+	}
+	return nil
+}
+
+func executeSQLFile(db *sql.DB, filePath string) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	sqlBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(string(sqlBytes))
+	return err
 }
