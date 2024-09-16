@@ -32,6 +32,8 @@ Change bash directory to each service.
 - Run migration : `make migrate-up`
 - Stepback migraiton: `make migrate-down`
 - Generate proto file, leave the proto args blank if you want to generate all proto file: `make proto ${your-proto.proto}`. If its fail, run this command on specific service. for example, in /users-service/ run bash `export PATH="$PATH:$(go env GOPATH)/bin"`
+- Create seeder : `make seed-create name=${your_seeder_name}`
+- Run seeder : `make seed-run file=${your_seeder_name}`
 
 ## 💎 The Package Features
 
@@ -44,10 +46,13 @@ Change bash directory to each service.
 <img src="https://img.shields.io/badge/-PostgreSQL-336791?style=for-the-badge&logo=PostgreSQL&logoColor=fff" />&nbsp;&nbsp;
 </p>
 
-## 📔 Issues
+## 📔 Notes & Issues
 
 #### dial tcp: lookup postgres: no such host
 Change the makefile DB_HOST to `localhost` if run in local env, when running on docker, change it to `postgres`.
+
+#### run multiple seeder in one execution
+You can run multiple seeder references in the seeder_controller.go file.
 
 ### 📗 API Document
 All endpoints stored in  `-.json`

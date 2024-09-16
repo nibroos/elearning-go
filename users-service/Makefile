@@ -31,6 +31,7 @@ MIGRATE=migrate -path=internal/database/migrations -database $(DB_URL)
 PROTO_DIR=internal/proto
 GENERATED_PROTO_DIR=internal/proto/generated
 PROTO_FILES=$(wildcard $(PROTO_DIR)/*.proto)
+SEEDER_DIR=internal/database/seeders
 
 # Commands
 
@@ -49,6 +50,26 @@ migrate-down:
 .PHONY: migrate-force
 migrate-force:
 	$(MIGRATE) force $(v-force)
+	
+.PHONY: seed-create
+seed-create:
+ifndef name
+	$(error name is undefined. Usage: make seed-create name=<seeder_name>)
+endif
+	TIMESTAMP=$$(date +%Y%m%d%H%M%S); \
+	echo "Creating seeder file: $(SEEDER_DIR)/$${TIMESTAMP}_$(name).sql"; \
+	echo "BEGIN;" > $(SEEDER_DIR)/$${TIMESTAMP}_$(name).sql; \
+	echo "INSERT INTO ..." >> $(SEEDER_DIR)/$${TIMESTAMP}_$(name).sql; \
+	echo "COMMIT;" >> $(SEEDER_DIR)/$${TIMESTAMP}_$(name).sql
+
+.PHONY: seed-run
+seed-run:
+ifndef file
+	$(error file is undefined. Usage: make seed-run file=<seeder_file>)
+endif
+	@echo "Running seeder file: $(SEEDER_DIR)/$(file)"
+	docker run --rm -v $(PWD)/$(SEEDER_DIR):/seeders --network host postgres:latest \
+	psql $(DB_URL) -f /seeders/$(file)
 
 .PHONY: build
 build:

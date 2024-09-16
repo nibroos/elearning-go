@@ -11,7 +11,8 @@ func SetupRoutes(app *fiber.App, userController *rest.UserController, seederCont
 		return c.SendString("REST Users Service!")
 	})
 
-	users := app.Group("/api/v1/users")
+	version := app.Group("/api/v1")
+	users := version.Group("/users")
 
 	users.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
@@ -27,5 +28,5 @@ func SetupRoutes(app *fiber.App, userController *rest.UserController, seederCont
 	// users.Post("/delete-user", userController.DeleteUser)
 
 	// Seeder route
-	app.Post("/api/v1/seeders/run", seederController.RunSeeders)
+	version.Post("/seeders/run", seederController.RunSeeders)
 }

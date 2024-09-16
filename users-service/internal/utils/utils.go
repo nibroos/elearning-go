@@ -305,3 +305,11 @@ func executeSQLFile(db *sql.DB, filePath string) error {
 	_, err = db.Exec(string(sqlBytes))
 	return err
 }
+
+func generateBcryptHash(password string) (string, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hashedPassword), nil
+}
