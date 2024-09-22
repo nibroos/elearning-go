@@ -33,16 +33,14 @@ type UserListDTO struct {
 }
 
 type UserDetailDTO struct {
-	ID              uint     `json:"id"`
-	Name            string   `json:"name"`
-	Username        string   `json:"username"`
-	Email           string   `json:"email"`
-	Address         string   `json:"address"`
-	RoleIDs         []uint32 `json:"role_ids"`
-	PermissionIDs   []uint32 `json:"permission_ids"`
-	PermissionNames []string `json:"permission_names"`
+	ID          uint     `json:"id"`
+	Name        string   `json:"name"`
+	Username    string   `json:"username"`
+	Email       string   `json:"email"`
+	Address     string   `json:"address"`
+	Roles       []string `json:"roles"`
+	Permissions []string `json:"permissions"`
 }
-
 type GetUsersResult struct {
 	Users []UserListDTO
 	Total int

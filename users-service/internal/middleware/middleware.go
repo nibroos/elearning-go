@@ -1,8 +1,10 @@
 package middleware
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
 	"runtime"
 	"strconv"
 
@@ -10,26 +12,34 @@ import (
 )
 
 // ErrorHandler middleware
-func ErrorHandler() fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		err := c.Next() // Execute the next handler
-		if err != nil {
-			// Capture the stack trace
-			_, file, line, _ := runtime.Caller(1)
-			stackTrace := fmt.Sprintf("%s:%d", file, line)
+func ErrorHandler(ctx *fiber.Ctx, err error) error {
+	// Default to 500 Internal Server Error
+	code := http.StatusInternalServerError
+	message := "Internal server error"
 
-			// Log the error and stack trace
-			log.Printf("Error: %v\nStack Trace: %s\n", err, stackTrace)
-
-			// Return a JSON response with the error
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"status":  "error",
-				"message": err.Error(),
-				"stack":   stackTrace, // Optionally include stack trace
-			})
-		}
-		return nil
+	if err == sql.ErrNoRows {
+		code = http.StatusNotFound
+		message = "No result found"
+	} else if e, ok := err.(*fiber.Error); ok {
+		// Use Fiber's default error message
+		code = e.Code
+		message = e.Message
 	}
+
+	// Capture the stack trace
+	_, file, line, _ := runtime.Caller(1)
+	stackTrace := fmt.Sprintf("%s:%d", file, line)
+
+	// Log the error and stack trace
+	log.Printf("Error: %v\nStack Trace: %s\n", err, stackTrace)
+
+	// Return a JSON response with the error
+	return ctx.Status(code).JSON(fiber.Map{
+		"status":  code,
+		"message": message,
+		"errors":  err.Error(),
+		// "stack":   stackTrace, // Optionally include stack trace
+	})
 }
 
 func ConvertRequestToFilters() fiber.Handler {

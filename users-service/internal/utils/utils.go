@@ -28,6 +28,7 @@ type Response struct {
 	Meta    *Meta       `json:"meta,omitempty"`
 	Message string      `json:"message"`
 	Status  int16       `json:"status"`
+	Errors  interface{} `json:"errors"`
 }
 
 type StringOrInt struct {
@@ -56,7 +57,7 @@ func HashPassword(password string) (string, error) {
 	}
 	return string(hashedPassword), nil
 }
-func WrapResponse(data interface{}, pagination *Meta, message string, status int16) Response {
+func WrapResponse(data interface{}, pagination *Meta, message string, status int16, errors ...interface{}) Response {
 	meta := Meta{}
 	if pagination != nil {
 		meta = *pagination
@@ -67,7 +68,25 @@ func WrapResponse(data interface{}, pagination *Meta, message string, status int
 		Meta:    &meta,
 		Message: message,
 		Status:  status,
+		Errors:  errors,
 	}
+}
+
+func GetResponse(ctx *fiber.Ctx, data interface{}, pagination *Meta, message string, status int16, errors ...interface{}) error {
+	meta := Meta{}
+	if pagination != nil {
+		meta = *pagination
+	}
+
+	response := Response{
+		Data:    data,
+		Meta:    &meta,
+		Message: message,
+		Status:  status,
+		Errors:  errors,
+	}
+
+	return SendResponse(ctx, response, int(status))
 }
 
 func SendResponse(ctx *fiber.Ctx, response Response, statusCode int) error {

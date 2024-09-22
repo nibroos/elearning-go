@@ -79,37 +79,88 @@ func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string
 
 	return users, total, nil
 }
-
 func (r *UserRepository) GetUserByID(ctx context.Context, id uint32) (*dtos.UserDetailDTO, error) {
 	var user dtos.UserDetailDTO
 
-	query := `SELECT * FROM users WHERE id = $1`
+	query := `SELECT id, username, name, email, address FROM users WHERE id = $1`
 	if err := r.sqlDB.Get(&user, query, id); err != nil {
 		return nil, err
 	}
 
-	utils.DD(ctx, map[string]interface{}{
-		"user": user,
-	})
+	// utils.DD(ctx, map[string]interface{}{
+	// 	"user": user,
+	// })
 
 	// Fetch roles
-	var roleIDs []uint32
-	roleQuery := `SELECT role_id FROM role_user WHERE user_id = $1`
-	if err := r.sqlDB.Select(&roleIDs, roleQuery, id); err != nil {
+	var roleNames []string
+	roleQuery := `
+        SELECT mv.name 
+        FROM pools p
+        JOIN mix_values mv ON p.mv2_id = mv.id
+        JOIN groups g1 ON p.group1_id = g1.id
+        JOIN groups g2 ON p.group2_id = g2.id
+        WHERE g1.name = 'users' AND g2.name = 'roles' AND p.mv1_id = $1
+    `
+	if err := r.sqlDB.Select(&roleNames, roleQuery, id); err != nil {
 		return nil, err
 	}
-	user.RoleIDs = roleIDs
+	user.Roles = roleNames
 
 	// Fetch permissions
-	var permissionIDs []uint32
-	permissionQuery := `SELECT permission_id FROM permission_user WHERE user_id = $1`
-	if err := r.sqlDB.Select(&permissionIDs, permissionQuery, id); err != nil {
+	var permissionNames []string
+	permissionQuery := `
+        SELECT mv.name 
+        FROM pools p
+        JOIN mix_values mv ON p.mv2_id = mv.id
+        JOIN groups g1 ON p.group1_id = g1.id
+        JOIN groups g2 ON p.group2_id = g2.id
+        WHERE g1.name = 'roles' AND g2.name = 'permissions' AND p.mv1_id IN (
+            SELECT mv.id 
+            FROM pools p
+            JOIN mix_values mv ON p.mv2_id = mv.id
+            JOIN groups g1 ON p.group1_id = g1.id
+            JOIN groups g2 ON p.group2_id = g2.id
+            WHERE g1.name = 'users' AND g2.name = 'roles' AND p.mv1_id = $1
+        )
+    `
+	if err := r.sqlDB.Select(&permissionNames, permissionQuery, id); err != nil {
 		return nil, err
 	}
-	user.PermissionIDs = permissionIDs
+	user.Permissions = permissionNames
 
 	return &user, nil
 }
+
+// func (r *UserRepository) GetUserByID(ctx context.Context, id uint32) (*dtos.UserDetailDTO, error) {
+// 	var user dtos.UserDetailDTO
+
+// 	query := `SELECT * FROM users WHERE id = $1`
+// 	if err := r.sqlDB.Get(&user, query, id); err != nil {
+// 		return nil, err
+// 	}
+
+// 	utils.DD(ctx, map[string]interface{}{
+// 		"user": user,
+// 	})
+
+// 	// Fetch roles
+// 	var roleIDs []uint32
+// 	roleQuery := `SELECT role_id FROM role_user WHERE user_id = $1`
+// 	if err := r.sqlDB.Select(&roleIDs, roleQuery, id); err != nil {
+// 		return nil, err
+// 	}
+// 	user.RoleIDs = roleIDs
+
+// 	// Fetch permissions
+// 	var permissionIDs []uint32
+// 	permissionQuery := `SELECT permission_id FROM permission_user WHERE user_id = $1`
+// 	if err := r.sqlDB.Select(&permissionIDs, permissionQuery, id); err != nil {
+// 		return nil, err
+// 	}
+// 	user.PermissionIDs = permissionIDs
+
+// 	return &user, nil
+// }
 
 // BeginTransaction starts a new transaction
 func (r *UserRepository) BeginTransaction() *gorm.DB {

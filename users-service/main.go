@@ -46,7 +46,9 @@ func main() {
 	// grpcUserController := grpcController.GRPCUserController(grpcServer, service.NewUserService(userRepo))
 
 	// Initialize Fiber app
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ErrorHandler: middleware.ErrorHandler,
+	})
 
 	// Attach middleware
 	app.Use(middleware.ConvertRequestToFilters())

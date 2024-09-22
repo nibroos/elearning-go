@@ -30,8 +30,8 @@ func (c *UserController) GetUsers(ctx *fiber.Ctx) error {
 	}
 
 	paginationMeta := utils.CreatePaginationMeta(filters, total)
-	response := utils.WrapResponse(users, paginationMeta, "Users fetched successfully", http.StatusOK)
-	return utils.SendResponse(ctx, response, http.StatusOK)
+
+	return utils.GetResponse(ctx, users, paginationMeta, "Users fetched successfully", http.StatusOK)
 }
 
 func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
@@ -50,32 +50,42 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 
 	createdUser, err := c.service.CreateUser(ctx.Context(), &user, req.RoleIDs)
 	if err != nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusInternalServerError})
+		return utils.GetResponse(ctx, nil, nil, "Failed to create user", http.StatusInternalServerError, err.Error())
 	}
 
 	getUser, err := c.service.GetUserByID(ctx.Context(), uint32(createdUser.ID))
 	if err != nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusInternalServerError})
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
 	}
 
 	paginationMeta := &utils.Meta{}
 
-	response := utils.WrapResponse(getUser, paginationMeta, "Users fetched successfully", http.StatusOK)
-	return utils.SendResponse(ctx, response, http.StatusOK)
+	return utils.GetResponse(ctx, getUser, paginationMeta, "User created successfully", http.StatusCreated)
 }
 
 func (c *UserController) GetUserByID(ctx *fiber.Ctx) error {
 	var req dtos.GetUserByIDRequest
 
 	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusBadRequest})
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, err.Error())
+	}
+
+	if req.ID == 0 {
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, "ID is required")
+		// return fiber.NewError(http.StatusBadRequest, "ID is required")
 	}
 
 	user, err := c.service.GetUserByID(ctx.Context(), uint32(req.ID))
 	if err != nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error(), "message": "Invalid request", "status": http.StatusInternalServerError})
+
+		// if err == sql.ErrNoRows {
+		// 	return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, "No result found")
+		// }
+
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
 	}
 
-	response := utils.WrapResponse(user, nil, "User fetched successfully", http.StatusOK)
-	return utils.SendResponse(ctx, response, http.StatusOK)
+	userArray := []interface{}{user}
+
+	return utils.GetResponse(ctx, userArray, nil, "User fetched successfully", http.StatusOK)
 }
