@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS mix_values (
   status INT,
   options_json JSONB,
   created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-  updated_at timestamp with time zone
+  updated_at timestamp with time zone,
+  deleted_at timestamp with time zone
 );
 
 COMMIT;

@@ -33,16 +33,17 @@ func (c *UserController) GetUsers(ctx *fiber.Ctx) error {
 
 	return utils.GetResponse(ctx, users, paginationMeta, "Users fetched successfully", http.StatusOK)
 }
-
 func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 	var req dtos.CreateUserRequest
 
-	if err := ctx.BodyParser(&req); err != nil {
+	// Use the utility function to parse the request body
+	if err := utils.BodyParserWithNull(ctx, &req); err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusBadRequest})
 	}
 
 	user := models.User{
 		Name:     req.Name,
+		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
 		Address:  req.Address,
@@ -50,6 +51,9 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 
 	createdUser, err := c.service.CreateUser(ctx.Context(), &user, req.RoleIDs)
 	if err != nil {
+		if err.Error() == "username already exists" {
+			return ctx.Status(http.StatusConflict).JSON(fiber.Map{"errors": err.Error(), "message": "Username already exists", "status": http.StatusConflict})
+		}
 		return utils.GetResponse(ctx, nil, nil, "Failed to create user", http.StatusInternalServerError, err.Error())
 	}
 
@@ -58,11 +62,11 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
 	}
 
-	paginationMeta := &utils.Meta{}
+	filters := ctx.Locals("filters").(map[string]string)
+	paginationMeta := utils.CreatePaginationMeta(filters, 1)
 
 	return utils.GetResponse(ctx, getUser, paginationMeta, "User created successfully", http.StatusCreated)
 }
-
 func (c *UserController) GetUserByID(ctx *fiber.Ctx) error {
 	var req dtos.GetUserByIDRequest
 
@@ -72,20 +76,17 @@ func (c *UserController) GetUserByID(ctx *fiber.Ctx) error {
 
 	if req.ID == 0 {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, "ID is required")
-		// return fiber.NewError(http.StatusBadRequest, "ID is required")
 	}
 
 	user, err := c.service.GetUserByID(ctx.Context(), uint32(req.ID))
 	if err != nil {
-
-		// if err == sql.ErrNoRows {
-		// 	return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, "No result found")
-		// }
-
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
 	}
 
 	userArray := []interface{}{user}
 
-	return utils.GetResponse(ctx, userArray, nil, "User fetched successfully", http.StatusOK)
+	filters := ctx.Locals("filters").(map[string]string)
+	paginationMeta := utils.CreatePaginationMeta(filters, 1)
+
+	return utils.GetResponse(ctx, userArray, paginationMeta, "User fetched successfully", http.StatusOK)
 }

@@ -42,7 +42,6 @@ func (s *UserService) GetUsers(ctx context.Context, filters map[string]string) (
 		return nil, 0, ctx.Err()
 	}
 }
-
 func (s *UserService) CreateUser(ctx context.Context, user *models.User, roleIDs []uint32) (*models.User, error) {
 	// Hash password before saving
 	hashedPassword, err := utils.HashPassword(user.Password)
@@ -58,7 +57,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User, roleIDs
 	}
 
 	// Create user
-	if err := s.repo.CreateUser(user); err != nil {
+	if err := s.repo.CreateUser(tx, user); err != nil {
 		tx.Rollback()
 		return nil, err
 	}

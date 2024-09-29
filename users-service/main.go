@@ -37,6 +37,15 @@ func main() {
 		log.Fatalf("Failed to connect to the Gorm database: %v", err)
 	}
 
+	// Initialize Fiber app
+	app := fiber.New(fiber.Config{
+		ErrorHandler: middleware.ErrorHandler,
+	})
+
+	// Attach middleware
+	app.Use(middleware.ConvertEmptyStringsToNull())
+	app.Use(middleware.ConvertRequestToFilters())
+
 	// Initialize repositories
 	userRepo := repository.NewUserRepository(gormDB, sqlDB)
 
@@ -44,14 +53,6 @@ func main() {
 	userController := restController.NewUserController(service.NewUserService(userRepo))
 	seederController := restController.NewSeederController(sqlDB.DB)
 	// grpcUserController := grpcController.GRPCUserController(grpcServer, service.NewUserService(userRepo))
-
-	// Initialize Fiber app
-	app := fiber.New(fiber.Config{
-		ErrorHandler: middleware.ErrorHandler,
-	})
-
-	// Attach middleware
-	app.Use(middleware.ConvertRequestToFilters())
 
 	// Setup REST routes
 	routes.SetupRoutes(app, userController, seederController)

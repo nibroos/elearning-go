@@ -2,6 +2,7 @@ BEGIN;
 
 INSERT INTO
   groups (
+    id,
     name,
     description,
     status,
@@ -11,6 +12,7 @@ INSERT INTO
   )
 VALUES
   (
+    1,
     'roles',
     'Roles table for storing user data',
     1,
@@ -19,6 +21,7 @@ VALUES
     1
   ),
   (
+    2,
     'permissions',
     'Permissions table for storing user data',
     1,
@@ -27,6 +30,7 @@ VALUES
     1
   ),
   (
+    3,
     'users',
     'Users table for storing user data',
     1,

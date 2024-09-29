@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -41,7 +42,6 @@ func ErrorHandler(ctx *fiber.Ctx, err error) error {
 		// "stack":   stackTrace, // Optionally include stack trace
 	})
 }
-
 func ConvertRequestToFilters() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		// Check if the content type is JSON
@@ -59,7 +59,11 @@ func ConvertRequestToFilters() fiber.Handler {
 			for key, value := range requestBody {
 				switch v := value.(type) {
 				case string:
-					filters[key] = v
+					if v == "" {
+						requestBody[key] = nil
+					} else {
+						filters[key] = v
+					}
 				case int:
 					filters[key] = strconv.Itoa(v)
 				case float64:
@@ -69,8 +73,45 @@ func ConvertRequestToFilters() fiber.Handler {
 				}
 			}
 
+			// Marshal the modified body back to JSON
+			modifiedBody, err := json.Marshal(requestBody)
+			if err != nil {
+				return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to process request body"})
+			}
+
+			// Replace the request body with the modified body
+			ctx.Request().SetBody(modifiedBody)
+
 			ctx.Locals("filters", filters)
 		}
+
+		return ctx.Next()
+	}
+}
+
+func ConvertEmptyStringsToNull() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		// Parse the request body into a map
+		var body map[string]interface{}
+		if err := json.Unmarshal(ctx.Body(), &body); err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+		}
+
+		// Convert empty strings to null
+		for key, value := range body {
+			if str, ok := value.(string); ok && str == "" {
+				body[key] = nil
+			}
+		}
+
+		// Marshal the modified body back to JSON
+		modifiedBody, err := json.Marshal(body)
+		if err != nil {
+			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to process request body"})
+		}
+
+		// Replace the request body with the modified body
+		ctx.Request().SetBody(modifiedBody)
 
 		return ctx.Next()
 	}

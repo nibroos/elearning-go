@@ -177,9 +177,10 @@ func (r *UserRepository) AttachRoles(tx *gorm.DB, user *models.User, roleIDs []u
 	var pools []models.Pool
 	for _, roleID := range roleIDs {
 		pool := models.Pool{
-			Name:  "role_user",
-			Tb1ID: user.ID,
-			Tb2ID: roleID,
+			Group1ID: utils.GroupIDUsers, // users
+			Group2ID: utils.GroupIDRoles, // roles
+			Mv1ID:    uint32(user.ID),
+			Mv2ID:    roleID,
 		}
 		pools = append(pools, pool)
 	}
@@ -215,13 +216,11 @@ func (r *UserRepository) AttachRoles(tx *gorm.DB, user *models.User, roleIDs []u
 //     return &user, err
 // }
 
-func (r *UserRepository) CreateUser(user *models.User) error {
-	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(user).Error; err != nil {
-			return err
-		}
-		return nil
-	})
+func (r *UserRepository) CreateUser(tx *gorm.DB, user *models.User) error {
+	if err := tx.Create(user).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *UserRepository) UpdateUser(user *models.User) error {

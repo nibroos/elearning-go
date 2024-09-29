@@ -34,6 +34,9 @@ type Response struct {
 type StringOrInt struct {
 	Value int
 }
+type NullableString struct {
+	Value *string
+}
 
 // ContextKey is a type for context keys used in this package
 type ContextKey string
@@ -149,6 +152,20 @@ func (s *StringOrInt) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	s.Value = intValue
+	return nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (ns *NullableString) UnmarshalJSON(data []byte) error {
+	var str string
+	if err := json.Unmarshal(data, &str); err != nil {
+		return err
+	}
+	if str == "" {
+		ns.Value = nil
+	} else {
+		ns.Value = &str
+	}
 	return nil
 }
 
@@ -331,4 +348,47 @@ func generateBcryptHash(password string) (string, error) {
 		return "", err
 	}
 	return string(hashedPassword), nil
+}
+
+// BodyParserWithNull converts empty strings to null and parses the request body into the provided struct.
+func BodyParserWithNull(ctx *fiber.Ctx, out interface{}) error {
+	// Parse the request body into a map
+	var body map[string]interface{}
+	if err := json.Unmarshal(ctx.Body(), &body); err != nil {
+		return err
+	}
+
+	// Convert empty strings to null in the map
+	for key, value := range body {
+		if str, ok := value.(string); ok && str == "" {
+			body[key] = nil
+		}
+	}
+
+	// Marshal the modified body back to JSON
+	modifiedBody, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+
+	// Unmarshal the modified body into the provided struct
+	if err := json.Unmarshal(modifiedBody, out); err != nil {
+		return err
+	}
+
+	// Convert empty strings to null in the struct fields
+	convertEmptyStringsToNull(out)
+
+	return nil
+}
+
+// convertEmptyStringsToNull uses reflection to convert empty strings to null in struct fields.
+func convertEmptyStringsToNull(out interface{}) {
+	v := reflect.ValueOf(out).Elem()
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		if field.Kind() == reflect.String && field.String() == "" {
+			field.Set(reflect.Zero(field.Type()))
+		}
+	}
 }
