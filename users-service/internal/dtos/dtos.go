@@ -15,9 +15,9 @@ type GetUsersRequest struct {
 
 type CreateUserRequest struct {
 	Name     string                 `json:"name" validate:"required,min=3"`
-	Username utils.Nullable[string] `json:"username"`
-	Email    string                 `json:"email" validate:"required,email"`
-	Address  utils.Nullable[string] `json:"address" validate:"required"`
+	Username utils.Nullable[string] `json:"username" validate:"omitempty,unique=users,username"`
+	Email    string                 `json:"email" validate:"required,email,unique=users,email"`
+	Address  utils.Nullable[string] `json:"address" validate:"omitempty"`
 	Password string                 `json:"password" validate:"required,min=8"`
 	RoleIDs  []uint32               `json:"role_ids" validate:"required"`
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/nibroos/elearning-go/users-service/internal/models"
 	"github.com/nibroos/elearning-go/users-service/internal/service"
 	"github.com/nibroos/elearning-go/users-service/internal/utils"
+	"github.com/nibroos/elearning-go/users-service/internal/validators"
 )
 
 type UserController struct {
@@ -39,6 +40,12 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 	// Use the utility function to parse the request body
 	if err := utils.BodyParserWithNull(ctx, &req); err != nil {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusBadRequest})
+	}
+
+	// Validate the request
+	validationErrors := validators.ValidateCreateUserRequest(&req)
+	if validationErrors != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": validationErrors, "message": "Validation failed", "status": http.StatusBadRequest})
 	}
 
 	user := models.User{
