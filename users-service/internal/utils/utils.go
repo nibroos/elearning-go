@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -31,11 +32,9 @@ type Response struct {
 	Errors  interface{} `json:"errors"`
 }
 
-type StringOrInt struct {
-	Value int
-}
-type NullableString struct {
-	Value *string
+// Nullable is a generic type that can handle null values for different data types.
+type Nullable[T any] struct {
+	Value *T
 }
 
 // ContextKey is a type for context keys used in this package
@@ -121,8 +120,6 @@ func ConvertStructToMap(filters interface{}) map[string]string {
 			result[key] = strconv.Itoa(v)
 		case string:
 			result[key] = v
-		case StringOrInt:
-			result[key] = strconv.Itoa(v.Value)
 		default:
 			result[key] = fmt.Sprintf("%v", v)
 		}
@@ -134,44 +131,6 @@ func ConvertStructToMap(filters interface{}) map[string]string {
 // GenerateIndexName creates a standardized index name based on table and columns
 func GenerateIndexName(table string, columns ...string) string {
 	return fmt.Sprintf("idx_%s_%s", table, strings.Join(columns, "_"))
-}
-
-func (s *StringOrInt) UnmarshalJSON(data []byte) error {
-	var strValue string
-	if err := json.Unmarshal(data, &strValue); err == nil {
-		val, err := strconv.Atoi(strValue)
-		if err != nil {
-			return err
-		}
-		s.Value = val
-		return nil
-	}
-
-	var intValue int
-	if err := json.Unmarshal(data, &intValue); err != nil {
-		return err
-	}
-	s.Value = intValue
-	return nil
-}
-
-// UnmarshalJSON implements the json.Unmarshaler interface.
-func (ns *NullableString) UnmarshalJSON(data []byte) error {
-	var str string
-	if err := json.Unmarshal(data, &str); err != nil {
-		return err
-	}
-	if str == "" {
-		ns.Value = nil
-	} else {
-		ns.Value = &str
-	}
-	return nil
-}
-
-// MarshalJSON implements the json.Marshaler interface for StringOrInt.
-func (s StringOrInt) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s.Value)
 }
 
 func DefaultString(value, defaultValue string) string {
@@ -391,4 +350,48 @@ func convertEmptyStringsToNull(out interface{}) {
 			field.Set(reflect.Zero(field.Type()))
 		}
 	}
+}
+
+// StringPointerToString converts a string pointer to a string, returning an empty string if the pointer is nil.
+func StringPointerToString(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface.
+func (n *Nullable[T]) UnmarshalJSON(data []byte) error {
+	var value T
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	if reflect.ValueOf(value).IsZero() {
+		n.Value = nil
+	} else {
+		n.Value = &value
+	}
+	return nil
+}
+
+// MarshalJSON implements the json.Marshaler interface.
+func (n Nullable[T]) MarshalJSON() ([]byte, error) {
+	if n.Value == nil {
+		return json.Marshal(nil)
+	}
+	return json.Marshal(*n.Value)
+}
+
+// Scan implements the sql.Scanner interface.
+func (n *Nullable[T]) Scan(value interface{}) error {
+	if value == nil {
+		n.Value = nil
+		return nil
+	}
+	val, ok := value.(T)
+	if !ok {
+		return errors.New("type assertion failed")
+	}
+	n.Value = &val
+	return nil
 }

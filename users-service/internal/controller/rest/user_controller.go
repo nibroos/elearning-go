@@ -43,10 +43,10 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 
 	user := models.User{
 		Name:     req.Name,
-		Username: req.Username,
+		Username: req.Username.Value,
 		Email:    req.Email,
 		Password: req.Password,
-		Address:  req.Address,
+		Address:  req.Address.Value,
 	}
 
 	createdUser, err := c.service.CreateUser(ctx.Context(), &user, req.RoleIDs)
