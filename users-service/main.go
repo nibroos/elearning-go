@@ -57,6 +57,9 @@ func main() {
 	// Setup REST routes
 	routes.SetupRoutes(app, userController, seederController)
 
+	// Protect routes with JWT middleware
+	// app.Use(middleware.JWTMiddleware())
+
 	var wg sync.WaitGroup
 
 	// Start REST server

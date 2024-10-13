@@ -131,6 +131,58 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id uint32) (*dtos.User
 	return &user, nil
 }
 
+func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*dtos.UserDetailDTO, error) {
+	var user dtos.UserDetailDTO
+
+	query := `SELECT id, username, name, email, password, address FROM users WHERE email = $1`
+	if err := r.sqlDB.Get(&user, query, email); err != nil {
+		return nil, err
+	}
+
+	id := user.ID
+
+	// Fetch roles
+	var roleNames []string
+	roleQuery := `
+				SELECT mv.name
+				FROM pools p
+				JOIN mix_values mv ON p.mv2_id = mv.id
+				JOIN groups g1 ON p.group1_id = g1.id
+				JOIN groups g2 ON p.group2_id = g2.id
+				WHERE g1.name = 'users' AND g2.name = 'roles' AND p.mv1_id = $1
+			`
+	if err := r.sqlDB.Select(&roleNames, roleQuery, id); err != nil {
+		return nil, err
+	}
+
+	user.Roles = roleNames
+
+	// Fetch permissions
+	var permissionNames []string
+	permissionQuery := `
+				SELECT mv.name
+				FROM pools p
+				JOIN mix_values mv ON p.mv2_id = mv.id
+				JOIN groups g1 ON p.group1_id = g1.id
+				JOIN groups g2 ON p.group2_id = g2.id
+				WHERE g1.name = 'roles' AND g2.name = 'permissions' AND p.mv1_id IN (
+					SELECT mv.id
+					FROM pools p
+					JOIN mix_values mv ON p.mv2_id = mv.id
+					JOIN groups g1 ON p.group1_id = g1.id
+					JOIN groups g2 ON p.group2_id = g2.id
+					WHERE g1.name = 'users' AND g2.name = 'roles' AND p.mv1_id = $1
+				)
+			`
+	if err := r.sqlDB.Select(&permissionNames, permissionQuery, id); err != nil {
+		return nil, err
+	}
+
+	user.Permissions = permissionNames
+
+	return &user, nil
+}
+
 // func (r *UserRepository) GetUserByID(ctx context.Context, id uint32) (*dtos.UserDetailDTO, error) {
 // 	var user dtos.UserDetailDTO
 

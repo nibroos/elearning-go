@@ -20,6 +20,13 @@ func SetupRoutes(app *fiber.App, userController *rest.UserController, seederCont
 		})
 	})
 
+	// Public routes
+	version.Post("/login", userController.Login)
+	version.Post("/register", userController.Register)
+
+	// Protected routes
+	// app.Use(middleware.JWTMiddleware())
+
 	// Define other routes here
 	users.Post("/index-user", userController.GetUsers)
 	users.Post("/show-user", userController.GetUserByID)

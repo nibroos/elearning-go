@@ -21,6 +21,15 @@ func init() {
 
 // uniqueValidator checks if a field value is unique in the database.
 func uniqueValidator(fl validator.FieldLevel) bool {
+	value := fl.Field().String()
+
+	// context is the database connection
+
+	// If the value is empty or null, pass the validation
+	if value == "" {
+		return true
+	}
+
 	param := fl.Param()
 	params := strings.Split(param, ",")
 	if len(params) != 2 {
@@ -29,7 +38,6 @@ func uniqueValidator(fl validator.FieldLevel) bool {
 
 	table := params[0]
 	column := params[1]
-	value := fl.Field().String()
 
 	var count int
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s = ?", table, column)
@@ -54,4 +62,16 @@ func ValidateCreateUserRequest(req *dtos.CreateUserRequest) map[string]string {
 		errors[err.Field()] = err.Tag()
 	}
 	return errors
+}
+
+func ValidateRegisterRequest(req *dtos.RegisterRequest) map[string]string {
+	err := validate.Struct(req)
+	if err != nil {
+		errors := make(map[string]string)
+		for _, err := range err.(validator.ValidationErrors) {
+			errors[err.Field()] = err.Tag()
+		}
+		return errors
+	}
+	return nil
 }
