@@ -2,11 +2,13 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"github.com/nibroos/elearning-go/users-service/internal/dtos"
 	"github.com/nibroos/elearning-go/users-service/internal/models"
 	"github.com/nibroos/elearning-go/users-service/internal/repository"
 	"github.com/nibroos/elearning-go/users-service/internal/utils"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // type UserService interface {
@@ -129,6 +131,19 @@ func (s *UserService) UpdateUser(ctx context.Context, user *models.User, roleIDs
 
 	if err := tx.Commit().Error; err != nil {
 		return nil, err
+	}
+
+	return user, nil
+}
+
+func (s *UserService) Authenticate(ctx context.Context, email, password string) (*dtos.UserDetailDTO, error) {
+	user, err := s.repo.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(*user.Password.Value), []byte(password)); err != nil {
+		return nil, errors.New("invalid credentials")
 	}
 
 	return user, nil

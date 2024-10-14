@@ -49,6 +49,7 @@ type UserDetailDTO struct {
 	Username    utils.Nullable[string] `json:"username"`
 	Email       string                 `json:"email"`
 	Address     utils.Nullable[string] `json:"address"`
+	Password    utils.Nullable[string] `json:"password"`
 	Roles       []string               `json:"roles"`
 	Permissions []string               `json:"permissions"`
 	Password    utils.Nullable[string] `json:"password"`
@@ -57,4 +58,17 @@ type GetUsersResult struct {
 	Users []UserListDTO
 	Total int
 	Err   error
+}
+
+type LoginRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
+
+type RegisterRequest struct {
+	Name     string                 `json:"name" validate:"required,min=3"`
+	Username utils.Nullable[string] `json:"username" validate:"omitempty,unique=users,username"`
+	Email    string                 `json:"email" validate:"required,email,unique=users,email"`
+	Address  utils.Nullable[string] `json:"address" validate:"omitempty"`
+	Password string                 `json:"password" validate:"required,min=8"`
 }

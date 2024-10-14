@@ -7,4 +7,6 @@ const (
 
 	GroupIDRoles = 1
 	GroupIDUsers = 3
+
+	RoleStudent = 2
 )
