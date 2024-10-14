@@ -206,7 +206,7 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "Failed to create user", http.StatusInternalServerError, err.Error())
 	}
 
-	getUser, err := c.service.GetUserByID(ctx.Context(), uint32(createdUser.ID))
+	getUser, err := c.service.GetUserByID(ctx.Context(), createdUser.ID)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
 	}
