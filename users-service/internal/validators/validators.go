@@ -55,3 +55,17 @@ func ValidateCreateUserRequest(req *dtos.CreateUserRequest) map[string]string {
 	}
 	return errors
 }
+
+func ValidateUpdateUserRequest(req *dtos.UpdateUserRequest) map[string]string {
+	err := validate.Struct(req)
+	if err == nil {
+		return nil
+	}
+
+	validationErrors := err.(validator.ValidationErrors)
+	errors := make(map[string]string)
+	for _, err := range validationErrors {
+		errors[err.Field()] = err.Tag()
+	}
+	return errors
+}

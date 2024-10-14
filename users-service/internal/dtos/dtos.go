@@ -22,6 +22,16 @@ type CreateUserRequest struct {
 	RoleIDs  []uint32               `json:"role_ids" validate:"required"`
 }
 
+type UpdateUserRequest struct {
+	ID       uint                   `json:"id" validate:"required"`
+	Username utils.Nullable[string] `json:"username" validate:"omitempty,unique=users,username"`
+	Name     string                 `json:"name" validate:"required,min=3"`
+	Email    string                 `json:"email" validate:"required,email"`
+	Address  utils.Nullable[string] `json:"address" validate:"omitempty"`
+	Password utils.Nullable[string] `json:"password" validate:"omitempty,min=8"`
+	RoleIDs  []uint32               `json:"role_ids" validate:"required"`
+}
+
 type GetUserByIDRequest struct {
 	ID uint `json:"id" validate:"required"`
 }
@@ -41,6 +51,7 @@ type UserDetailDTO struct {
 	Address     utils.Nullable[string] `json:"address"`
 	Roles       []string               `json:"roles"`
 	Permissions []string               `json:"permissions"`
+	Password    utils.Nullable[string] `json:"password"`
 }
 type GetUsersResult struct {
 	Users []UserListDTO

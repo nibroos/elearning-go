@@ -1,6 +1,6 @@
 # Production Dockerfile
 
-FROM golang:1.22-alpine as builder
+FROM golang:1.23-alpine as builder
 
 # Install necessary packages including Make
 RUN apk add --no-cache make

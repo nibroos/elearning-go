@@ -75,7 +75,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User, roleIDs
 	return user, nil
 }
 
-func (s *UserService) GetUserByID(ctx context.Context, id uint32) (*dtos.UserDetailDTO, error) {
+func (s *UserService) GetUserByID(ctx context.Context, id uint) (*dtos.UserDetailDTO, error) {
 	userChan := make(chan *dtos.UserDetailDTO, 1)
 	errChan := make(chan error, 1)
 
@@ -98,12 +98,40 @@ func (s *UserService) GetUserByID(ctx context.Context, id uint32) (*dtos.UserDet
 	}
 }
 
-func (s *UserService) UpdateUser(user *models.User, roleIDs []uint32) error {
+func (s *UserService) UpdateUser(ctx context.Context, user *models.User, roleIDs []uint32) (*models.User, error) {
 	// TODO update hash password
-	// TODO update user
-	// TODO update roles
+	hashedPassword, err := utils.HashPassword(user.Password)
+	if err != nil {
+		return nil, err
+	}
 
-	return s.repo.UpdateUser(user)
+	// TODO update user
+	user.Password = hashedPassword
+
+	// Transaction handling
+	tx := s.repo.BeginTransaction()
+	if err := tx.Error; err != nil {
+		return nil, err
+	}
+
+	// Update user
+	if err := s.repo.UpdateUser(tx, user); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// TODO update roles
+	// Attach roles
+	if err := s.repo.AttachRoles(tx, user, roleIDs); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
 
 // func (s *UserService) CreateUser(ctx context.Context, tx *sqlx.Tx, name string, email string, password string, roleID uint) (*model.User, error) {
@@ -136,39 +164,6 @@ func (s *UserService) UpdateUser(user *models.User, roleIDs []uint32) error {
 //     }
 
 //     return user, nil
-// }
-// func (s *UserService) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.UserResponse, error) {
-//     user := &model.User{
-//         Name:           req.Name,
-//         Email:          req.Email,
-//         Password:       req.Password,
-//     }
-
-//     err := s.repo.CreateUser(user)
-//     if err != nil {
-//         return nil, err
-//     }
-
-//     return &pb.UserResponse{User: &pb.User{
-//         Id:             uint(user.ID),
-//         Name:           user.Name,
-//         Email:          user.Email,
-//         Password:       user.Password,
-//     }}, nil
-// }
-
-// func (s *UserService) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.UserResponse, error) {
-//     user, err := s.repo.GetUserByID(int(req.Id))
-//     if err != nil {
-//         return nil, err
-//     }
-
-//     return &pb.UserResponse{User: &pb.User{
-//         Id:             uint(user.ID),
-//         Name:           user.Name,
-//         Email:          user.Email,
-//         Password:       user.Password,
-//     }}, nil
 // }
 
 // func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {

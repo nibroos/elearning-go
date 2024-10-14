@@ -1,6 +1,6 @@
 # Development Dockerfile
 
-FROM golang:1.22-alpine as base
+FROM golang:1.23-alpine as base
 
 # Install necessary packages including Make
 RUN apk add --no-cache make curl

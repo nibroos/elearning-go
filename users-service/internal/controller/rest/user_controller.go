@@ -64,7 +64,7 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "Failed to create user", http.StatusInternalServerError, err.Error())
 	}
 
-	getUser, err := c.service.GetUserByID(ctx.Context(), uint32(createdUser.ID))
+	getUser, err := c.service.GetUserByID(ctx.Context(), createdUser.ID)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
 	}
@@ -85,7 +85,7 @@ func (c *UserController) GetUserByID(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, "ID is required")
 	}
 
-	user, err := c.service.GetUserByID(ctx.Context(), uint32(req.ID))
+	user, err := c.service.GetUserByID(ctx.Context(), req.ID)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
 	}
@@ -96,4 +96,56 @@ func (c *UserController) GetUserByID(ctx *fiber.Ctx) error {
 	paginationMeta := utils.CreatePaginationMeta(filters, 1)
 
 	return utils.GetResponse(ctx, userArray, paginationMeta, "User fetched successfully", http.StatusOK)
+}
+
+// update user
+func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
+	var req dtos.UpdateUserRequest
+
+	if err := utils.BodyParserWithNull(ctx, &req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusBadRequest})
+	}
+
+	validationErrors := validators.ValidateUpdateUserRequest(&req)
+	if validationErrors != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": validationErrors, "message": "Validation failed", "status": http.StatusBadRequest})
+	}
+
+	// Fetch the existing user to get the current password if needed
+	existingUser, err := c.service.GetUserByID(ctx.Context(), req.ID)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
+	}
+
+	user := models.User{
+		ID:       req.ID,
+		Name:     req.Name,
+		Username: req.Username.Value,
+		Email:    req.Email,
+		Password: *existingUser.Password.Value, // Default to existing password
+		Address:  req.Address.Value,
+	}
+
+	// Update password only if a new one is provided
+	if req.Password.Value != nil {
+		user.Password = *req.Password.Value
+	}
+
+	updatedUser, err := c.service.UpdateUser(ctx.Context(), &user, req.RoleIDs)
+	if err != nil {
+		if err.Error() == "username already exists" {
+			return ctx.Status(http.StatusConflict).JSON(fiber.Map{"errors": err.Error(), "message": "Username already exists", "status": http.StatusConflict})
+		}
+		return utils.GetResponse(ctx, nil, nil, "Failed to update user", http.StatusInternalServerError, err.Error())
+	}
+
+	getUser, err := c.service.GetUserByID(ctx.Context(), updatedUser.ID)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
+	}
+
+	filters := ctx.Locals("filters").(map[string]string)
+	paginationMeta := utils.CreatePaginationMeta(filters, 1)
+
+	return utils.GetResponse(ctx, getUser, paginationMeta, "User updated successfully", http.StatusOK)
 }

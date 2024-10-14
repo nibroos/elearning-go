@@ -79,10 +79,10 @@ func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string
 
 	return users, total, nil
 }
-func (r *UserRepository) GetUserByID(ctx context.Context, id uint32) (*dtos.UserDetailDTO, error) {
+func (r *UserRepository) GetUserByID(ctx context.Context, id uint) (*dtos.UserDetailDTO, error) {
 	var user dtos.UserDetailDTO
 
-	query := `SELECT id, username, name, email, address FROM users WHERE id = $1`
+	query := `SELECT id, username, name, email, address, password FROM users WHERE id = $1`
 	if err := r.sqlDB.Get(&user, query, id); err != nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (r *UserRepository) CreateUser(tx *gorm.DB, user *models.User) error {
 	return nil
 }
 
-func (r *UserRepository) UpdateUser(user *models.User) error {
+func (r *UserRepository) UpdateUser(tx *gorm.DB, user *models.User) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(user).Error; err != nil {
 			return err
