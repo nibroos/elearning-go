@@ -1,18 +1,22 @@
 package validators
 
 import (
+	"context"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"github.com/nibroos/elearning-go/users-service/internal/dtos"
+	"github.com/nibroos/elearning-go/users-service/internal/utils"
 )
 
 var validate *validator.Validate
 var db *sqlx.DB
 
-func init() {
+func InitValidator(database *sqlx.DB) {
+	db = database
 	validate = validator.New()
 
 	// Register custom validation functions if needed
@@ -21,13 +25,26 @@ func init() {
 
 // uniqueValidator checks if a field value is unique in the database.
 func uniqueValidator(fl validator.FieldLevel) bool {
-	value := fl.Field().String()
 
-	// context is the database connection
+	utils.DD(map[string]interface{}{
+		"perPage": fl.Field().Interface(),
+		"fl":      fl,
+	})
+
+	value := fl.Field().Interface()
+
+	// Debugging: Dump the value
+	utils.DD(value)
 
 	// If the value is empty or null, pass the validation
-	if value == "" {
+	if value == nil || reflect.ValueOf(value).IsZero() {
 		return true
+	}
+
+	// Convert value to string for query
+	valueStr, ok := value.(string)
+	if !ok {
+		return false
 	}
 
 	param := fl.Param()
@@ -40,8 +57,8 @@ func uniqueValidator(fl validator.FieldLevel) bool {
 	column := params[1]
 
 	var count int
-	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s = ?", table, column)
-	err := db.Get(&count, query, value)
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s = $1", table, column)
+	err := db.Get(&count, query, valueStr)
 	if err != nil {
 		return false
 	}
@@ -78,8 +95,13 @@ func ValidateUpdateUserRequest(req *dtos.UpdateUserRequest) map[string]string {
 	return errors
 }
 
-func ValidateRegisterRequest(req *dtos.RegisterRequest) map[string]string {
+func ValidateRegisterRequest(req *dtos.RegisterRequest, ctx context.Context) map[string]string {
 	err := validate.Struct(req)
+	// utils.DD(ctx, map[string]interface{}{
+	// 	"req":      req,
+	// 	"testbool": true,
+	// 	"err":      err,
+	// })
 	if err != nil {
 		errors := make(map[string]string)
 		for _, err := range err.(validator.ValidationErrors) {

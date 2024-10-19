@@ -63,11 +63,10 @@ type LoginRequest struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
 }
-
 type RegisterRequest struct {
 	Name     string                 `json:"name" validate:"required,min=3"`
-	Username utils.Nullable[string] `json:"username" validate:"omitempty,unique=users,username"`
-	Email    string                 `json:"email" validate:"required,email,unique=users,email"`
+	Username utils.Nullable[string] `json:"username" validate:"omitempty"`
+	Email    string                 `json:"email" validate:"required,email"`
 	Address  utils.Nullable[string] `json:"address" validate:"omitempty"`
 	Password string                 `json:"password" validate:"required,min=8"`
 }

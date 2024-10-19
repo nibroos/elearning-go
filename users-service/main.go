@@ -14,6 +14,7 @@ import (
 	"github.com/nibroos/elearning-go/users-service/internal/repository"
 	"github.com/nibroos/elearning-go/users-service/internal/routes"
 	"github.com/nibroos/elearning-go/users-service/internal/service"
+	"github.com/nibroos/elearning-go/users-service/internal/validators"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -36,6 +37,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to connect to the Gorm database: %v", err)
 	}
+
+	// Initialize the validator with the database connection
+	validators.InitValidator(sqlDB)
 
 	// Initialize Fiber app
 	app := fiber.New(fiber.Config{

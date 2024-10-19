@@ -10,6 +10,7 @@ import (
 	"github.com/nibroos/elearning-go/users-service/internal/service"
 	"github.com/nibroos/elearning-go/users-service/internal/utils"
 	"github.com/nibroos/elearning-go/users-service/internal/validators"
+	"github.com/nibroos/elearning-go/users-service/internal/validators/form_requests"
 )
 
 type UserController struct {
@@ -177,17 +178,24 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusBadRequest})
 	}
 
-	// Validate the request
-	validationErrors := validators.ValidateRegisterRequest(&req)
-	if validationErrors != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": validationErrors, "message": "Validation failed", "status": http.StatusBadRequest})
-	}
+	v := form_requests.NewRegisterStoreRequest().Validate(&req, ctx.Context())
 
-	utils.DD(ctx.Context(), map[string]interface{}{
-		"req":  req,
-		"test": 'a',
-		// "valid": validationErrors,
+	utils.DD(map[string]interface{}{
+		"req": req,
+		"v":   v,
 	})
+
+	// Validate the request
+	// validationErrors := validators.ValidateRegisterRequest(&req, ctx.Context())
+	// if validationErrors != nil {
+	// 	return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": validationErrors, "message": "Validation failed", "status": http.StatusBadRequest})
+	// }
+
+	// utils.DD(ctx.Context(), map[string]interface{}{
+	// 	"req":  req,
+	// 	"test": 'a',
+	// 	// "valid": validationErrors,
+	// })
 
 	user := models.User{
 		Name:     req.Name,

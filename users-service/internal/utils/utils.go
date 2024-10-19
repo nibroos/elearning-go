@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -243,7 +242,7 @@ func GetIntOrDefault(value interface{}, defaultValue int) int {
 }
 
 // DD is a helper function to dump the value of a variable, stop the process, and optionally send a response to the client.
-func DD(ctx context.Context, value interface{}) {
+func DD(value interface{}) {
 	// Print the value to the console
 	fmt.Printf("%+v\n", value)
 
