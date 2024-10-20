@@ -23,10 +23,9 @@ func (r *RegisterStoreRequest) Validate(req *dtos.RegisterRequest, ctx context.C
 	// utils.DD(req)
 	rules := govalidator.MapData{
 		"name":     []string{"required", "min:3"},
-		"username": []string{"required"},
-		"email":    []string{"required", "email"},
-		"password": []string{"required", "min:8"},
-		"role_ids": []string{"required", "min:0"},
+		"username": []string{"unique:users,username"},
+		"email":    []string{"required", "email", "unique:users,email"},
+		"password": []string{"required", "min:4"},
 	}
 
 	opts := govalidator.Options{

@@ -10,6 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/nibroos/elearning-go/users-service/internal/dtos"
 	"github.com/nibroos/elearning-go/users-service/internal/utils"
+	"github.com/thedevsaddam/govalidator"
 )
 
 var validate *validator.Validate
@@ -21,6 +22,9 @@ func InitValidator(database *sqlx.DB) {
 
 	// Register custom validation functions if needed
 	validate.RegisterValidation("unique", uniqueValidator)
+
+	// Register custom validation rules
+	govalidator.AddCustomRule("unique", uniqueRule)
 }
 
 // uniqueValidator checks if a field value is unique in the database.
@@ -109,5 +113,39 @@ func ValidateRegisterRequest(req *dtos.RegisterRequest, ctx context.Context) map
 		}
 		return errors
 	}
+	return nil
+}
+
+// uniqueRule checks if a field value is unique in the database.
+func uniqueRule(field string, rule string, message string, value interface{}) error {
+	valueStr, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("invalid value type")
+	}
+
+	params := strings.Split(rule, ":")
+	if len(params) != 2 {
+		return fmt.Errorf("invalid rule format")
+	}
+
+	tableColumn := strings.Split(params[1], ",")
+	if len(tableColumn) != 2 {
+		return fmt.Errorf("invalid table and column format")
+	}
+
+	table := tableColumn[0]
+	column := tableColumn[1]
+
+	var count int
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s = $1", table, column)
+	err := db.Get(&count, query, valueStr)
+	if err != nil {
+		return fmt.Errorf("database error: %v", err)
+	}
+
+	if count > 0 {
+		return fmt.Errorf("the %s has already been taken", field)
+	}
+
 	return nil
 }

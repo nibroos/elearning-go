@@ -180,10 +180,9 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 
 	v := form_requests.NewRegisterStoreRequest().Validate(&req, ctx.Context())
 
-	utils.DD(map[string]interface{}{
-		"req": req,
-		"v":   v,
-	})
+	if v != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": v, "message": "Validation failed", "status": http.StatusBadRequest})
+	}
 
 	// Validate the request
 	// validationErrors := validators.ValidateRegisterRequest(&req, ctx.Context())
