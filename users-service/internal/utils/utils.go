@@ -24,11 +24,12 @@ type Meta struct {
 }
 
 type Response struct {
-	Data    interface{} `json:"data"`
-	Meta    *Meta       `json:"meta,omitempty"`
-	Message string      `json:"message"`
-	Status  int16       `json:"status"`
-	Errors  interface{} `json:"errors"`
+	Data     interface{} `json:"data"`
+	Meta     *Meta       `json:"meta,omitempty"`
+	Message  string      `json:"message"`
+	Status   int16       `json:"status"`
+	Errors   interface{} `json:"errors"`
+	Optional interface{} `json:"optional,omitempty"`
 }
 
 // Nullable is a generic type that can handle null values for different data types.
@@ -73,18 +74,19 @@ func WrapResponse(data interface{}, pagination *Meta, message string, status int
 	}
 }
 
-func GetResponse(ctx *fiber.Ctx, data interface{}, pagination *Meta, message string, status int16, errors ...interface{}) error {
+func GetResponse(ctx *fiber.Ctx, data interface{}, pagination *Meta, message string, status int16, errors interface{}, options interface{}) error {
 	meta := Meta{}
 	if pagination != nil {
 		meta = *pagination
 	}
 
 	response := Response{
-		Data:    data,
-		Meta:    &meta,
-		Message: message,
-		Status:  status,
-		Errors:  errors,
+		Data:     data,
+		Meta:     &meta,
+		Message:  message,
+		Status:   status,
+		Errors:   errors,
+		Optional: options,
 	}
 
 	return SendResponse(ctx, response, int(status))

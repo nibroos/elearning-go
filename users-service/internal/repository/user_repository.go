@@ -134,7 +134,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id uint) (*dtos.UserDe
 func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*dtos.UserDetailDTO, error) {
 	var user dtos.UserDetailDTO
 
-	query := `SELECT id, username, name, email, password, address FROM users WHERE email = $1`
+	query := `SELECT id, username, name, email, password, address FROM users WHERE email = $1 OR username = $1`
 	if err := r.sqlDB.Get(&user, query, email); err != nil {
 		return nil, err
 	}

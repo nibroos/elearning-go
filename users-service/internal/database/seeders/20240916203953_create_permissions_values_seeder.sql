@@ -20,7 +20,7 @@ VALUES
       WHERE
         name = 'permissions'
     ),
-    'create users',
+    'create_users',
     'Permission to create users',
     1,
     '{}',
@@ -36,7 +36,7 @@ VALUES
       WHERE
         name = 'permissions'
     ),
-    'read users',
+    'read_users',
     'Permission to read users',
     1,
     '{}',
@@ -52,7 +52,7 @@ VALUES
       WHERE
         name = 'permissions'
     ),
-    'update users',
+    'update_users',
     'Permission to update users',
     1,
     '{}',
@@ -68,7 +68,7 @@ VALUES
       WHERE
         name = 'permissions'
     ),
-    'delete users',
+    'delete_users',
     'Permission to delete users',
     1,
     '{}',

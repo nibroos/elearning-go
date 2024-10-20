@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jmoiron/sqlx"
 	"github.com/nibroos/elearning-go/users-service/internal/dtos"
-	"github.com/nibroos/elearning-go/users-service/internal/utils"
 	"github.com/thedevsaddam/govalidator"
 )
 
@@ -25,20 +25,22 @@ func InitValidator(database *sqlx.DB) {
 
 	// Register custom validation rules
 	govalidator.AddCustomRule("unique", uniqueRule)
+	govalidator.AddCustomRule("array", arrayRule)
+	govalidator.AddCustomRule("array_max", arrayMaxRule)
 }
 
 // uniqueValidator checks if a field value is unique in the database.
 func uniqueValidator(fl validator.FieldLevel) bool {
 
-	utils.DD(map[string]interface{}{
-		"perPage": fl.Field().Interface(),
-		"fl":      fl,
-	})
+	// utils.DD(map[string]interface{}{
+	// 	"perPage": fl.Field().Interface(),
+	// 	"fl":      fl,
+	// })
 
 	value := fl.Field().Interface()
 
 	// Debugging: Dump the value
-	utils.DD(value)
+	// utils.DD(value)
 
 	// If the value is empty or null, pass the validation
 	if value == nil || reflect.ValueOf(value).IsZero() {
@@ -145,6 +147,42 @@ func uniqueRule(field string, rule string, message string, value interface{}) er
 
 	if count > 0 {
 		return fmt.Errorf("the %s has already been taken", field)
+	}
+
+	return nil
+}
+
+func arrayRule(field string, rule string, message string, value interface{}) error {
+	valueArr, ok := value.([]string)
+	if !ok {
+		return fmt.Errorf("invalid value type")
+	}
+
+	if len(valueArr) == 0 {
+		return fmt.Errorf("the %s field is required", field)
+	}
+
+	return nil
+}
+
+func arrayMaxRule(field string, rule string, message string, value interface{}) error {
+	valueArr, ok := value.([]string)
+	if !ok {
+		return fmt.Errorf("invalid value typeb")
+	}
+
+	params := strings.Split(rule, ":")
+	if len(params) != 2 {
+		return fmt.Errorf("invalid rule format")
+	}
+
+	max, err := strconv.Atoi(params[1])
+	if err != nil {
+		return fmt.Errorf("invalid max value")
+	}
+
+	if len(valueArr) > max {
+		return fmt.Errorf("the %s field must have at most %d items", field, max)
 	}
 
 	return nil

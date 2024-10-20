@@ -34,7 +34,7 @@ func (c *UserController) GetUsers(ctx *fiber.Ctx) error {
 
 	paginationMeta := utils.CreatePaginationMeta(filters, total)
 
-	return utils.GetResponse(ctx, users, paginationMeta, "Users fetched successfully", http.StatusOK)
+	return utils.GetResponse(ctx, users, paginationMeta, "Users fetched successfully", http.StatusOK, nil, nil)
 }
 func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 	var req dtos.CreateUserRequest
@@ -45,9 +45,9 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 	}
 
 	// Validate the request
-	validationErrors := validators.ValidateCreateUserRequest(&req)
-	if validationErrors != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": validationErrors, "message": "Validation failed", "status": http.StatusBadRequest})
+	reqValidator := form_requests.NewUserStoreRequest().Validate(&req, ctx.Context())
+	if reqValidator != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
 	}
 
 	user := models.User{
@@ -63,33 +63,33 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 		if err.Error() == "username already exists" {
 			return ctx.Status(http.StatusConflict).JSON(fiber.Map{"errors": err.Error(), "message": "Username already exists", "status": http.StatusConflict})
 		}
-		return utils.GetResponse(ctx, nil, nil, "Failed to create user", http.StatusInternalServerError, err.Error())
+		return utils.GetResponse(ctx, nil, nil, "Failed to create user", http.StatusInternalServerError, err.Error(), nil)
 	}
 
 	getUser, err := c.service.GetUserByID(ctx.Context(), createdUser.ID)
 	if err != nil {
-		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
 
 	filters := ctx.Locals("filters").(map[string]string)
 	paginationMeta := utils.CreatePaginationMeta(filters, 1)
 
-	return utils.GetResponse(ctx, getUser, paginationMeta, "User created successfully", http.StatusCreated)
+	return utils.GetResponse(ctx, getUser, paginationMeta, "User created successfully", http.StatusCreated, nil, nil)
 }
 func (c *UserController) GetUserByID(ctx *fiber.Ctx) error {
 	var req dtos.GetUserByIDRequest
 
 	if err := ctx.BodyParser(&req); err != nil {
-		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, err.Error())
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, err.Error(), nil)
 	}
 
 	if req.ID == 0 {
-		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, "ID is required")
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, "ID is required", nil)
 	}
 
 	user, err := c.service.GetUserByID(ctx.Context(), req.ID)
 	if err != nil {
-		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
 
 	userArray := []interface{}{user}
@@ -97,7 +97,7 @@ func (c *UserController) GetUserByID(ctx *fiber.Ctx) error {
 	filters := ctx.Locals("filters").(map[string]string)
 	paginationMeta := utils.CreatePaginationMeta(filters, 1)
 
-	return utils.GetResponse(ctx, userArray, paginationMeta, "User fetched successfully", http.StatusOK)
+	return utils.GetResponse(ctx, userArray, paginationMeta, "User fetched successfully", http.StatusOK, nil, nil)
 }
 
 // update user
@@ -116,7 +116,7 @@ func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 	// Fetch the existing user to get the current password if needed
 	existingUser, err := c.service.GetUserByID(ctx.Context(), req.ID)
 	if err != nil {
-		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
 
 	user := models.User{
@@ -138,18 +138,18 @@ func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 		if err.Error() == "username already exists" {
 			return ctx.Status(http.StatusConflict).JSON(fiber.Map{"errors": err.Error(), "message": "Username already exists", "status": http.StatusConflict})
 		}
-		return utils.GetResponse(ctx, nil, nil, "Failed to update user", http.StatusInternalServerError, err.Error())
+		return utils.GetResponse(ctx, nil, nil, "Failed to update user", http.StatusInternalServerError, err.Error(), nil)
 	}
 
 	getUser, err := c.service.GetUserByID(ctx.Context(), updatedUser.ID)
 	if err != nil {
-		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
 
 	filters := ctx.Locals("filters").(map[string]string)
 	paginationMeta := utils.CreatePaginationMeta(filters, 1)
 
-	return utils.GetResponse(ctx, getUser, paginationMeta, "User updated successfully", http.StatusOK)
+	return utils.GetResponse(ctx, getUser, paginationMeta, "User updated successfully", http.StatusOK, nil, nil)
 }
 
 func (c *UserController) Login(ctx *fiber.Ctx) error {
@@ -168,8 +168,9 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to generate token", "status": "error", "err": err.Error()})
 	}
 
-	return ctx.JSON(fiber.Map{"token": token})
+	return utils.GetResponse(ctx, []interface{}{user}, nil, "User authenticated successfully", http.StatusOK, nil, map[string]string{"token": token})
 }
+
 func (c *UserController) Register(ctx *fiber.Ctx) error {
 	var req dtos.RegisterRequest
 
@@ -178,23 +179,11 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusBadRequest})
 	}
 
-	v := form_requests.NewRegisterStoreRequest().Validate(&req, ctx.Context())
+	reqValidator := form_requests.NewRegisterStoreRequest().Validate(&req, ctx.Context())
 
-	if v != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": v, "message": "Validation failed", "status": http.StatusBadRequest})
+	if reqValidator != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
 	}
-
-	// Validate the request
-	// validationErrors := validators.ValidateRegisterRequest(&req, ctx.Context())
-	// if validationErrors != nil {
-	// 	return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": validationErrors, "message": "Validation failed", "status": http.StatusBadRequest})
-	// }
-
-	// utils.DD(ctx.Context(), map[string]interface{}{
-	// 	"req":  req,
-	// 	"test": 'a',
-	// 	// "valid": validationErrors,
-	// })
 
 	user := models.User{
 		Name:     req.Name,
@@ -210,12 +199,12 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 		if err.Error() == "username already exists" {
 			return ctx.Status(http.StatusConflict).JSON(fiber.Map{"errors": err.Error(), "message": "Username already exists", "status": http.StatusConflict})
 		}
-		return utils.GetResponse(ctx, nil, nil, "Failed to create user", http.StatusInternalServerError, err.Error())
+		return utils.GetResponse(ctx, nil, nil, "Failed to create user", http.StatusInternalServerError, err.Error(), nil)
 	}
 
 	getUser, err := c.service.GetUserByID(ctx.Context(), createdUser.ID)
 	if err != nil {
-		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error())
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
 
 	token, err := middleware.GenerateJWT(createdUser.ID)
@@ -223,8 +212,10 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to generate token", "status": "error", "err": err.Error()})
 	}
 
+	data := []interface{}{getUser}
+
 	filters := ctx.Locals("filters").(map[string]string)
 	paginationMeta := utils.CreatePaginationMeta(filters, 1)
 
-	return utils.GetResponse(ctx, getUser, paginationMeta, "User registered successfully", http.StatusCreated, fiber.Map{"token": token})
+	return utils.GetResponse(ctx, data, paginationMeta, "User registered successfully", http.StatusCreated, nil, map[string]string{"token": token})
 }
