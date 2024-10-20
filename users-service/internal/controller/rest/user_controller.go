@@ -219,3 +219,55 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 
 	return utils.GetResponse(ctx, data, paginationMeta, "User registered successfully", http.StatusCreated, nil, map[string]string{"token": token})
 }
+
+// delete user
+func (c *UserController) DeleteUser(ctx *fiber.Ctx) error {
+	var req dtos.DeleteUserRequest
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, err.Error(), nil)
+	}
+
+	if req.ID == 0 {
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, "ID is required", nil)
+	}
+
+	// GET user by ID
+	_, err := c.service.GetUserByID(ctx.Context(), req.ID)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	err = c.service.DeleteUser(ctx.Context(), req.ID)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Failed to delete user", http.StatusInternalServerError, err.Error(), nil)
+	}
+
+	return utils.GetResponse(ctx, nil, nil, "User deleted successfully", http.StatusOK, nil, nil)
+}
+
+// restore user
+func (c *UserController) RestoreUser(ctx *fiber.Ctx) error {
+	var req dtos.DeleteUserRequest
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, err.Error(), nil)
+	}
+
+	if req.ID == 0 {
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, "ID is required", nil)
+	}
+
+	// GET user by ID
+	_, err := c.service.GetUserByID(ctx.Context(), req.ID)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	err = c.service.RestoreUser(ctx.Context(), req.ID)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Failed to restore user", http.StatusInternalServerError, err.Error(), nil)
+	}
+
+	return utils.GetResponse(ctx, nil, nil, "User restored successfully", http.StatusOK, nil, nil)
+}

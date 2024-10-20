@@ -36,6 +36,10 @@ type GetUserByIDRequest struct {
 	ID uint `json:"id" validate:"required"`
 }
 
+type DeleteUserRequest struct {
+	ID uint `json:"id" validate:"required"`
+}
+
 type UserListDTO struct {
 	ID       int                    `json:"id"`
 	Username utils.Nullable[string] `json:"username"`

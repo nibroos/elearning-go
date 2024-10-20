@@ -82,7 +82,7 @@ func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string
 func (r *UserRepository) GetUserByID(ctx context.Context, id uint) (*dtos.UserDetailDTO, error) {
 	var user dtos.UserDetailDTO
 
-	query := `SELECT id, username, name, email, address, password FROM users WHERE id = $1`
+	query := `SELECT id, username, name, email, address, password FROM users WHERE id = $1 AND deleted_at IS NULL`
 	if err := r.sqlDB.Get(&user, query, id); err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id uint) (*dtos.UserDe
 func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*dtos.UserDetailDTO, error) {
 	var user dtos.UserDetailDTO
 
-	query := `SELECT id, username, name, email, password, address FROM users WHERE email = $1 OR username = $1`
+	query := `SELECT id, username, name, email, password, address FROM users WHERE deleted_at IS NULL AND email = $1 OR username = $1`
 	if err := r.sqlDB.Get(&user, query, email); err != nil {
 		return nil, err
 	}
@@ -285,6 +285,36 @@ func (r *UserRepository) UpdateUser(tx *gorm.DB, user *models.User) error {
 
 }
 
-func (r *UserRepository) DeleteUser(user *models.User) error {
-	return r.db.Delete(user).Error
+func (r *UserRepository) DeleteUser(tx *gorm.DB, id uint) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		// if err := tx.Unscoped().Delete(&models.User{}, id).Error; err != nil {
+		if err := tx.Delete(&models.User{}, id).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+// DeleteRolesByUserID
+func (r *UserRepository) DeleteRolesByUserID(tx *gorm.DB, userID uint) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec(`
+			UPDATE pools SET deleted_at = NOW() 
+			WHERE group1_id = ? AND mv1_id = ?
+			AND group2_id = ?
+		`, utils.GroupIDUsers, userID, utils.GroupIDRoles).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (s *UserRepository) RestoreUser(tx *gorm.DB, id uint) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		var user models.User
+		if err := tx.Unscoped().First(&user, id).Error; err != nil {
+			return err
+		}
+		return tx.Model(&user).Update("deleted_at", nil).Error
+	})
 }

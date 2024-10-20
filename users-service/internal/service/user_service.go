@@ -149,64 +149,48 @@ func (s *UserService) Authenticate(ctx context.Context, email, password string) 
 	return user, nil
 }
 
-// func (s *UserService) CreateUser(ctx context.Context, tx *sqlx.Tx, name string, email string, password string, roleID uint) (*model.User, error) {
-//     user := &model.User{Name: name, Email: email, Password: password}
+func (s *UserService) DeleteUser(ctx context.Context, id uint) error {
+	// Transaction handling
+	tx := s.repo.BeginTransaction()
+	if err := tx.Error; err != nil {
+		return err
+	}
 
-//     // Creating user in a goroutine to handle concurrency
-//     ch := make(chan error)
-//     go func() {
-//         id, err := s.repo.CreateUser(ctx, tx, user)
-//         if err != nil {
-//             ch <- err
-//             return
-//         }
-//         user.ID = id
-//         ch <- nil
-//     }()
+	// delete roles
+	if err := s.repo.DeleteRolesByUserID(tx, id); err != nil {
+		tx.Rollback()
+		return err
+	}
 
-//     // Wait for the user to be created
-//     if err := <-ch; err != nil {
-//         return nil, err
-//     }
+	// Delete user
+	if err := s.repo.DeleteUser(tx, id); err != nil {
+		tx.Rollback()
+		return err
+	}
 
-//     // Attach role to the user concurrently
-//     go func() {
-//         ch <- s.repo.AttachRoleToUser(ctx, tx, user.ID, roleID)
-//     }()
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
 
-//     if err := <-ch; err != nil {
-//         return nil, err
-//     }
+	return nil
+}
 
-//     return user, nil
-// }
+func (s *UserService) RestoreUser(ctx context.Context, id uint) error {
+	// Transaction handling
+	tx := s.repo.BeginTransaction()
+	if err := tx.Error; err != nil {
+		return err
+	}
 
-// func (s *UserService) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UserResponse, error) {
-//     user := &model.User{
-//         ID:             int(req.Id),
-//         Name:           req.Name,
-//         Email:          req.Email,
-//         Password:       req.Password,
-//     }
+	// Restore user
+	if err := s.repo.RestoreUser(tx, id); err != nil {
+		tx.Rollback()
+		return err
+	}
 
-//     err := s.repo.UpdateUser(user)
-//     if err != nil {
-//         return nil, err
-//     }
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
 
-//     return &pb.UserResponse{User: &pb.User{
-//         Id:             uint(user.ID),
-//         Name:           user.Name,
-//         Email:          user.Email,
-//         Password:       user.Password,
-//     }}, nil
-// }
-
-// func (s *UserService) DeleteUser(ctx context.Context, req *pb.DeleteUserRequest) (*pb.DeleteUserResponse, error) {
-//     err := s.repo.DeleteUser(int(req.Id))
-//     if err != nil {
-//         return nil, err
-//     }
-
-//     return &pb.DeleteUserResponse{Message: "User deleted successfully"}, nil
-// }
+	return nil
+}

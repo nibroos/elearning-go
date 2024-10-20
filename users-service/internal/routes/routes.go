@@ -15,6 +15,7 @@ func SetupRoutes(app *fiber.App, userController *rest.UserController, seederCont
 	})
 
 	version := app.Group("/api/v1")
+	auth := version.Group("/auth")
 
 	version.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{
@@ -22,8 +23,8 @@ func SetupRoutes(app *fiber.App, userController *rest.UserController, seederCont
 		})
 	})
 
-	version.Post("/login", userController.Login)
-	version.Post("/register", userController.Register)
+	auth.Post("/login", userController.Login)
+	auth.Post("/register", userController.Register)
 
 	// Protected routes
 	app.Use(middleware.JWTMiddleware())
@@ -33,7 +34,8 @@ func SetupRoutes(app *fiber.App, userController *rest.UserController, seederCont
 	users.Post("/show-user", userController.GetUserByID)
 	users.Post("/create-user", userController.CreateUser)
 	users.Post("/update-user", userController.UpdateUser)
-	// users.Post("/delete-user", userController.DeleteUser)
+	users.Post("/delete-user", userController.DeleteUser)
+	users.Post("/restore-user", userController.RestoreUser)
 
 	// Seeder route
 	version.Post("/seeders/run", seederController.RunSeeders)
