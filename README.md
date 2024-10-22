@@ -28,6 +28,7 @@ POSTGRES_PORT=5432
 
 Change bash directory to each service.
 > ${arg} means replace all of it match your args without space
+- Run export path : `export PATH="$PATH:$(go env GOPATH)/bin"`
 - Create mirgration : `make migrate-create name=${your_migration_name}`
 - Run migration : `make migrate-up`
 - Stepback migraiton: `make migrate-down`
@@ -53,6 +54,9 @@ Change the makefile DB_HOST to `localhost` if run in local env, when running on 
 
 #### run multiple seeder in one execution
 You can run multiple seeder references in the seeder_controller.go file.
+
+#### error running migration fix migration
+Change the 'version' column name on schema_migrations to latest succeed migration, change the 'dirty' column to false, then run the migration again
 
 ### 📗 API Document
 All endpoints stored in  `-.json`
