@@ -12,11 +12,11 @@ services:
     networks:
       - learning-network
     depends_on:
-      - users-service
+      - service
       # - master-service
       # - activities-service
     environment:
-      - USERS_SERVICE_HOST=users-service
+      - USERS_SERVICE_HOST=service
       - USERS_SERVICE_GRPC_PORT=${USERS_SERVICE_GRPC_PORT:-50051}
       - USERS_SERVICE_REST_PORT=${USERS_SERVICE_REST_PORT:-4001}
       - MASTER_SERVICE_HOST=master-service
@@ -26,11 +26,11 @@ services:
       - ACTIVITIES_SERVICE_HOST=activities-service
       - ACTIVITIES_SERVICE_PORT=${ACTIVITIES_SERVICE_PORT:-50053}
 
-  users-service:
+  service:
     build: 
-      context: ../users-service
+      context: ../service
       dockerfile: Dockerfile.dev
-    container_name: users-service-learninggo
+    container_name: service-learninggo
     networks:
       - learning-network
     ports:
@@ -39,7 +39,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ./../users-service:/app
+      - ./../service:/app
     env_file:
       - .env
 

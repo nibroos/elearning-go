@@ -12,22 +12,22 @@ services:
     networks:
       - learning-network
     depends_on:
-      - users-service
+      - service
       # - master-service
       # - activities-service
     environment:
-      - USERS_SERVICE_HOST=users-service
+      - USERS_SERVICE_HOST=service
       - USERS_SERVICE_PORT=${USERS_SERVICE_PORT:-50051}
       - MASTER_SERVICE_HOST=master-service
       - MASTER_SERVICE_PORT=${MASTER_SERVICE_PORT:-8082}
       - ACTIVITIES_SERVICE_HOST=activities-service
       - ACTIVITIES_SERVICE_PORT=${ACTIVITIES_SERVICE_PORT:-50052}
 
-  users-service:
+  service:
     build: 
-      context: ../users-service
+      context: ../service
       dockerfile: Dockerfile
-    container_name: users-service
+    container_name: service
     networks:
       - learning-network
     ports:
@@ -35,7 +35,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ./users-service:/app
+      - ./service:/app
     environment:
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB}?sslmode=disable
 

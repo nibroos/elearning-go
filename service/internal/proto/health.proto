@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package health;
+
+option go_package = "github.com/nibroos/elearning-go/service/internal/proto";
+
+service HealthService {
+    rpc CheckHealth(HealthRequest) returns (HealthResponse);
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+    string message = 1;
+}

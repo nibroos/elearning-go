@@ -3,7 +3,7 @@ ENV_SOURCE=docker/.env
 ENV_EXAMPLE_SOURCE=docker/.env.example
 
 # Define the services you want to copy the .env files to
-SERVICES=users-service master-service activities-service
+SERVICES=service users-service master-service activities-service
 
 # Copy the .env and .env.example files to each service
 copy-env:
