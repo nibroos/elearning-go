@@ -28,6 +28,7 @@ func InitValidator(database *sqlx.DB) {
 	govalidator.AddCustomRule("unique_ig", uniqueIgRule)
 	govalidator.AddCustomRule("array", arrayRule)
 	govalidator.AddCustomRule("array_max", arrayMaxRule)
+	govalidator.AddCustomRule("exists", isExistsRule)
 }
 
 // uniqueValidator checks if a field value is unique in the database.
@@ -219,6 +220,39 @@ func arrayMaxRule(field string, rule string, message string, value interface{}) 
 
 	if len(valueArr) > max {
 		return fmt.Errorf("the %s field must have at most %d items", field, max)
+	}
+
+	return nil
+}
+
+func isExistsRule(field string, rule string, message string, value interface{}) error {
+	valueStr, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("invalid value type")
+	}
+
+	params := strings.Split(rule, ":")
+	if len(params) != 2 {
+		return fmt.Errorf("invalid rule format")
+	}
+
+	tableColumn := strings.Split(params[1], ",")
+	if len(tableColumn) != 2 {
+		return fmt.Errorf("invalid table and column format")
+	}
+
+	table := tableColumn[0]
+	column := tableColumn[1]
+
+	var count int
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s = $1", table, column)
+	err := db.Get(&count, query, valueStr)
+	if err != nil {
+		return fmt.Errorf("database error: %v", err)
+	}
+
+	if count == 0 {
+		return fmt.Errorf("the %s does not exist", field)
 	}
 
 	return nil

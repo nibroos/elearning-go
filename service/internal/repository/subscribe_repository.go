@@ -24,10 +24,10 @@ func NewSubscribeRepository(db *gorm.DB, sqlDB *sqlx.DB) *SubscribeRepository {
 }
 
 func (r *SubscribeRepository) GetSubscribes(ctx context.Context, filters map[string]string) ([]dtos.SubscribeListDTO, int, error) {
-	subscribes := []dtos.SubscribeListDTO{}
+	classes := []dtos.SubscribeListDTO{}
 	var total int
 
-	query := `SELECT id, name, description FROM subscribes WHERE 1=1`
+	query := `SELECT id, name, description FROM classes WHERE 1=1`
 	var args []interface{}
 
 	i := 1
@@ -42,7 +42,7 @@ func (r *SubscribeRepository) GetSubscribes(ctx context.Context, filters map[str
 		}
 	}
 
-	countQuery := `SELECT COUNT(*) FROM subscribes WHERE 1=1`
+	countQuery := `SELECT COUNT(*) FROM classes WHERE 1=1`
 	countArgs := append([]interface{}{}, args...)
 	err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
 	if err != nil {
@@ -59,22 +59,22 @@ func (r *SubscribeRepository) GetSubscribes(ctx context.Context, filters map[str
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", i, i+1)
 	args = append(args, perPage, (currentPage-1)*perPage)
 
-	err = r.sqlDB.SelectContext(ctx, &subscribes, query, args...)
+	err = r.sqlDB.SelectContext(ctx, &classes, query, args...)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return subscribes, total, nil
+	return classes, total, nil
 }
 func (r *SubscribeRepository) GetSubscribeByID(ctx context.Context, id uint) (*dtos.SubscribeDetailDTO, error) {
-	var subscribe dtos.SubscribeDetailDTO
+	var class dtos.SubscribeDetailDTO
 
-	query := `SELECT id, name, description, FROM subscribes WHERE id = $1 AND deleted_at IS NULL`
-	if err := r.sqlDB.Get(&subscribe, query, id); err != nil {
+	query := `SELECT id, name, description, FROM classes WHERE id = $1 AND deleted_at IS NULL`
+	if err := r.sqlDB.Get(&class, query, id); err != nil {
 		return nil, err
 	}
 
-	return &subscribe, nil
+	return &class, nil
 }
 
 // BeginTransaction starts a new transaction
@@ -82,16 +82,16 @@ func (r *SubscribeRepository) BeginTransaction() *gorm.DB {
 	return r.db.Begin()
 }
 
-func (r *SubscribeRepository) CreateSubscribe(tx *gorm.DB, subscribe *models.Subscribe) error {
-	if err := tx.Create(subscribe).Error; err != nil {
+func (r *SubscribeRepository) CreateSubscribe(tx *gorm.DB, class *models.Subscribe) error {
+	if err := tx.Create(class).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *SubscribeRepository) UpdateSubscribe(tx *gorm.DB, subscribe *models.Subscribe) error {
+func (r *SubscribeRepository) UpdateSubscribe(tx *gorm.DB, class *models.Subscribe) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Save(subscribe).Error; err != nil {
+		if err := tx.Save(class).Error; err != nil {
 			return err
 		}
 		return nil
@@ -111,10 +111,10 @@ func (r *SubscribeRepository) DeleteSubscribe(tx *gorm.DB, id uint) error {
 
 func (s *SubscribeRepository) RestoreSubscribe(tx *gorm.DB, id uint) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		var subscribe models.Subscribe
-		if err := tx.Unscoped().First(&subscribe, id).Error; err != nil {
+		var class models.Subscribe
+		if err := tx.Unscoped().First(&class, id).Error; err != nil {
 			return err
 		}
-		return tx.Model(&subscribe).Update("deleted_at", nil).Error
+		return tx.Model(&class).Update("deleted_at", nil).Error
 	})
 }

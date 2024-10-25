@@ -22,7 +22,7 @@ func NewSubscribeStoreRequest() *SubscribeStoreRequest {
 func (r *SubscribeStoreRequest) Validate(req *dtos.CreateSubscribeRequest, ctx context.Context) map[string]string {
 	// utils.DD(req)
 	rules := govalidator.MapData{
-		"name":        []string{"required", "min:3", "unique:subscribes,name"},
+		"name":        []string{"required", "unique:subscribes,name"},
 		"description": []string{"required"},
 	}
 

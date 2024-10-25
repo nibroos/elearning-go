@@ -23,7 +23,7 @@ func NewSubscribeUpdateRequest() *SubscribeUpdateRequest {
 func (r *SubscribeUpdateRequest) Validate(req *dtos.UpdateSubscribeRequest, ctx context.Context) map[string]string {
 	// utils.DD(req)
 	rules := govalidator.MapData{
-		"name":        []string{"required", "min:3", fmt.Sprintf("unique_ig:users,email,%d", req.ID)},
+		"name":        []string{"required", fmt.Sprintf("unique_ig:subscribes,name,%d", req.ID)},
 		"description": []string{"required"},
 	}
 

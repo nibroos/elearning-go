@@ -109,6 +109,7 @@ func (c *SubscribeController) UpdateSubscribe(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
 	}
 
+	//
 	subscribe := models.Subscribe{
 		ID:          req.ID,
 		Name:        req.Name,

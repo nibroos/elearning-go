@@ -119,3 +119,72 @@ type GetSubscribesResult struct {
 	Total      int
 	Err        error
 }
+
+type ClassesRequest struct {
+	Global         string                 `json:"global"`
+	Name           string                 `json:"name"`
+	SubcribeID     utils.Nullable[string] `json:"subcribe_id"`
+	InchargeID     utils.Nullable[string] `json:"incharge_id"`
+	PerPage        utils.Nullable[string] `json:"per_page" default:"10"`         // Default per_page to 10
+	Page           utils.Nullable[string] `json:"page" default:"1"`              // Default page to 1
+	OrderColumn    string                 `json:"order_column" default:"id"`     // Default order column to "id"
+	OrderDirection string                 `json:"order_direction" default:"asc"` // Default order direction to "asc"
+}
+
+type CreateClassRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	SubcribeID  uint   `json:"subcribe_id"`
+	InchargeID  uint   `json:"incharge_id"`
+}
+
+type UpdateClassRequest struct {
+	ID          uint   `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	SubcribeID  uint   `json:"subcribe_id"`
+	InchargeID  uint   `json:"incharge_id"`
+}
+
+type GetClassByIDRequest struct {
+	ID uint `json:"id"`
+}
+
+type DeleteClassRequest struct {
+	ID uint `json:"id"`
+}
+
+type ClassListDTO struct {
+	ID            int    `json:"id"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	BannerURL     string `json:"banner_url"`
+	LogoURL       string `json:"logo_url"`
+	VideoURL      string `json:"video_url"`
+	CreatedByName string `json:"created_by_name"`
+	UpdatedByName string `json:"updated_by_name"`
+	InchargeName  string `json:"incharge_name"`
+	SubcribeName  string `json:"subcribe_name"`
+	CreatedAt     string `json:"created_at"`
+	UpdatedAt     string `json:"updated_at"`
+}
+
+type ClassDetailDTO struct {
+	ID          uint   `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	BannerURL   string `json:"banner_url"`
+	LogoURL     string `json:"logo_url"`
+	VideoURL    string `json:"video_url"`
+	CreatedByID uint   `json:"created_by_id"`
+	UpdatedByID uint   `json:"updated_by_id"`
+	InchargeID  uint   `json:"incharge_id"`
+	SubcribeID  uint   `json:"subcribe_id"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
+}
+type GetClassesResult struct {
+	Classes []ClassListDTO
+	Total   int
+	Err     error
+}
