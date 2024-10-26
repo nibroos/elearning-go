@@ -9,11 +9,8 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/nibroos/elearning-go/service/internal/config"
-	restController "github.com/nibroos/elearning-go/service/internal/controller/rest"
 	"github.com/nibroos/elearning-go/service/internal/middleware"
-	"github.com/nibroos/elearning-go/service/internal/repository"
 	"github.com/nibroos/elearning-go/service/internal/routes"
-	"github.com/nibroos/elearning-go/service/internal/service"
 	"github.com/nibroos/elearning-go/service/internal/validators"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -50,16 +47,8 @@ func main() {
 	app.Use(middleware.ConvertEmptyStringsToNull())
 	app.Use(middleware.ConvertRequestToFilters())
 
-	// Initialize repositories
-	userRepo := repository.NewUserRepository(gormDB, sqlDB)
-
-	// Initialize controllers
-	userController := restController.NewUserController(service.NewUserService(userRepo))
-	seederController := restController.NewSeederController(sqlDB.DB)
-	// grpcUserController := grpcController.GRPCUserController(grpcServer, service.NewUserService(userRepo))
-
 	// Setup REST routes
-	routes.SetupRoutes(app, userController, seederController)
+	routes.SetupRoutes(app, gormDB, sqlDB)
 
 	// Protect routes with JWT middleware
 	// app.Use(middleware.JWTMiddleware())
