@@ -111,6 +111,7 @@ type SubscribeListDTO struct {
 	UpdatedByName *string `json:"updated_by_name" db:"updated_by_name"`
 	CreatedAt     *string `json:"created_at" db:"created_at"`
 	UpdatedAt     *string `json:"updated_at" db:"updated_at"`
+	DeleteAt      *string `json:"deleted_at" db:"deleted_at"`
 }
 
 type SubscribeDetailDTO struct {

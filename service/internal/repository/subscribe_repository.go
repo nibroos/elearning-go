@@ -27,27 +27,33 @@ func (r *SubscribeRepository) GetSubscribes(ctx context.Context, filters map[str
 	subscribes := []dtos.SubscribeListDTO{}
 	var total int
 
-	query := `SELECT s.id, s.name, s.description, s.created_at, s.updated_at,
-	cu.name as created_by_name,
-	uu.name as updated_by_name
+	query := `SELECT *
+	FROM ( 
+		SELECT s.id, s.name, s.description, s.created_at, s.updated_at, s.deleted_at,
+		cu.name as created_by_name,
+		uu.name as updated_by_name
 
-	FROM subscribes s
-	JOIN users cu ON s.created_by_id = cu.id
-	LEFT JOIN users uu ON s.updated_by_id = uu.id
-	WHERE 1=1 AND s.deleted_at IS NULL`
+		FROM subscribes s
+		JOIN users cu ON s.created_by_id = cu.id
+		LEFT JOIN users uu ON s.updated_by_id = uu.id
+	) AS alias WHERE 1=1 AND deleted_at IS NULL`
 
-	countQuery := `SELECT COUNT(*)
-	FROM subscribes s
-	JOIN users cu ON s.created_by_id = cu.id
-	LEFT JOIN users uu ON s.updated_by_id = uu.id
-	WHERE 1=1 AND s.deleted_at IS NULL`
+	countQuery := `SELECT COUNT(*) FROM (
+		SELECT s.id, s.name, s.description, s.created_at, s.updated_at, s.deleted_at,
+		cu.name as created_by_name,
+		uu.name as updated_by_name
+
+		FROM subscribes s
+		JOIN users cu ON s.created_by_id = cu.id
+		LEFT JOIN users uu ON s.updated_by_id = uu.id
+	) AS alias WHERE 1=1 AND deleted_at IS NULL`
 
 	var args []interface{}
 
 	i := 1
 	for key, value := range filters {
 		switch key {
-		case "s.name", "s.description":
+		case "name", "description":
 			if value != "" {
 				query += fmt.Sprintf(" AND %s ILIKE $%d", key, i)
 				countQuery += fmt.Sprintf(" AND %s ILIKE $%d", key, i)
@@ -58,8 +64,8 @@ func (r *SubscribeRepository) GetSubscribes(ctx context.Context, filters map[str
 	}
 
 	if value, ok := filters["global"]; ok && value != "" {
-		query += fmt.Sprintf(" AND (s.name ILIKE $%d OR s.description ILIKE $%d)", i, i+1)
-		countQuery += fmt.Sprintf(" AND (s.name ILIKE $%d OR s.description ILIKE $%d)", i, i+1)
+		query += fmt.Sprintf(" AND (name ILIKE $%d OR description ILIKE $%d)", i, i+1)
+		countQuery += fmt.Sprintf(" AND (name ILIKE $%d OR description ILIKE $%d)", i, i+1)
 		args = append(args, "%"+value+"%", "%"+value+"%")
 		i += 2
 	}
@@ -70,7 +76,7 @@ func (r *SubscribeRepository) GetSubscribes(ctx context.Context, filters map[str
 		return nil, 0, err
 	}
 
-	orderColumn := utils.GetStringOrDefault(filters["order_column"], "s.id")
+	orderColumn := utils.GetStringOrDefault(filters["order_column"], "id")
 	orderDirection := utils.GetStringOrDefault(filters["order_direction"], "asc")
 	query += fmt.Sprintf(" ORDER BY %s %s", orderColumn, orderDirection)
 
