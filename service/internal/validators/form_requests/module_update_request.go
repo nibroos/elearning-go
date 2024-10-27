@@ -8,22 +8,25 @@ import (
 	"github.com/thedevsaddam/govalidator"
 )
 
-// SubscribeUpdateRequest handles the validation for the RegisterRequest.
-type SubscribeUpdateRequest struct {
+// ModuleUpdateRequest handles the validation for the RegisterRequest.
+type ModuleUpdateRequest struct {
 	Validator *govalidator.Validator
 }
 
-// NewRegisterUpdateRequest creates a new instance of SubscribeUpdateRequest.
-func NewSubscribeUpdateRequest() *SubscribeUpdateRequest {
+// NewRegisterUpdateRequest creates a new instance of ModuleUpdateRequest.
+func NewModuleUpdateRequest() *ModuleUpdateRequest {
 	v := govalidator.New(govalidator.Options{})
-	return &SubscribeUpdateRequest{Validator: v}
+	return &ModuleUpdateRequest{Validator: v}
 }
 
 // Validate validates the RegisterRequest.
-func (r *SubscribeUpdateRequest) Validate(req *dtos.UpdateSubscribeRequest, ctx context.Context) map[string]string {
+func (r *ModuleUpdateRequest) Validate(req *dtos.UpdateModuleRequest, ctx context.Context) map[string]string {
 	// utils.DD(req)
+
+	// TODO Fix the unique_ig rule
 	rules := govalidator.MapData{
-		"name":        []string{"required", fmt.Sprintf("unique_ig:subscribes,name,%d", req.ID)},
+		"name":        []string{"required", fmt.Sprintf("unique_ig:modules,name,%d", req.ID)},
+		"class_id":    []string{"required", fmt.Sprintf("unique_ig:modules,class_id,%d", req.ID)},
 		"description": []string{},
 	}
 

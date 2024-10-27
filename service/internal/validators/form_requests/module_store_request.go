@@ -2,29 +2,28 @@ package form_requests
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/nibroos/elearning-go/service/internal/dtos"
 	"github.com/thedevsaddam/govalidator"
 )
 
-// SubscribeUpdateRequest handles the validation for the RegisterRequest.
-type SubscribeUpdateRequest struct {
+// ModuleStoreRequest handles the validation for the RegisterRequest.
+type ModuleStoreRequest struct {
 	Validator *govalidator.Validator
 }
 
-// NewRegisterUpdateRequest creates a new instance of SubscribeUpdateRequest.
-func NewSubscribeUpdateRequest() *SubscribeUpdateRequest {
+// NewRegisterStoreRequest creates a new instance of ModuleStoreRequest.
+func NewModuleStoreRequest() *ModuleStoreRequest {
 	v := govalidator.New(govalidator.Options{})
-	return &SubscribeUpdateRequest{Validator: v}
+	return &ModuleStoreRequest{Validator: v}
 }
 
 // Validate validates the RegisterRequest.
-func (r *SubscribeUpdateRequest) Validate(req *dtos.UpdateSubscribeRequest, ctx context.Context) map[string]string {
+func (r *ModuleStoreRequest) Validate(req *dtos.CreateModuleRequest, ctx context.Context) map[string]string {
 	// utils.DD(req)
 	rules := govalidator.MapData{
-		"name":        []string{"required", fmt.Sprintf("unique_ig:subscribes,name,%d", req.ID)},
-		"description": []string{},
+		"name":        []string{"required", "unique:modules,name"},
+		"description": []string{"required"},
 	}
 
 	opts := govalidator.Options{

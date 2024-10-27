@@ -207,3 +207,68 @@ type GetClassesResult struct {
 	Total   int
 	Err     error
 }
+
+type GetModulesRequest struct {
+	Global         string                 `json:"global"`
+	Name           string                 `json:"name"`
+	PerPage        utils.Nullable[string] `json:"per_page" default:"10"`         // Default per_page to 10
+	Page           utils.Nullable[string] `json:"page" default:"1"`              // Default page to 1
+	OrderColumn    string                 `json:"order_column" default:"id"`     // Default order column to "id"
+	OrderDirection string                 `json:"order_direction" default:"asc"` // Default order direction to "asc"
+}
+
+type CreateModuleRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	ClassID     uint   `json:"class_id"`
+}
+
+type UpdateModuleRequest struct {
+	ID          uint   `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	ClassID     uint   `json:"class_id"`
+}
+
+type GetModuleByIDRequest struct {
+	ID uint `json:"id"`
+}
+
+type DeleteModuleRequest struct {
+	ID uint `json:"id"`
+}
+
+type ModuleListDTO struct {
+	ID            int     `json:"id" db:"id"`
+	Name          string  `json:"name" db:"name"`
+	Description   string  `json:"description" db:"description"`
+	ClassID       uint    `json:"class_id" db:"class_id"`
+	ClassName     string  `json:"class_name" db:"class_name"`
+	CreatedByName *string `json:"created_by_name" db:"created_by_name"`
+	UpdatedByName *string `json:"updated_by_name" db:"updated_by_name"`
+	CreatedAt     *string `json:"created_at" db:"created_at"`
+	UpdatedAt     *string `json:"updated_at" db:"updated_at"`
+	DeleteAt      *string `json:"deleted_at" db:"deleted_at"`
+}
+
+type ModuleDetailDTO struct {
+	ID            uint    `json:"id" db:"id"`
+	Name          string  `json:"name" db:"name"`
+	Description   string  `json:"description" db:"description"`
+	LogoURL       *string `json:"logo_url" db:"logo_url"`
+	VideoURL      *string `json:"video_url" db:"video_url"`
+	ClassID       uint    `json:"class_id" db:"class_id"`
+	ClassName     string  `json:"class_name" db:"class_name"`
+	CreatedByID   uint    `json:"created_by_id" db:"created_by_id"`
+	UpdatedByID   *uint   `json:"updated_by_id" db:"updated_by_id"`
+	CreatedByName *string `json:"created_by_name" db:"created_by_name"`
+	UpdatedByName *string `json:"updated_by_name" db:"updated_by_name"`
+	CreatedAt     *string `json:"created_at" db:"created_at"`
+	UpdatedAt     *string `json:"updated_at" db:"updated_at"`
+	DeletedAt     *string `json:"deleted_at" db:"deleted_at"`
+}
+type GetModulesResult struct {
+	Modules []ModuleListDTO
+	Total   int
+	Err     error
+}
