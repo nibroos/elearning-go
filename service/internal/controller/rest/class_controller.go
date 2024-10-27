@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/nibroos/elearning-go/service/internal/dtos"
+	"github.com/nibroos/elearning-go/service/internal/middleware"
 	"github.com/nibroos/elearning-go/service/internal/models"
 	"github.com/nibroos/elearning-go/service/internal/service"
 	"github.com/nibroos/elearning-go/service/internal/utils"
@@ -48,16 +49,30 @@ func (c *ClassController) CreateClass(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
 	}
 
+	// Extract user ID from JWT
+	claims, err := middleware.GetAuthUser(ctx)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"errors": err.Error(), "message": "Unauthorized", "status": fiber.StatusUnauthorized})
+	}
+	userID := uint(claims["user_id"].(float64))
+
+	bannerURL := ""
+	logoURL := ""
+	videoURL := ""
+
 	class := models.Class{
 		Name:        req.Name,
 		Description: req.Description,
+		BannerURL:   &bannerURL,
+		LogoURL:     &logoURL,
+		VideoURL:    &videoURL,
+		SubscribeID: req.SubscribeID,
+		InchargeID:  req.InchargeID,
+		CreatedByID: &userID,
 	}
 
 	createdClass, err := c.service.CreateClass(ctx.Context(), &class)
 	if err != nil {
-		if err.Error() == "classname already exists" {
-			return ctx.Status(http.StatusConflict).JSON(fiber.Map{"errors": err.Error(), "message": "Classname already exists", "status": http.StatusConflict})
-		}
 		return utils.GetResponse(ctx, nil, nil, "Failed to create class", http.StatusInternalServerError, err.Error(), nil)
 	}
 
@@ -69,7 +84,7 @@ func (c *ClassController) CreateClass(ctx *fiber.Ctx) error {
 	filters := ctx.Locals("filters").(map[string]string)
 	paginationMeta := utils.CreatePaginationMeta(filters, 1)
 
-	return utils.GetResponse(ctx, getClass, paginationMeta, "Class created successfully", http.StatusCreated, nil, nil)
+	return utils.GetResponse(ctx, []interface{}{getClass}, paginationMeta, "Class created successfully", http.StatusCreated, nil, nil)
 }
 func (c *ClassController) GetClassByID(ctx *fiber.Ctx) error {
 	var req dtos.GetClassByIDRequest
@@ -109,11 +124,34 @@ func (c *ClassController) UpdateClass(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
 	}
 
-	//
+	// Fetch the existing subscribe to get the current data
+	existingClass, err := c.service.GetClassByID(ctx.Context(), req.ID)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Class not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	// Extract user ID from JWT
+	claims, err := middleware.GetAuthUser(ctx)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"errors": err.Error(), "message": "Unauthorized", "status": fiber.StatusUnauthorized})
+	}
+	userID := uint(claims["user_id"].(float64))
+
+	bannerURL := ""
+	logoURL := ""
+	videoURL := ""
+
 	class := models.Class{
 		ID:          req.ID,
 		Name:        req.Name,
 		Description: req.Description,
+		BannerURL:   &bannerURL,
+		LogoURL:     &logoURL,
+		VideoURL:    &videoURL,
+		SubscribeID: req.SubscribeID,
+		InchargeID:  req.InchargeID,
+		CreatedByID: &existingClass.CreatedByID,
+		UpdatedByID: &userID,
 	}
 
 	updatedClass, err := c.service.UpdateClass(ctx.Context(), &class)
@@ -132,7 +170,7 @@ func (c *ClassController) UpdateClass(ctx *fiber.Ctx) error {
 	filters := ctx.Locals("filters").(map[string]string)
 	paginationMeta := utils.CreatePaginationMeta(filters, 1)
 
-	return utils.GetResponse(ctx, getClass, paginationMeta, "Class updated successfully", http.StatusOK, nil, nil)
+	return utils.GetResponse(ctx, []interface{}{getClass}, paginationMeta, "Class updated successfully", http.StatusOK, nil, nil)
 }
 
 // delete class

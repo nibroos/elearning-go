@@ -21,10 +21,10 @@ func NewClassStoreRequest() *ClassStoreRequest {
 // Validate validates the RegisterRequest.
 func (r *ClassStoreRequest) Validate(req *dtos.CreateClassRequest, ctx context.Context) map[string]string {
 	rules := govalidator.MapData{
-		"name":        []string{"required", "unique:classes,name"},
-		"description": []string{},
-		"subcribe_id": []string{"required", "numeric", "exists:subscribes,id"},
-		"incharge_id": []string{"required", "numeric", "exists:users,id"},
+		"name":         []string{"required", "unique:classes,name"},
+		"description":  []string{},
+		"subscribe_id": []string{"required", "numeric", "exists:subscribes,id"},
+		"incharge_id":  []string{"required", "numeric", "exists:users,id"},
 	}
 
 	opts := govalidator.Options{

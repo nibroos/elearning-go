@@ -2,7 +2,7 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS classes (
   id SERIAL PRIMARY KEY,
-  subcribe_id INT REFERENCES subcribes(id),
+  subscribe_id INT REFERENCES subscribes(id),
   incharge_id INT REFERENCES users(id),
   name VARCHAR(255),
   description TEXT,

@@ -36,21 +36,29 @@ func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string
 	var total int
 
 	query := `SELECT id, username, name, email FROM users WHERE 1=1`
+	countQuery := `SELECT COUNT(*) FROM users WHERE 1=1`
 	var args []interface{}
 
 	i := 1
 	for key, value := range filters {
 		switch key {
-		case "username", "name", "email", "global":
+		case "username", "name", "email":
 			if value != "" {
 				query += fmt.Sprintf(" AND %s ILIKE $%d", key, i)
+				countQuery += fmt.Sprintf(" AND %s ILIKE $%d", key, i)
 				args = append(args, "%"+value+"%")
 				i++
 			}
 		}
 	}
 
-	countQuery := `SELECT COUNT(*) FROM users WHERE 1=1`
+	if value, ok := filters["global"]; ok && value != "" {
+		query += fmt.Sprintf(" AND (username ILIKE $%d OR name ILIKE $%d OR email ILIKE $%d)", i, i+1, i+2)
+		countQuery += fmt.Sprintf(" AND (username ILIKE $%d OR name ILIKE $%d OR email ILIKE $%d)", i, i+1, i+2)
+		args = append(args, "%"+value+"%", "%"+value+"%", "%"+value+"%")
+		i += 3
+	}
+
 	countArgs := append([]interface{}{}, args...)
 	err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
 	if err != nil {
@@ -63,11 +71,6 @@ func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string
 
 	perPage := utils.GetIntOrDefault(filters["per_page"], 10)
 	currentPage := utils.GetIntOrDefault(filters["page"], 1)
-
-	// utils.DD(ctx, map[string]interface{}{
-	// 	"perPage":     perPage,
-	// 	"currentPage": currentPage,
-	// })
 
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", i, i+1)
 	args = append(args, perPage, (currentPage-1)*perPage)

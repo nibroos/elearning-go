@@ -23,10 +23,10 @@ func NewClassUpdateRequest() *ClassUpdateRequest {
 func (r *ClassUpdateRequest) Validate(req *dtos.UpdateClassRequest, ctx context.Context) map[string]string {
 	// utils.DD(req)
 	rules := govalidator.MapData{
-		"name":        []string{"required", fmt.Sprintf("unique_ig:classes,name,%d", req.ID)},
-		"description": []string{},
-		"subcribe_id": []string{"required", "numeric", "exists:subscribes,id"},
-		"incharge_id": []string{"required", "numeric", "exists:users,id"},
+		"name":         []string{"required", fmt.Sprintf("unique_ig:classes,name,%d", req.ID)},
+		"description":  []string{},
+		"subscribe_id": []string{"required", "numeric", "exists:subscribes,id"},
+		"incharge_id":  []string{"required", "numeric", "exists:users,id"},
 	}
 
 	opts := govalidator.Options{

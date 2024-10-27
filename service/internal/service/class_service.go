@@ -21,8 +21,8 @@ func (s *ClassService) GetClasses(ctx context.Context, filters map[string]string
 	resultChan := make(chan dtos.GetClassesResult, 1)
 
 	go func() {
-		subscribes, total, err := s.repo.GetClasses(ctx, filters)
-		resultChan <- dtos.GetClassesResult{Classes: subscribes, Total: total, Err: err}
+		classes, total, err := s.repo.GetClasses(ctx, filters)
+		resultChan <- dtos.GetClassesResult{Classes: classes, Total: total, Err: err}
 	}()
 
 	select {
@@ -33,15 +33,15 @@ func (s *ClassService) GetClasses(ctx context.Context, filters map[string]string
 	}
 }
 
-func (s *ClassService) CreateClass(ctx context.Context, subscribe *models.Class) (*models.Class, error) {
+func (s *ClassService) CreateClass(ctx context.Context, class *models.Class) (*models.Class, error) {
 	// Transaction handling
 	tx := s.repo.BeginTransaction()
 	if err := tx.Error; err != nil {
 		return nil, err
 	}
 
-	// Create subscribe
-	if err := s.repo.CreateClass(tx, subscribe); err != nil {
+	// Create class
+	if err := s.repo.CreateClass(tx, class); err != nil {
 		tx.Rollback()
 		return nil, err
 	}
@@ -50,25 +50,25 @@ func (s *ClassService) CreateClass(ctx context.Context, subscribe *models.Class)
 		return nil, err
 	}
 
-	return subscribe, nil
+	return class, nil
 }
 
 func (s *ClassService) GetClassByID(ctx context.Context, id uint) (*dtos.ClassDetailDTO, error) {
-	subscribeChan := make(chan *dtos.ClassDetailDTO, 1)
+	classChan := make(chan *dtos.ClassDetailDTO, 1)
 	errChan := make(chan error, 1)
 
 	go func() {
-		subscribe, err := s.repo.GetClassByID(ctx, id)
+		class, err := s.repo.GetClassByID(ctx, id)
 		if err != nil {
 			errChan <- err
 			return
 		}
-		subscribeChan <- subscribe
+		classChan <- class
 	}()
 
 	select {
-	case subscribe := <-subscribeChan:
-		return subscribe, nil
+	case class := <-classChan:
+		return class, nil
 	case err := <-errChan:
 		return nil, err
 	case <-ctx.Done():
@@ -76,15 +76,15 @@ func (s *ClassService) GetClassByID(ctx context.Context, id uint) (*dtos.ClassDe
 	}
 }
 
-func (s *ClassService) UpdateClass(ctx context.Context, subscribe *models.Class) (*models.Class, error) {
+func (s *ClassService) UpdateClass(ctx context.Context, class *models.Class) (*models.Class, error) {
 	// Transaction handling
 	tx := s.repo.BeginTransaction()
 	if err := tx.Error; err != nil {
 		return nil, err
 	}
 
-	// Update subscribe
-	if err := s.repo.UpdateClass(tx, subscribe); err != nil {
+	// Update class
+	if err := s.repo.UpdateClass(tx, class); err != nil {
 		tx.Rollback()
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (s *ClassService) UpdateClass(ctx context.Context, subscribe *models.Class)
 		return nil, err
 	}
 
-	return subscribe, nil
+	return class, nil
 }
 
 func (s *ClassService) DeleteClass(ctx context.Context, id uint) error {
@@ -103,7 +103,7 @@ func (s *ClassService) DeleteClass(ctx context.Context, id uint) error {
 		return err
 	}
 
-	// Delete subscribe
+	// Delete class
 	if err := s.repo.DeleteClass(tx, id); err != nil {
 		tx.Rollback()
 		return err
@@ -123,7 +123,7 @@ func (s *ClassService) RestoreClass(ctx context.Context, id uint) error {
 		return err
 	}
 
-	// Restore subscribe
+	// Restore class
 	if err := s.repo.RestoreClass(tx, id); err != nil {
 		tx.Rollback()
 		return err

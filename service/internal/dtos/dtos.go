@@ -104,15 +104,26 @@ type DeleteSubscribeRequest struct {
 }
 
 type SubscribeListDTO struct {
-	ID          int    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	ID            int     `json:"id" db:"id"`
+	Name          string  `json:"name" db:"name"`
+	Description   string  `json:"description" db:"description"`
+	CreatedByName *string `json:"created_by_name" db:"created_by_name"`
+	UpdatedByName *string `json:"updated_by_name" db:"updated_by_name"`
+	CreatedAt     *string `json:"created_at" db:"created_at"`
+	UpdatedAt     *string `json:"updated_at" db:"updated_at"`
 }
 
 type SubscribeDetailDTO struct {
-	ID          uint   `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
+	ID            uint    `json:"id" db:"id"`
+	Name          string  `json:"name" db:"name"`
+	Description   string  `json:"description" db:"description"`
+	CreatedByID   uint    `json:"created_by_id" db:"created_by_id"`
+	UpdatedByID   *uint   `json:"updated_by_id" db:"updated_by_id"`
+	CreatedByName *string `json:"created_by_name" db:"created_by_name"`
+	UpdatedByName *string `json:"updated_by_name" db:"updated_by_name"`
+	CreatedAt     *string `json:"created_at" db:"created_at"`
+	UpdatedAt     *string `json:"updated_at" db:"updated_at"`
+	DeletedAt     *string `json:"deleted_at" db:"deleted_at"`
 }
 type GetSubscribesResult struct {
 	Subscribes []SubscribeListDTO
@@ -123,7 +134,7 @@ type GetSubscribesResult struct {
 type ClassesRequest struct {
 	Global         string                 `json:"global"`
 	Name           string                 `json:"name"`
-	SubcribeID     utils.Nullable[string] `json:"subcribe_id"`
+	SubscribeID    utils.Nullable[string] `json:"subscribe_id"`
 	InchargeID     utils.Nullable[string] `json:"incharge_id"`
 	PerPage        utils.Nullable[string] `json:"per_page" default:"10"`         // Default per_page to 10
 	Page           utils.Nullable[string] `json:"page" default:"1"`              // Default page to 1
@@ -134,7 +145,7 @@ type ClassesRequest struct {
 type CreateClassRequest struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	SubcribeID  uint   `json:"subcribe_id"`
+	SubscribeID uint   `json:"subscribe_id"`
 	InchargeID  uint   `json:"incharge_id"`
 }
 
@@ -142,7 +153,7 @@ type UpdateClassRequest struct {
 	ID          uint   `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	SubcribeID  uint   `json:"subcribe_id"`
+	SubscribeID uint   `json:"subscribe_id"`
 	InchargeID  uint   `json:"incharge_id"`
 }
 
@@ -155,33 +166,40 @@ type DeleteClassRequest struct {
 }
 
 type ClassListDTO struct {
-	ID            int    `json:"id"`
-	Name          string `json:"name"`
-	Description   string `json:"description"`
-	BannerURL     string `json:"banner_url"`
-	LogoURL       string `json:"logo_url"`
-	VideoURL      string `json:"video_url"`
-	CreatedByName string `json:"created_by_name"`
-	UpdatedByName string `json:"updated_by_name"`
-	InchargeName  string `json:"incharge_name"`
-	SubcribeName  string `json:"subcribe_name"`
-	CreatedAt     string `json:"created_at"`
-	UpdatedAt     string `json:"updated_at"`
+	ID            uint    `json:"id" db:"id"`
+	Name          string  `json:"name" db:"name"`
+	Description   *string `json:"description" db:"description"`
+	BannerURL     *string `json:"banner_url" db:"banner_url"`
+	LogoURL       *string `json:"logo_url" db:"logo_url"`
+	VideoURL      *string `json:"video_url" db:"video_url"`
+	CreatedByName *string `json:"created_by_name" db:"created_by_name"`
+	UpdatedByName *string `json:"updated_by_name" db:"updated_by_name"`
+	InchargeName  *string `json:"incharge_name" db:"incharge_name"`
+	SubscribeName *string `json:"subscribe_name" db:"subscribe_name"`
+	CreatedAt     *string `json:"created_at" db:"created_at"`
+	UpdatedAt     *string `json:"updated_at" db:"updated_at"`
+	SubscribeID   uint    `json:"subscribe_id" db:"subscribe_id"`
+	InchargeID    uint    `json:"incharge_id" db:"incharge_id"`
 }
 
 type ClassDetailDTO struct {
-	ID          uint   `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	BannerURL   string `json:"banner_url"`
-	LogoURL     string `json:"logo_url"`
-	VideoURL    string `json:"video_url"`
-	CreatedByID uint   `json:"created_by_id"`
-	UpdatedByID uint   `json:"updated_by_id"`
-	InchargeID  uint   `json:"incharge_id"`
-	SubcribeID  uint   `json:"subcribe_id"`
-	CreatedAt   string `json:"created_at"`
-	UpdatedAt   string `json:"updated_at"`
+	ID            uint    `json:"id" db:"id"`
+	Name          string  `json:"name" db:"name"`
+	Description   *string `json:"description" db:"description"`
+	BannerURL     *string `json:"banner_url" db:"banner_url"`
+	LogoURL       *string `json:"logo_url" db:"logo_url"`
+	VideoURL      *string `json:"video_url" db:"video_url"`
+	CreatedByName *string `json:"created_by_name" db:"created_by_name"`
+	UpdatedByName *string `json:"updated_by_name" db:"updated_by_name"`
+	InchargeName  *string `json:"incharge_name" db:"incharge_name"`
+	SubscribeName *string `json:"subscribe_name" db:"subscribe_name"`
+	CreatedAt     *string `json:"created_at" db:"created_at"`
+	UpdatedAt     *string `json:"updated_at" db:"updated_at"`
+	DeletedAt     *string `json:"deleted_at" db:"deleted_at"`
+	CreatedByID   uint    `json:"created_by_id" db:"created_by_id"`
+	UpdatedByID   *uint   `json:"updated_by_id" db:"updated_by_id"`
+	SubscribeID   uint    `json:"subscribe_id" db:"subscribe_id"`
+	InchargeID    uint    `json:"incharge_id" db:"incharge_id"`
 }
 type GetClassesResult struct {
 	Classes []ClassListDTO

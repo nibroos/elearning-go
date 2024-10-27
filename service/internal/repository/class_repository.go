@@ -23,34 +23,11 @@ func NewClassRepository(db *gorm.DB, sqlDB *sqlx.DB) *ClassRepository {
 	}
 }
 
-// subcribe_id INT REFERENCES subcribes(id),
-// incharge_id INT REFERENCES users(id),
-// name VARCHAR(255),
-// description TEXT,
-// banner_url TEXT,
-// logo_url TEXT,
-// video_url TEXT,
-// created_by_id INT REFERENCES users(id),
-// updated_by_id INT REFERENCES users(id),
-// created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
-// updated_at timestamp with time zone,
-// deleted_at timestamp with time zone
 func (r *ClassRepository) GetClasses(ctx context.Context, filters map[string]string) ([]dtos.ClassListDTO, int, error) {
 	classes := []dtos.ClassListDTO{}
 	var total int
-	query := `SELECT 
-        alias.id, 
-        alias.name, 
-        alias.description, 
-        alias.banner_url, 
-        alias.logo_url, 
-        alias.video_url,
-        alias.created_by_name,
-        alias.updated_by_name,
-        alias.incharge_name,
-        alias.subcribe_name,
-        alias.created_at,
-        alias.updated_at
+
+	query := `SELECT *
     FROM (
         SELECT 
             c.id AS id, 
@@ -62,45 +39,17 @@ func (r *ClassRepository) GetClasses(ctx context.Context, filters map[string]str
             cb.name AS created_by_name,
             ub.name AS updated_by_name,
             ic.name AS incharge_name,
-            s.name AS subcribe_name,
+            s.name AS subscribe_name,
             c.created_at AS created_at,
             c.updated_at AS updated_at,
-            c.subcribe_id AS subcribe_id,
+            c.subscribe_id AS subscribe_id,
             c.incharge_id AS incharge_id
         FROM classes AS c
         JOIN users AS cb ON c.created_by_id = cb.id
         JOIN users AS ub ON c.updated_by_id = ub.id
         LEFT JOIN users AS ic ON c.incharge_id = ic.id
-        JOIN subcribes AS s ON c.subcribe_id = s.id
+        LEFT JOIN subscribes AS s ON c.subscribe_id = s.id
     ) AS alias WHERE 1=1`
-	var args []interface{}
-
-	i := 1
-
-	if value, ok := filters["name"]; ok {
-		query += fmt.Sprintf(" AND name ILIKE $%d", i)
-		args = append(args, "%"+value+"%")
-		i++
-	}
-
-	if value, ok := filters["subcribe_id"]; ok {
-		query += fmt.Sprintf(" AND subcribe_id = $%d", i)
-		args = append(args, value)
-		i++
-	}
-
-	if value, ok := filters["incharge_id"]; ok {
-		query += fmt.Sprintf(" AND incharge_id = $%d", i)
-		args = append(args, value)
-		i++
-	}
-
-	// search by global multiple column using OR ILIKE
-	if value, ok := filters["global"]; ok {
-		query += fmt.Sprintf(" AND (name ILIKE $%d OR description ILIKE $%d OR created_by_name ILIKE $%d OR updated_by_name ILIKE $%d OR incharge_name ILIKE $%d OR subcribe_name ILIKE $%d)", i, i+1, i+2, i+3, i+4, i+5)
-		args = append(args, "%"+value+"%", "%"+value+"%", "%"+value+"%", "%"+value+"%", "%"+value+"%", "%"+value+"%")
-		i += 6
-	}
 
 	countQuery := `SELECT COUNT(*) FROM (
         SELECT 
@@ -113,18 +62,53 @@ func (r *ClassRepository) GetClasses(ctx context.Context, filters map[string]str
             cb.name AS created_by_name,
             ub.name AS updated_by_name,
             ic.name AS incharge_name,
-            s.name AS subcribe_name,
+            s.name AS subscribe_name,
             c.created_at AS created_at,
             c.updated_at AS updated_at,
-            c.subcribe_id AS subcribe_id,
+            c.subscribe_id AS subscribe_id,
             c.incharge_id AS incharge_id
         FROM classes AS c
         JOIN users AS cb ON c.created_by_id = cb.id
         JOIN users AS ub ON c.updated_by_id = ub.id
         LEFT JOIN users AS ic ON c.incharge_id = ic.id
-        JOIN subcribes AS s ON c.subcribe_id = s.id
+        LEFT JOIN subscribes AS s ON c.subscribe_id = s.id
     ) AS alias WHERE 1=1`
+
+	var args []interface{}
+
+	i := 1
+
+	if value, ok := filters["name"]; ok && value != "" {
+		query += fmt.Sprintf(" AND name ILIKE $%d", i)
+		countQuery += fmt.Sprintf(" AND name ILIKE $%d", i)
+		args = append(args, "%"+value+"%")
+		i++
+	}
+
+	if value, ok := filters["subscribe_id"]; ok && value != "" {
+		query += fmt.Sprintf(" AND subscribe_id = $%d", i)
+		countQuery += fmt.Sprintf(" AND subscribe_id = $%d", i)
+		args = append(args, value)
+		i++
+	}
+
+	if value, ok := filters["incharge_id"]; ok && value != "" {
+		query += fmt.Sprintf(" AND incharge_id = $%d", i)
+		countQuery += fmt.Sprintf(" AND incharge_id = $%d", i)
+		args = append(args, value)
+		i++
+	}
+
+	// search by global multiple column using OR ILIKE
+	if value, ok := filters["global"]; ok && value != "" {
+		query += fmt.Sprintf(" AND (name ILIKE $%d OR description ILIKE $%d OR created_by_name ILIKE $%d OR updated_by_name ILIKE $%d OR incharge_name ILIKE $%d OR subscribe_name ILIKE $%d)", i, i+1, i+2, i+3, i+4, i+5)
+		countQuery += fmt.Sprintf(" AND (name ILIKE $%d OR description ILIKE $%d OR created_by_name ILIKE $%d OR updated_by_name ILIKE $%d OR incharge_name ILIKE $%d OR subscribe_name ILIKE $%d)", i, i+1, i+2, i+3, i+4, i+5)
+		args = append(args, "%"+value+"%", "%"+value+"%", "%"+value+"%", "%"+value+"%", "%"+value+"%", "%"+value+"%")
+		i += 6
+	}
+
 	countArgs := append([]interface{}{}, args...)
+
 	err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
 	if err != nil {
 		return nil, 0, err
@@ -147,23 +131,11 @@ func (r *ClassRepository) GetClasses(ctx context.Context, filters map[string]str
 
 	return classes, total, nil
 }
+
 func (r *ClassRepository) GetClassByID(ctx context.Context, id uint) (*dtos.ClassDetailDTO, error) {
 	var class dtos.ClassDetailDTO
 
-	query := `SELECT 
-        id, 
-        name, 
-        description, 
-        banner_url, 
-        logo_url, 
-        video_url,
-        created_by_name,
-        updated_by_name,
-        incharge_name,
-        subcribe_name,
-        created_at,
-        updated_at,
-        deleted_at
+	query := `SELECT *
     FROM (
         SELECT 
             c.id AS id, 
@@ -175,17 +147,18 @@ func (r *ClassRepository) GetClassByID(ctx context.Context, id uint) (*dtos.Clas
             cb.name AS created_by_name,
             ub.name AS updated_by_name,
             ic.name AS incharge_name,
-            s.name AS subcribe_name,
+            s.name AS subscribe_name,
+            c.created_by_id AS created_by_id,
             c.created_at AS created_at,
             c.updated_at AS updated_at,
             c.deleted_at AS deleted_at,
-            c.subcribe_id AS subcribe_id,
+            c.subscribe_id AS subscribe_id,
             c.incharge_id AS incharge_id
         FROM classes AS c
         JOIN users AS cb ON c.created_by_id = cb.id
-        JOIN users AS ub ON c.updated_by_id = ub.id
+        LEFT JOIN users AS ub ON c.updated_by_id = ub.id
         LEFT JOIN users AS ic ON c.incharge_id = ic.id
-        JOIN subcribes AS s ON c.subcribe_id = s.id
+        JOIN subscribes AS s ON c.subscribe_id = s.id
     ) AS alias WHERE id = $1 AND deleted_at IS NULL`
 	if err := r.sqlDB.Get(&class, query, id); err != nil {
 		return nil, err

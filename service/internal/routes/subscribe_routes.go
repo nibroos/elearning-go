@@ -14,6 +14,8 @@ func SetupSubscribeRoutes(subscribes fiber.Router, gormDB *gorm.DB, sqlDB *sqlx.
 	subscribeService := service.NewSubscribeService(subscribeRepo)
 	subscribeController := rest.NewSubscribeController(subscribeService)
 
+	// prefix /subscribes
+
 	subscribes.Post("/index-subscribe", subscribeController.GetSubscribes)
 	subscribes.Post("/show-subscribe", subscribeController.GetSubscribeByID)
 	subscribes.Post("/create-subscribe", subscribeController.CreateSubscribe)

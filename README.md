@@ -34,7 +34,7 @@ Change bash directory to each service.
 - Stepback migraiton: `make migrate-down`
 - Generate proto file, leave the proto args blank if you want to generate all proto file: `make proto ${your-proto.proto}`. If its fail, run this command on specific service. for example, in /service/ run bash `export PATH="$PATH:$(go env GOPATH)/bin"`
 - Create seeder : `make seed-create name=${your_seeder_name}`
-- Run seeder : `make seed-run file=${your_seeder_name}`
+- Run seeder : `make seed-run file=${your_seeder_name}.sql`
 
 ## 💎 The Package Features
 

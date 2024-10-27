@@ -73,7 +73,7 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 	filters := ctx.Locals("filters").(map[string]string)
 	paginationMeta := utils.CreatePaginationMeta(filters, 1)
 
-	return utils.GetResponse(ctx, getUser, paginationMeta, "User created successfully", http.StatusCreated, nil, nil)
+	return utils.GetResponse(ctx, []interface{}{getUser}, paginationMeta, "User created successfully", http.StatusCreated, nil, nil)
 }
 func (c *UserController) GetUserByID(ctx *fiber.Ctx) error {
 	var req dtos.GetUserByIDRequest

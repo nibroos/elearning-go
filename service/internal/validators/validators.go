@@ -226,8 +226,16 @@ func arrayMaxRule(field string, rule string, message string, value interface{}) 
 }
 
 func isExistsRule(field string, rule string, message string, value interface{}) error {
-	valueStr, ok := value.(string)
-	if !ok {
+	// if value uint or string
+	var entityValue interface{}
+
+	// Check if value is uint or string
+	switch v := value.(type) {
+	case uint:
+		entityValue = v
+	case string:
+		entityValue = v
+	default:
 		return fmt.Errorf("invalid value type")
 	}
 
@@ -246,7 +254,7 @@ func isExistsRule(field string, rule string, message string, value interface{}) 
 
 	var count int
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE %s = $1", table, column)
-	err := db.Get(&count, query, valueStr)
+	err := db.Get(&count, query, entityValue)
 	if err != nil {
 		return fmt.Errorf("database error: %v", err)
 	}
