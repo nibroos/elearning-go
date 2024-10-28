@@ -26,7 +26,7 @@ func (r *ModuleUpdateRequest) Validate(req *dtos.UpdateModuleRequest, ctx contex
 	// TODO Fix the unique_ig rule
 	rules := govalidator.MapData{
 		"name":        []string{"required", fmt.Sprintf("unique_ig:modules,name,%d", req.ID)},
-		"class_id":    []string{"required", fmt.Sprintf("unique_ig:modules,class_id,%d", req.ID)},
+		"class_id":    []string{"required"},
 		"description": []string{},
 	}
 

@@ -120,12 +120,13 @@ func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 	}
 
 	user := models.User{
-		ID:       req.ID,
-		Name:     req.Name,
-		Username: req.Username.Value,
-		Email:    req.Email,
-		Password: *existingUser.Password.Value, // Default to existing password
-		Address:  req.Address.Value,
+		ID:        req.ID,
+		Name:      req.Name,
+		Username:  req.Username.Value,
+		Email:     req.Email,
+		Password:  *existingUser.Password.Value, // Default to existing password
+		Address:   req.Address.Value,
+		CreatedAt: *existingUser.CreatedAt,
 	}
 
 	// Update password only if a new one is provided

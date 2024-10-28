@@ -56,6 +56,7 @@ type UserDetailDTO struct {
 	Password    utils.Nullable[string] `json:"password"`
 	Roles       []string               `json:"roles"`
 	Permissions []string               `json:"permissions"`
+	CreatedAt   *string                `json:"created_at"`
 }
 type GetUsersResult struct {
 	Users []UserListDTO

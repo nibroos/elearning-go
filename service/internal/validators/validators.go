@@ -156,8 +156,14 @@ func uniqueRule(field string, rule string, message string, value interface{}) er
 
 // uniqueIgRule checks if a field value is unique in the database, ignoring the current entity.
 func uniqueIgRule(field string, rule string, message string, value interface{}) error {
-	valueStr, ok := value.(string)
-	if !ok {
+	// Check if value is uint or string
+	var valueStr string
+	switch v := value.(type) {
+	case uint:
+		valueStr = fmt.Sprintf("%d", v)
+	case string:
+		valueStr = v
+	default:
 		return fmt.Errorf("invalid value type")
 	}
 

@@ -136,6 +136,7 @@ func (c *ModuleController) UpdateModule(ctx *fiber.Ctx) error {
 		Description: req.Description,
 		CreatedByID: &existingModule.CreatedByID,
 		UpdatedByID: &userID,
+		CreatedAt:   *existingModule.CreatedAt,
 	}
 
 	updatedModule, err := c.service.UpdateModule(ctx.Context(), &module)

@@ -152,6 +152,7 @@ func (c *ClassController) UpdateClass(ctx *fiber.Ctx) error {
 		InchargeID:  req.InchargeID,
 		CreatedByID: &existingClass.CreatedByID,
 		UpdatedByID: &userID,
+		CreatedAt:   *existingClass.CreatedAt,
 	}
 
 	updatedClass, err := c.service.UpdateClass(ctx.Context(), &class)

@@ -134,6 +134,7 @@ func (c *SubscribeController) UpdateSubscribe(ctx *fiber.Ctx) error {
 		Description: req.Description,
 		CreatedByID: &existingSubscribe.CreatedByID,
 		UpdatedByID: &userID,
+		CreatedAt:   *existingSubscribe.CreatedAt,
 	}
 
 	updatedSubscribe, err := c.service.UpdateSubscribe(ctx.Context(), &subscribe)

@@ -14,4 +14,5 @@ type Module struct {
 	VideoURL    string `json:"video_url" gorm:"column:video_url"`
 	CreatedByID *uint  `json:"created_by_id" gorm:"column:created_by_id"`
 	UpdatedByID *uint  `json:"updated_by_id" gorm:"column:updated_by_id"`
+	CreatedAt   string `json:"created_at" gorm:"column:created_at"`
 }
