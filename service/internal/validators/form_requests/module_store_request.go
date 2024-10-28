@@ -22,6 +22,7 @@ func NewModuleStoreRequest() *ModuleStoreRequest {
 func (r *ModuleStoreRequest) Validate(req *dtos.CreateModuleRequest, ctx context.Context) map[string]string {
 	// utils.DD(req)
 	rules := govalidator.MapData{
+		"class_id":    []string{"required", "exists:classes,id"},
 		"name":        []string{"required", "unique:modules,name"},
 		"description": []string{"required"},
 	}

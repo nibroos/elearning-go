@@ -196,13 +196,9 @@ func uniqueIgRule(field string, rule string, message string, value interface{}) 
 }
 
 func arrayRule(field string, rule string, message string, value interface{}) error {
-	valueArr, ok := value.([]string)
+	_, ok := value.([]string)
 	if !ok {
-		return fmt.Errorf("invalid value type")
-	}
-
-	if len(valueArr) == 0 {
-		return fmt.Errorf("the %s field is required", field)
+		return fmt.Errorf("the %s field must be an array", field)
 	}
 
 	return nil

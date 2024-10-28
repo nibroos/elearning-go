@@ -21,12 +21,9 @@ func NewModuleUpdateRequest() *ModuleUpdateRequest {
 
 // Validate validates the RegisterRequest.
 func (r *ModuleUpdateRequest) Validate(req *dtos.UpdateModuleRequest, ctx context.Context) map[string]string {
-	// utils.DD(req)
-
-	// TODO Fix the unique_ig rule
 	rules := govalidator.MapData{
+		"class_id":    []string{"required", "exists:classes,id"},
 		"name":        []string{"required", fmt.Sprintf("unique_ig:modules,name,%d", req.ID)},
-		"class_id":    []string{"required"},
 		"description": []string{},
 	}
 
