@@ -58,8 +58,13 @@ func (c *EducationController) CreateEducation(ctx *fiber.Ctx) error {
 	}
 	userID := uint(claims["user_id"].(float64))
 
+	thumbnailURL := ""
+	videoURL := ""
+
+	attachmentUrls := []string{}
 	// Convert attachmentUrls to JSON
-	attachmentUrlsJSON, err := json.Marshal(req.AttachmentUrls)
+	// attachmentUrlsJSON, err := json.Marshal(req.AttachmentUrls)
+	attachmentUrlsJSON, err := json.Marshal(attachmentUrls)
 	if err != nil {
 		log.Println("Error converting attachment URLs to JSON:", err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
@@ -76,6 +81,8 @@ func (c *EducationController) CreateEducation(ctx *fiber.Ctx) error {
 		Name:          req.Name,
 		Description:   req.Description,
 		TextMateri:    req.TextMateri,
+		ThumbnailURL:  thumbnailURL,
+		VideoURL:      videoURL,
 		AttachmentURL: string(attachmentUrlsJSON),
 		CreatedByID:   &userID,
 	}

@@ -29,27 +29,27 @@ func (r *EducationRepository) GetEducations(ctx context.Context, filters map[str
 
 	query := `SELECT *
 	FROM ( 
-		SELECT s.id, s.name, s.description, s.class_id, s.created_at, s.updated_at, s.deleted_at,
-		c.name as class_name,
+		SELECT e.id, e.name, e.description, e.module_id, e.created_at, e.updated_at, e.deleted_at,
+		m.name as module_name,
 		cu.name as created_by_name,
 		uu.name as updated_by_name
 
-		FROM educations s
-		JOIN users cu ON s.created_by_id = cu.id
-		LEFT JOIN users uu ON s.updated_by_id = uu.id
-		JOIN classes c ON s.class_id = c.id
+		FROM educations e
+		JOIN users cu ON e.created_by_id = cu.id
+		LEFT JOIN users uu ON e.updated_by_id = uu.id
+		JOIN modules m ON e.module_id = m.id
 	) AS alias WHERE 1=1 AND deleted_at IS NULL`
 
 	countQuery := `SELECT COUNT(*) FROM (
-		SELECT s.id, s.name, s.description, s.class_id, s.created_at, s.updated_at, s.deleted_at,
-		c.name as class_name,
+		SELECT e.id, e.name, e.description, e.module_id, e.created_at, e.updated_at, e.deleted_at,
+		m.name as module_name,
 		cu.name as created_by_name,
 		uu.name as updated_by_name
 
-		FROM educations s
-		JOIN users cu ON s.created_by_id = cu.id
-		LEFT JOIN users uu ON s.updated_by_id = uu.id
-		JOIN classes c ON s.class_id = c.id
+		FROM educations e
+		JOIN users cu ON e.created_by_id = cu.id
+		LEFT JOIN users uu ON e.updated_by_id = uu.id
+		JOIN modules m ON e.module_id = m.id
 	) AS alias WHERE 1=1 AND deleted_at IS NULL`
 
 	var args []interface{}
@@ -67,9 +67,16 @@ func (r *EducationRepository) GetEducations(ctx context.Context, filters map[str
 		}
 	}
 
+	if value, ok := filters["module_id"]; ok && value != "" {
+		query += fmt.Sprintf(" AND module_id = $%d", i)
+		countQuery += fmt.Sprintf(" AND module_id = $%d", i)
+		args = append(args, value)
+		i++
+	}
+
 	if value, ok := filters["global"]; ok && value != "" {
-		query += fmt.Sprintf(" AND (name ILIKE $%d OR description ILIKE $%d OR class_name ILIKE $%d)", i, i+1, i+2)
-		countQuery += fmt.Sprintf(" AND (name ILIKE $%d OR description ILIKE $%d OR class_name ILIKE $%d)", i, i+1, i+2)
+		query += fmt.Sprintf(" AND (name ILIKE $%d OR description ILIKE $%d OR module_name ILIKE $%d)", i, i+1, i+2)
+		countQuery += fmt.Sprintf(" AND (name ILIKE $%d OR description ILIKE $%d OR module_name ILIKE $%d)", i, i+1, i+2)
 		args = append(args, "%"+value+"%", "%"+value+"%", "%"+value+"%")
 		i += 3
 	}
@@ -101,16 +108,16 @@ func (r *EducationRepository) GetEducations(ctx context.Context, filters map[str
 func (r *EducationRepository) GetEducationByID(ctx context.Context, id uint) (*dtos.EducationDetailDTO, error) {
 	var education dtos.EducationDetailDTO
 
-	query := `SELECT s.*,
-	c.name as class_name,
+	query := `SELECT e.*,
+	m.name as module_name,
 	cu.name as created_by_name,
 	uu.name as updated_by_name
 
-	FROM educations s
-	JOIN users cu ON s.created_by_id = cu.id
-	LEFT JOIN users uu ON s.updated_by_id = uu.id
-	JOIN classes c ON s.class_id = c.id
-	WHERE s.id = $1 AND s.deleted_at IS NULL`
+	FROM educations e
+	JOIN users cu ON e.created_by_id = cu.id
+	LEFT JOIN users uu ON e.updated_by_id = uu.id
+	JOIN modules m ON e.module_id = m.id
+	WHERE e.id = $1 AND e.deleted_at IS NULL`
 	if err := r.sqlDB.Get(&education, query, id); err != nil {
 		return nil, err
 	}
@@ -150,8 +157,8 @@ func (r *EducationRepository) DeleteEducation(tx *gorm.DB, id uint) error {
 	})
 }
 
-func (s *EducationRepository) RestoreEducation(tx *gorm.DB, id uint) error {
-	return s.db.Transaction(func(tx *gorm.DB) error {
+func (e *EducationRepository) RestoreEducation(tx *gorm.DB, id uint) error {
+	return e.db.Transaction(func(tx *gorm.DB) error {
 		var education models.Education
 		if err := tx.Unscoped().First(&education, id).Error; err != nil {
 			return err

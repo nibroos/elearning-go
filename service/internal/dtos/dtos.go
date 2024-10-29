@@ -302,8 +302,11 @@ type DeleteEducationRequest struct {
 
 type EducationListDTO struct {
 	ID            int     `json:"id" db:"id"`
+	NoUrut        uint    `json:"no_urut" db:"no_urut"`
 	Name          string  `json:"name" db:"name"`
 	Description   string  `json:"description" db:"description"`
+	ThumbnailURL  *string `json:"thumbnail_url" db:"thumbnail_url"`
+	VideoURL      *string `json:"video_url" db:"video_url"`
 	ModuleID      uint    `json:"module_id" db:"module_id"`
 	ModuleName    string  `json:"module_name" db:"module_name"`
 	TextMaterial  string  `json:"text_materi" db:"text_materi"`
@@ -315,21 +318,23 @@ type EducationListDTO struct {
 }
 
 type EducationDetailDTO struct {
-	ID            uint    `json:"id" db:"id"`
-	Name          string  `json:"name" db:"name"`
-	Description   string  `json:"description" db:"description"`
-	LogoURL       *string `json:"logo_url" db:"logo_url"`
-	VideoURL      *string `json:"video_url" db:"video_url"`
-	ModuleID      uint    `json:"module_id" db:"module_id"`
-	ModuleName    string  `json:"module_name" db:"module_name"`
-	TextMaterial  string  `json:"text_materi" db:"text_materi"`
-	CreatedByID   uint    `json:"created_by_id" db:"created_by_id"`
-	UpdatedByID   *uint   `json:"updated_by_id" db:"updated_by_id"`
-	CreatedByName *string `json:"created_by_name" db:"created_by_name"`
-	UpdatedByName *string `json:"updated_by_name" db:"updated_by_name"`
-	CreatedAt     *string `json:"created_at" db:"created_at"`
-	UpdatedAt     *string `json:"updated_at" db:"updated_at"`
-	DeletedAt     *string `json:"deleted_at" db:"deleted_at"`
+	ID             uint      `json:"id" db:"id"`
+	NoUrut         uint      `json:"no_urut" db:"no_urut"`
+	Name           string    `json:"name" db:"name"`
+	Description    string    `json:"description" db:"description"`
+	ThumbnailURL   *string   `json:"thumbnail_url" db:"thumbnail_url"`
+	VideoURL       *string   `json:"video_url" db:"video_url"`
+	AttachmentURLs *[]string `json:"attachment_urls" db:"attachment_urls"`
+	ModuleID       uint      `json:"module_id" db:"module_id"`
+	ModuleName     string    `json:"module_name" db:"module_name"`
+	TextMaterial   string    `json:"text_materi" db:"text_materi"`
+	CreatedByID    uint      `json:"created_by_id" db:"created_by_id"`
+	UpdatedByID    *uint     `json:"updated_by_id" db:"updated_by_id"`
+	CreatedByName  *string   `json:"created_by_name" db:"created_by_name"`
+	UpdatedByName  *string   `json:"updated_by_name" db:"updated_by_name"`
+	CreatedAt      *string   `json:"created_at" db:"created_at"`
+	UpdatedAt      *string   `json:"updated_at" db:"updated_at"`
+	DeletedAt      *string   `json:"deleted_at" db:"deleted_at"`
 }
 type GetEducationsResult struct {
 	Educations []EducationListDTO
