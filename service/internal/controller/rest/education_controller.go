@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/nibroos/elearning-go/service/internal/dtos"
@@ -70,10 +71,12 @@ func (c *EducationController) CreateEducation(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
 	}
 
-	utils.DD(map[string]interface{}{
-		"attachmentUrls":     req.AttachmentUrls,
-		"attachmentUrlsJSON": string(attachmentUrlsJSON),
-	})
+	// utils.DD(map[string]interface{}{
+	// 	// "attachmentUrls":     req.AttachmentUrls,
+	// 	"attachmentUrlsJSON": string(attachmentUrlsJSON),
+	// })
+
+	createdAt := time.Now()
 
 	education := models.Education{
 		ModuleID:      req.ModuleID,
@@ -85,6 +88,7 @@ func (c *EducationController) CreateEducation(ctx *fiber.Ctx) error {
 		VideoURL:      videoURL,
 		AttachmentURL: string(attachmentUrlsJSON),
 		CreatedByID:   &userID,
+		CreatedAt:     &createdAt,
 	}
 
 	createdEducation, err := c.service.CreateEducation(ctx.Context(), &education)
@@ -155,21 +159,35 @@ func (c *EducationController) UpdateEducation(ctx *fiber.Ctx) error {
 	}
 	userID := uint(claims["user_id"].(float64))
 
+	thumbnailURL := ""
+	videoURL := ""
+
+	attachmentUrls := []string{}
+	// Convert attachmentUrls to JSON
+	// attachmentUrlsJSON, err := json.Marshal(req.AttachmentUrls)
+	attachmentUrlsJSON, err := json.Marshal(attachmentUrls)
+	if err != nil {
+		log.Println("Error converting attachment URLs to JSON:", err)
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
+	}
+
 	education := models.Education{
-		ID:          req.ID,
-		ModuleID:    req.ModuleID,
-		Name:        req.Name,
-		Description: req.Description,
-		CreatedByID: &existingEducation.CreatedByID,
-		UpdatedByID: &userID,
-		CreatedAt:   *existingEducation.CreatedAt,
+		ID:            req.ID,
+		ModuleID:      req.ModuleID,
+		NoUrut:        req.NoUrut,
+		Name:          req.Name,
+		Description:   req.Description,
+		TextMateri:    req.TextMateri,
+		ThumbnailURL:  thumbnailURL,
+		VideoURL:      videoURL,
+		AttachmentURL: string(attachmentUrlsJSON),
+		CreatedByID:   &existingEducation.CreatedByID,
+		UpdatedByID:   &userID,
+		CreatedAt:     existingEducation.CreatedAt,
 	}
 
 	updatedEducation, err := c.service.UpdateEducation(ctx.Context(), &education)
 	if err != nil {
-		if err.Error() == "education name already exists" {
-			return ctx.Status(http.StatusConflict).JSON(fiber.Map{"errors": err.Error(), "message": "Education already exists", "status": http.StatusConflict})
-		}
 		return utils.GetResponse(ctx, nil, nil, "Failed to update education", http.StatusInternalServerError, err.Error(), nil)
 	}
 

@@ -1,6 +1,10 @@
 package dtos
 
-import "github.com/nibroos/elearning-go/service/internal/utils"
+import (
+	"time"
+
+	"github.com/nibroos/elearning-go/service/internal/utils"
+)
 
 type GetUsersRequest struct {
 	Global         string                 `json:"global"`
@@ -274,26 +278,39 @@ type GetModulesResult struct {
 	Err     error
 }
 type CreateEducationRequest struct {
-	ModuleID       uint     `json:"module_id"`
-	NoUrut         uint     `json:"no_urut"`
-	Name           string   `json:"name"`
-	Description    string   `json:"description"`
-	TextMateri     string   `json:"text_materi"`
-	AttachmentUrls []string `json:"attachment_urls"`
+	ModuleID    uint   `json:"module_id"`
+	NoUrut      uint   `json:"no_urut"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	TextMateri  string `json:"text_materi"`
+	// AttachmentUrls []string `json:"attachment_urls"`
 }
 
 type UpdateEducationRequest struct {
-	ID             uint     `json:"id"`
-	ModuleID       uint     `json:"module_id"`
-	NoUrut         uint     `json:"no_urut"`
-	Name           string   `json:"name"`
-	Description    string   `json:"description"`
-	TextMateri     string   `json:"text_materi"`
-	AttachmentUrls []string `json:"attachment_urls"`
+	ID          uint   `json:"id"`
+	ModuleID    uint   `json:"module_id"`
+	NoUrut      uint   `json:"no_urut"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	TextMateri  string `json:"text_materi"`
+	// AttachmentUrls []string `json:"attachment_urls"`
 }
 
 type GetEducationByIDRequest struct {
 	ID uint `json:"id"`
+}
+
+type GetEducationParams struct {
+	ID        uint
+	IsDeleted *int
+}
+
+func NewGetEducationParams(id uint) *GetEducationParams {
+	defaultIsDeleted := 0
+	return &GetEducationParams{
+		ID:        id,
+		IsDeleted: &defaultIsDeleted,
+	}
 }
 
 type DeleteEducationRequest struct {
@@ -318,23 +335,23 @@ type EducationListDTO struct {
 }
 
 type EducationDetailDTO struct {
-	ID             uint      `json:"id" db:"id"`
-	NoUrut         uint      `json:"no_urut" db:"no_urut"`
-	Name           string    `json:"name" db:"name"`
-	Description    string    `json:"description" db:"description"`
-	ThumbnailURL   *string   `json:"thumbnail_url" db:"thumbnail_url"`
-	VideoURL       *string   `json:"video_url" db:"video_url"`
-	AttachmentURLs *[]string `json:"attachment_urls" db:"attachment_urls"`
-	ModuleID       uint      `json:"module_id" db:"module_id"`
-	ModuleName     string    `json:"module_name" db:"module_name"`
-	TextMaterial   string    `json:"text_materi" db:"text_materi"`
-	CreatedByID    uint      `json:"created_by_id" db:"created_by_id"`
-	UpdatedByID    *uint     `json:"updated_by_id" db:"updated_by_id"`
-	CreatedByName  *string   `json:"created_by_name" db:"created_by_name"`
-	UpdatedByName  *string   `json:"updated_by_name" db:"updated_by_name"`
-	CreatedAt      *string   `json:"created_at" db:"created_at"`
-	UpdatedAt      *string   `json:"updated_at" db:"updated_at"`
-	DeletedAt      *string   `json:"deleted_at" db:"deleted_at"`
+	ID             uint                  `json:"id" db:"id"`
+	NoUrut         uint                  `json:"no_urut" db:"no_urut"`
+	Name           string                `json:"name" db:"name"`
+	Description    string                `json:"description" db:"description"`
+	ThumbnailURL   *string               `json:"thumbnail_url" db:"thumbnail_url"`
+	VideoURL       *string               `json:"video_url" db:"video_url"`
+	AttachmentURLs utils.JSONStringArray `json:"attachment_urls" db:"attachment_urls"`
+	ModuleID       uint                  `json:"module_id" db:"module_id"`
+	ModuleName     string                `json:"module_name" db:"module_name"`
+	TextMaterial   string                `json:"text_materi" db:"text_materi"`
+	CreatedByID    uint                  `json:"created_by_id" db:"created_by_id"`
+	UpdatedByID    *uint                 `json:"updated_by_id" db:"updated_by_id"`
+	CreatedByName  *string               `json:"created_by_name" db:"created_by_name"`
+	UpdatedByName  *string               `json:"updated_by_name" db:"updated_by_name"`
+	CreatedAt      *time.Time            `json:"created_at" db:"created_at"`
+	UpdatedAt      *time.Time            `json:"updated_at" db:"updated_at"`
+	DeletedAt      *time.Time            `json:"deleted_at" db:"deleted_at"`
 }
 type GetEducationsResult struct {
 	Educations []EducationListDTO
