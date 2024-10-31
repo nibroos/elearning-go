@@ -20,4 +20,5 @@ type Education struct {
 	CreatedByID   *uint      `json:"created_by_id" gorm:"column:created_by_id"`
 	UpdatedByID   *uint      `json:"updated_by_id" gorm:"column:updated_by_id"`
 	CreatedAt     *time.Time `json:"created_at" gorm:"column:created_at"`
+	DeletedAt     *time.Time `json:"deleted_at" gorm:"column:deleted_at"`
 }

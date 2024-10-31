@@ -96,7 +96,8 @@ func (c *EducationController) CreateEducation(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "Failed to create education", http.StatusInternalServerError, err.Error(), nil)
 	}
 
-	getEducation, err := c.service.GetEducationByID(ctx.Context(), createdEducation.ID)
+	params := &dtos.GetEducationParams{ID: createdEducation.ID}
+	getEducation, err := c.service.GetEducationByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "Education not found", http.StatusNotFound, err.Error(), nil)
 	}
@@ -118,7 +119,8 @@ func (c *EducationController) GetEducationByID(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "Education not found", http.StatusBadRequest, "ID is required", nil)
 	}
 
-	education, err := c.service.GetEducationByID(ctx.Context(), req.ID)
+	params := &dtos.GetEducationParams{ID: req.ID}
+	education, err := c.service.GetEducationByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "Education not found", http.StatusNotFound, err.Error(), nil)
 	}
@@ -146,8 +148,9 @@ func (c *EducationController) UpdateEducation(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
 	}
 
+	params := &dtos.GetEducationParams{ID: req.ID}
 	// Fetch the existing education to get the current data
-	existingEducation, err := c.service.GetEducationByID(ctx.Context(), req.ID)
+	existingEducation, err := c.service.GetEducationByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "Education not found", http.StatusNotFound, err.Error(), nil)
 	}
@@ -191,7 +194,8 @@ func (c *EducationController) UpdateEducation(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "Failed to update education", http.StatusInternalServerError, err.Error(), nil)
 	}
 
-	getEducation, err := c.service.GetEducationByID(ctx.Context(), updatedEducation.ID)
+	params = &dtos.GetEducationParams{ID: updatedEducation.ID}
+	getEducation, err := c.service.GetEducationByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "Education not found", http.StatusNotFound, err.Error(), nil)
 	}
@@ -214,8 +218,9 @@ func (c *EducationController) DeleteEducation(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "Education not found", http.StatusBadRequest, "ID is required", nil)
 	}
 
+	params := &dtos.GetEducationParams{ID: req.ID}
 	// GET education by ID
-	_, err := c.service.GetEducationByID(ctx.Context(), req.ID)
+	_, err := c.service.GetEducationByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "Education not found", http.StatusNotFound, err.Error(), nil)
 	}
@@ -241,8 +246,10 @@ func (c *EducationController) RestoreEducation(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "Education not found", http.StatusBadRequest, "ID is required", nil)
 	}
 
+	isDeleted := 1
+	params := &dtos.GetEducationParams{ID: req.ID, IsDeleted: &isDeleted}
 	// GET education by ID
-	_, err := c.service.GetEducationByID(ctx.Context(), req.ID)
+	_, err := c.service.GetEducationByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "Education not found", http.StatusNotFound, err.Error(), nil)
 	}

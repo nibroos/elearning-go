@@ -53,12 +53,12 @@ func (s *EducationService) CreateEducation(ctx context.Context, education *model
 	return education, nil
 }
 
-func (s *EducationService) GetEducationByID(ctx context.Context, id uint) (*dtos.EducationDetailDTO, error) {
+func (s *EducationService) GetEducationByID(ctx context.Context, params *dtos.GetEducationParams) (*dtos.EducationDetailDTO, error) {
 	educationChan := make(chan *dtos.EducationDetailDTO, 1)
 	errChan := make(chan error, 1)
 
 	go func() {
-		education, err := s.repo.GetEducationByID(ctx, id)
+		education, err := s.repo.GetEducationByID(ctx, params)
 		if err != nil {
 			errChan <- err
 			return

@@ -105,8 +105,9 @@ func (r *EducationRepository) GetEducations(ctx context.Context, filters map[str
 	return educations, total, nil
 }
 
-func (r *EducationRepository) GetEducationByID(ctx context.Context, id uint) (*dtos.EducationDetailDTO, error) {
+func (r *EducationRepository) GetEducationByID(ctx context.Context, params *dtos.GetEducationParams) (*dtos.EducationDetailDTO, error) {
 	var education dtos.EducationDetailDTO
+	// deletedAt := params.IsDeleted
 
 	query := `SELECT e.*,
 	m.name as module_name,
@@ -117,8 +118,24 @@ func (r *EducationRepository) GetEducationByID(ctx context.Context, id uint) (*d
 	JOIN users cu ON e.created_by_id = cu.id
 	LEFT JOIN users uu ON e.updated_by_id = uu.id
 	JOIN modules m ON e.module_id = m.id
-	WHERE e.id = $1 AND e.deleted_at IS NULL`
-	if err := r.sqlDB.Get(&education, query, id); err != nil {
+	WHERE 1=1`
+
+	var args []interface{}
+
+	i := 1
+	query += " AND e.id = $1"
+	args = append(args, params.ID)
+	i++
+
+	isDeletedQuery := ` AND e.deleted_at IS NULL`
+	if params.IsDeleted != nil && *params.IsDeleted == 1 {
+		isDeletedQuery = fmt.Sprintf(" AND e.deleted_at IS NOT NULL")
+		i++
+	}
+
+	query += isDeletedQuery
+
+	if err := r.sqlDB.Get(&education, query, args...); err != nil {
 		return nil, err
 	}
 
@@ -157,12 +174,13 @@ func (r *EducationRepository) DeleteEducation(tx *gorm.DB, id uint) error {
 	})
 }
 
+// TODO, use raw sql update instead of gorm
 func (e *EducationRepository) RestoreEducation(tx *gorm.DB, id uint) error {
 	return e.db.Transaction(func(tx *gorm.DB) error {
 		var education models.Education
 		if err := tx.Unscoped().First(&education, id).Error; err != nil {
 			return err
 		}
-		return tx.Model(&education).Update("deleted_at", nil).Error
+		return tx.Model(&education).UpdateColumn("deleted_at", nil).Error
 	})
 }
