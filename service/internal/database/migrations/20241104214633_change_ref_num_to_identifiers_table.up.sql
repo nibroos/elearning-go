@@ -1,0 +1,18 @@
+BEGIN;
+
+ALTER TABLE
+  addresses
+ALTER COLUMN
+  ref_num TYPE VARCHAR;
+
+ALTER TABLE
+  identifiers
+ALTER COLUMN
+  ref_num TYPE VARCHAR;
+
+ALTER TABLE
+  contacts
+ALTER COLUMN
+  ref_num TYPE VARCHAR;
+
+COMMIT;
