@@ -36,6 +36,11 @@ type UpdateUserRequest struct {
 	RoleIDs  []uint32               `json:"role_ids"`
 }
 
+type GetUserByIDParams struct {
+	ID        uint `json:"id"`
+	IsDeleted *int
+}
+
 type GetUserByIDRequest struct {
 	ID uint `json:"id"`
 }

@@ -77,12 +77,12 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User, roleIDs
 	return user, nil
 }
 
-func (s *UserService) GetUserByID(ctx context.Context, id uint) (*dtos.UserDetailDTO, error) {
+func (s *UserService) GetUserByID(ctx context.Context, params *dtos.GetUserByIDParams) (*dtos.UserDetailDTO, error) {
 	userChan := make(chan *dtos.UserDetailDTO, 1)
 	errChan := make(chan error, 1)
 
 	go func() {
-		user, err := s.repo.GetUserByID(ctx, id)
+		user, err := s.repo.GetUserByID(ctx, params)
 		if err != nil {
 			errChan <- err
 			return

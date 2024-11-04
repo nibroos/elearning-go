@@ -65,7 +65,8 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "Failed to create user", http.StatusInternalServerError, err.Error(), nil)
 	}
 
-	getUser, err := c.service.GetUserByID(ctx.Context(), createdUser.ID)
+	params := &dtos.GetUserByIDParams{ID: createdUser.ID}
+	getUser, err := c.service.GetUserByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
@@ -86,7 +87,8 @@ func (c *UserController) GetUserByID(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, "ID is required", nil)
 	}
 
-	user, err := c.service.GetUserByID(ctx.Context(), req.ID)
+	params := &dtos.GetUserByIDParams{ID: req.ID}
+	user, err := c.service.GetUserByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
@@ -113,8 +115,9 @@ func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
 	}
 
+	params := &dtos.GetUserByIDParams{ID: req.ID}
 	// Fetch the existing user to get the current password if needed
-	existingUser, err := c.service.GetUserByID(ctx.Context(), req.ID)
+	existingUser, err := c.service.GetUserByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
@@ -142,7 +145,8 @@ func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "Failed to update user", http.StatusInternalServerError, err.Error(), nil)
 	}
 
-	getUser, err := c.service.GetUserByID(ctx.Context(), updatedUser.ID)
+	params = &dtos.GetUserByIDParams{ID: updatedUser.ID}
+	getUser, err := c.service.GetUserByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
@@ -203,7 +207,8 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "Failed to create user", http.StatusInternalServerError, err.Error(), nil)
 	}
 
-	getUser, err := c.service.GetUserByID(ctx.Context(), createdUser.ID)
+	params := &dtos.GetUserByIDParams{ID: createdUser.ID}
+	getUser, err := c.service.GetUserByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
@@ -233,8 +238,9 @@ func (c *UserController) DeleteUser(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, "ID is required", nil)
 	}
 
+	params := &dtos.GetUserByIDParams{ID: req.ID}
 	// GET user by ID
-	_, err := c.service.GetUserByID(ctx.Context(), req.ID)
+	_, err := c.service.GetUserByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
@@ -259,8 +265,10 @@ func (c *UserController) RestoreUser(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusBadRequest, "ID is required", nil)
 	}
 
+	isDeleted := 1
+	params := &dtos.GetUserByIDParams{ID: req.ID, IsDeleted: &isDeleted}
 	// GET user by ID
-	_, err := c.service.GetUserByID(ctx.Context(), req.ID)
+	_, err := c.service.GetUserByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}

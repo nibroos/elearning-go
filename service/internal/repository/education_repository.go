@@ -174,13 +174,11 @@ func (r *EducationRepository) DeleteEducation(tx *gorm.DB, id uint) error {
 	})
 }
 
-// TODO, use raw sql update instead of gorm
-func (e *EducationRepository) RestoreEducation(tx *gorm.DB, id uint) error {
-	return e.db.Transaction(func(tx *gorm.DB) error {
-		var education models.Education
-		if err := tx.Unscoped().First(&education, id).Error; err != nil {
+func (r *EducationRepository) RestoreEducation(tx *gorm.DB, id uint) error {
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec("UPDATE educations SET deleted_at = NULL WHERE id = ?", id).Error; err != nil {
 			return err
 		}
-		return tx.Model(&education).UpdateColumn("deleted_at", nil).Error
+		return nil
 	})
 }
