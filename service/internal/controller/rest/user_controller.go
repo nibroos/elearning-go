@@ -49,6 +49,8 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
 	}
 
+	req.Password, _ = utils.HashPassword(req.Password)
+
 	user := models.User{
 		Name:     req.Name,
 		Username: req.Username.Value,
@@ -134,7 +136,7 @@ func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 
 	// Update password only if a new one is provided
 	if req.Password.Value != nil {
-		user.Password = *req.Password.Value
+		user.Password, _ = utils.HashPassword(*req.Password.Value)
 	}
 
 	updatedUser, err := c.service.UpdateUser(ctx.Context(), &user, req.RoleIDs)

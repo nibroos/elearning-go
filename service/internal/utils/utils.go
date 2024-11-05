@@ -302,14 +302,6 @@ func executeSQLFile(db *sql.DB, filePath string) error {
 	return err
 }
 
-func generateBcryptHash(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hashedPassword), nil
-}
-
 // BodyParserWithNull converts empty strings to null and parses the request body into the provided struct.
 func BodyParserWithNull(ctx *fiber.Ctx, out interface{}) error {
 	// Parse the request body into a map
@@ -395,4 +387,45 @@ func (n *Nullable[T]) Scan(value interface{}) error {
 	}
 	n.Value = &val
 	return nil
+}
+
+// GetStringOrDefaultFromArray retrieves a string value from a variable or map-based on the provided default value.
+// It accepts both direct values and map-based values.
+// If the value is not in the allowed values array, it returns the provided default value.
+func GetStringOrDefaultFromArray(value interface{}, allowedValues []string, defaultValue string, key ...string) string {
+	// Determine the key to use
+	mapKey := "order_column"
+	if len(key) > 0 {
+		mapKey = key[0]
+	}
+
+	// Check if value is a string directly
+	if str, ok := value.(string); ok {
+		for _, allowedValue := range allowedValues {
+			if str == allowedValue {
+				return str
+			}
+		}
+		return defaultValue
+	}
+
+	// Check if value is a map
+	if reflect.TypeOf(value).Kind() == reflect.Map {
+		// Ensure the value is a map of strings to interfaces
+		if m, ok := value.(map[string]interface{}); ok {
+			// Try to retrieve value from map and check if it is a string
+			if v, exists := m[mapKey]; exists {
+				if str, ok := v.(string); ok {
+					for _, allowedValue := range allowedValues {
+						if str == allowedValue {
+							return str
+						}
+					}
+					return defaultValue
+				}
+			}
+		}
+	}
+
+	return defaultValue
 }

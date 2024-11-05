@@ -96,7 +96,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, params *dtos.GetUserBy
 
 	isDeletedQuery := ` AND deleted_at IS NULL`
 	if params.IsDeleted != nil && *params.IsDeleted == 1 {
-		isDeletedQuery = fmt.Sprintf(" AND deleted_at IS NOT NULL")
+		isDeletedQuery = " AND deleted_at IS NOT NULL"
 		i++
 	}
 

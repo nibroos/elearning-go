@@ -1,0 +1,263 @@
+package rest
+
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/nibroos/elearning-go/service/internal/dtos"
+	"github.com/nibroos/elearning-go/service/internal/middleware"
+	"github.com/nibroos/elearning-go/service/internal/models"
+	"github.com/nibroos/elearning-go/service/internal/service"
+	"github.com/nibroos/elearning-go/service/internal/utils"
+	"github.com/nibroos/elearning-go/service/internal/validators/form_requests"
+)
+
+type IdentifierController struct {
+	service *service.IdentifierService
+}
+
+func NewIdentifierController(service *service.IdentifierService) *IdentifierController {
+	return &IdentifierController{service: service}
+}
+
+// TODO : Fix all method below
+
+func (c *IdentifierController) GetIdentifiers(ctx *fiber.Ctx) error {
+	filters, ok := ctx.Locals("filters").(map[string]string)
+	if !ok {
+		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, "Invalid filters", http.StatusBadRequest), http.StatusBadRequest)
+	}
+
+	identifiers, total, err := c.service.GetIdentifiers(ctx.Context(), filters)
+	if err != nil {
+		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, err.Error(), http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+
+	paginationMeta := utils.CreatePaginationMeta(filters, total)
+
+	return utils.GetResponse(ctx, identifiers, paginationMeta, "Identifiers fetched successfully", http.StatusOK, nil, nil)
+}
+func (c *IdentifierController) CreateIdentifier(ctx *fiber.Ctx) error {
+	var req dtos.CreateIdentifierRequest
+
+	// Use the utility function to parse the request body
+	if err := utils.BodyParserWithNull(ctx, &req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusBadRequest})
+	}
+
+	// Validate the request
+	reqValidator := form_requests.NewIdentifierStoreRequest().Validate(&req, ctx.Context())
+	if reqValidator != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
+	}
+
+	// Extract user ID from JWT
+	claims, err := middleware.GetAuthUser(ctx)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Unauthorized", http.StatusUnauthorized, err.Error(), nil)
+	}
+	userID := uint(claims["user_id"].(float64))
+
+	thumbnailURL := ""
+	videoURL := ""
+
+	attachmentUrls := []string{}
+	// Convert attachmentUrls to JSON
+	// attachmentUrlsJSON, err := json.Marshal(req.AttachmentUrls)
+	attachmentUrlsJSON, err := json.Marshal(attachmentUrls)
+	if err != nil {
+		log.Println("Error converting attachment URLs to JSON:", err)
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
+	}
+
+	// utils.DD(map[string]interface{}{
+	// 	// "attachmentUrls":     req.AttachmentUrls,
+	// 	"attachmentUrlsJSON": string(attachmentUrlsJSON),
+	// })
+
+	createdAt := time.Now()
+
+	identifier := models.Identifier{
+		ModuleID:      req.ModuleID,
+		NoUrut:        req.NoUrut,
+		Name:          req.Name,
+		Description:   req.Description,
+		TextMateri:    req.TextMateri,
+		ThumbnailURL:  thumbnailURL,
+		VideoURL:      videoURL,
+		AttachmentURL: string(attachmentUrlsJSON),
+		CreatedByID:   &userID,
+		CreatedAt:     &createdAt,
+	}
+
+	createdIdentifier, err := c.service.CreateIdentifier(ctx.Context(), &identifier)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Failed to create identifier", http.StatusInternalServerError, err.Error(), nil)
+	}
+
+	params := &dtos.GetIdentifierParams{ID: createdIdentifier.ID}
+	getIdentifier, err := c.service.GetIdentifierByID(ctx.Context(), params)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	filters := ctx.Locals("filters").(map[string]string)
+	paginationMeta := utils.CreatePaginationMeta(filters, 1)
+
+	return utils.GetResponse(ctx, []interface{}{getIdentifier}, paginationMeta, "Identifier created successfully", http.StatusCreated, nil, nil)
+}
+
+func (c *IdentifierController) GetIdentifierByID(ctx *fiber.Ctx) error {
+	var req dtos.GetIdentifierByIDRequest
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusBadRequest, err.Error(), nil)
+	}
+
+	if req.ID == 0 {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusBadRequest, "ID is required", nil)
+	}
+
+	params := &dtos.GetIdentifierParams{ID: req.ID}
+	identifier, err := c.service.GetIdentifierByID(ctx.Context(), params)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	identifierArray := []interface{}{identifier}
+
+	filters := ctx.Locals("filters").(map[string]string)
+	paginationMeta := utils.CreatePaginationMeta(filters, 1)
+
+	return utils.GetResponse(ctx, identifierArray, paginationMeta, "Identifier fetched successfully", http.StatusOK, nil, nil)
+}
+
+// update identifier
+func (c *IdentifierController) UpdateIdentifier(ctx *fiber.Ctx) error {
+	var req dtos.UpdateIdentifierRequest
+
+	if err := utils.BodyParserWithNull(ctx, &req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusBadRequest})
+	}
+
+	// Validate the request
+	reqValidator := form_requests.NewIdentifierUpdateRequest().Validate(&req, ctx.Context())
+	if reqValidator != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
+	}
+
+	params := &dtos.GetIdentifierParams{ID: req.ID}
+	// Fetch the existing identifier to get the current data
+	existingIdentifier, err := c.service.GetIdentifierByID(ctx.Context(), params)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	// Extract user ID from JWT
+	claims, err := middleware.GetAuthUser(ctx)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"errors": err.Error(), "message": "Unauthorized", "status": fiber.StatusUnauthorized})
+	}
+	userID := uint(claims["user_id"].(float64))
+
+	thumbnailURL := ""
+	videoURL := ""
+
+	attachmentUrls := []string{}
+	// Convert attachmentUrls to JSON
+	// attachmentUrlsJSON, err := json.Marshal(req.AttachmentUrls)
+	attachmentUrlsJSON, err := json.Marshal(attachmentUrls)
+	if err != nil {
+		log.Println("Error converting attachment URLs to JSON:", err)
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
+	}
+
+	identifier := models.Identifier{
+		ID:            req.ID,
+		ModuleID:      req.ModuleID,
+		NoUrut:        req.NoUrut,
+		Name:          req.Name,
+		Description:   req.Description,
+		TextMateri:    req.TextMateri,
+		ThumbnailURL:  thumbnailURL,
+		VideoURL:      videoURL,
+		AttachmentURL: string(attachmentUrlsJSON),
+		CreatedByID:   &existingIdentifier.CreatedByID,
+		UpdatedByID:   &userID,
+		CreatedAt:     existingIdentifier.CreatedAt,
+	}
+
+	updatedIdentifier, err := c.service.UpdateIdentifier(ctx.Context(), &identifier)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Failed to update identifier", http.StatusInternalServerError, err.Error(), nil)
+	}
+
+	params = &dtos.GetIdentifierParams{ID: updatedIdentifier.ID}
+	getIdentifier, err := c.service.GetIdentifierByID(ctx.Context(), params)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	filters := ctx.Locals("filters").(map[string]string)
+	paginationMeta := utils.CreatePaginationMeta(filters, 1)
+
+	return utils.GetResponse(ctx, []interface{}{getIdentifier}, paginationMeta, "Identifier updated successfully", http.StatusOK, nil, nil)
+}
+
+// delete identifier
+func (c *IdentifierController) DeleteIdentifier(ctx *fiber.Ctx) error {
+	var req dtos.DeleteIdentifierRequest
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusBadRequest, err.Error(), nil)
+	}
+
+	if req.ID == 0 {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusBadRequest, "ID is required", nil)
+	}
+
+	params := &dtos.GetIdentifierParams{ID: req.ID}
+	// GET identifier by ID
+	_, err := c.service.GetIdentifierByID(ctx.Context(), params)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	err = c.service.DeleteIdentifier(ctx.Context(), req.ID)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Failed to delete identifier", http.StatusInternalServerError, err.Error(), nil)
+	}
+
+	return utils.GetResponse(ctx, nil, nil, "Identifier deleted successfully", http.StatusOK, nil, nil)
+}
+
+// restore identifier
+func (c *IdentifierController) RestoreIdentifier(ctx *fiber.Ctx) error {
+	var req dtos.DeleteIdentifierRequest
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusBadRequest, err.Error(), nil)
+	}
+
+	if req.ID == 0 {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusBadRequest, "ID is required", nil)
+	}
+
+	isDeleted := 1
+	params := &dtos.GetIdentifierParams{ID: req.ID, IsDeleted: &isDeleted}
+	// GET identifier by ID
+	_, err := c.service.GetIdentifierByID(ctx.Context(), params)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	err = c.service.RestoreIdentifier(ctx.Context(), req.ID)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Failed to restore identifier", http.StatusInternalServerError, err.Error(), nil)
+	}
+
+	return utils.GetResponse(ctx, nil, nil, "Identifier restored successfully", http.StatusOK, nil, nil)
+}

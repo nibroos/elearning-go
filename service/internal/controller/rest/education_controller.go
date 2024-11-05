@@ -133,7 +133,6 @@ func (c *EducationController) GetEducationByID(ctx *fiber.Ctx) error {
 	return utils.GetResponse(ctx, educationArray, paginationMeta, "Education fetched successfully", http.StatusOK, nil, nil)
 }
 
-// TODO : Implement the UpdateEducation method
 // update education
 func (c *EducationController) UpdateEducation(ctx *fiber.Ctx) error {
 	var req dtos.UpdateEducationRequest
@@ -233,7 +232,6 @@ func (c *EducationController) DeleteEducation(ctx *fiber.Ctx) error {
 	return utils.GetResponse(ctx, nil, nil, "Education deleted successfully", http.StatusOK, nil, nil)
 }
 
-// TODO : fix get education by ID to pass default isDeleted param
 // restore education
 func (c *EducationController) RestoreEducation(ctx *fiber.Ctx) error {
 	var req dtos.DeleteEducationRequest

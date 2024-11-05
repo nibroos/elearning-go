@@ -129,8 +129,7 @@ func (r *EducationRepository) GetEducationByID(ctx context.Context, params *dtos
 
 	isDeletedQuery := ` AND e.deleted_at IS NULL`
 	if params.IsDeleted != nil && *params.IsDeleted == 1 {
-		isDeletedQuery = fmt.Sprintf(" AND e.deleted_at IS NOT NULL")
-		i++
+		isDeletedQuery = " AND e.deleted_at IS NOT NULL"
 	}
 
 	query += isDeletedQuery
