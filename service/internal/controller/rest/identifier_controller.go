@@ -1,8 +1,6 @@
 package rest
 
 import (
-	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
@@ -61,36 +59,14 @@ func (c *IdentifierController) CreateIdentifier(ctx *fiber.Ctx) error {
 	}
 	userID := uint(claims["user_id"].(float64))
 
-	thumbnailURL := ""
-	videoURL := ""
-
-	attachmentUrls := []string{}
-	// Convert attachmentUrls to JSON
-	// attachmentUrlsJSON, err := json.Marshal(req.AttachmentUrls)
-	attachmentUrlsJSON, err := json.Marshal(attachmentUrls)
-	if err != nil {
-		log.Println("Error converting attachment URLs to JSON:", err)
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
-	}
-
-	// utils.DD(map[string]interface{}{
-	// 	// "attachmentUrls":     req.AttachmentUrls,
-	// 	"attachmentUrlsJSON": string(attachmentUrlsJSON),
-	// })
-
 	createdAt := time.Now()
 
 	identifier := models.Identifier{
-		ModuleID:      req.ModuleID,
-		NoUrut:        req.NoUrut,
-		Name:          req.Name,
-		Description:   req.Description,
-		TextMateri:    req.TextMateri,
-		ThumbnailURL:  thumbnailURL,
-		VideoURL:      videoURL,
-		AttachmentURL: string(attachmentUrlsJSON),
-		CreatedByID:   &userID,
-		CreatedAt:     &createdAt,
+		TypeIdentifierID: req.TypeIdentifierID,
+		UserID:           &userID,
+		RefNum:           req.RefNum,
+		Status:           req.Status,
+		CreatedAt:        &createdAt,
 	}
 
 	createdIdentifier, err := c.service.CreateIdentifier(ctx.Context(), &identifier)
@@ -163,31 +139,11 @@ func (c *IdentifierController) UpdateIdentifier(ctx *fiber.Ctx) error {
 	}
 	userID := uint(claims["user_id"].(float64))
 
-	thumbnailURL := ""
-	videoURL := ""
-
-	attachmentUrls := []string{}
-	// Convert attachmentUrls to JSON
-	// attachmentUrlsJSON, err := json.Marshal(req.AttachmentUrls)
-	attachmentUrlsJSON, err := json.Marshal(attachmentUrls)
-	if err != nil {
-		log.Println("Error converting attachment URLs to JSON:", err)
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
-	}
-
 	identifier := models.Identifier{
-		ID:            req.ID,
-		ModuleID:      req.ModuleID,
-		NoUrut:        req.NoUrut,
-		Name:          req.Name,
-		Description:   req.Description,
-		TextMateri:    req.TextMateri,
-		ThumbnailURL:  thumbnailURL,
-		VideoURL:      videoURL,
-		AttachmentURL: string(attachmentUrlsJSON),
-		CreatedByID:   &existingIdentifier.CreatedByID,
-		UpdatedByID:   &userID,
-		CreatedAt:     existingIdentifier.CreatedAt,
+		TypeIdentifierID: existingIdentifier.TypeIdentifierID,
+		UserID:           &userID,
+		RefNum:           req.RefNum,
+		Status:           req.Status,
 	}
 
 	updatedIdentifier, err := c.service.UpdateIdentifier(ctx.Context(), &identifier)

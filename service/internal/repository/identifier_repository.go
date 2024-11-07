@@ -24,29 +24,22 @@ func NewIdentifierRepository(db *gorm.DB, sqlDB *sqlx.DB) *IdentifierRepository 
 }
 
 func (r *IdentifierRepository) GetIdentifiers(ctx context.Context, filters map[string]string) ([]dtos.IdentifierListDTO, int, error) {
-	identifers := []dtos.IdentifierListDTO{}
+	identifiers := []dtos.IdentifierListDTO{}
 	var total int
 
-	query := `SELECT *
-	FROM ( 
+	from := `FROM (
 		SELECT i.id, i.ref_num, i.status, i.created_at, i.updated_at, i.deleted_at,
 		u.name as user_name,
 		ti.name as type_identifier_name
 
-		FROM identifers i
+		FROM identifiers i
 		JOIN users u ON i.user_id = u.id
-		JOIN type_identifiers ti ON i.type_identifier_id = ti.id
+		JOIN mix_values ti ON i.type_identifier_id = ti.id
 	) AS alias WHERE 1=1 AND deleted_at IS NULL`
 
-	countQuery := `SELECT COUNT(*) FROM (
-		SELECT i.id, i.ref_num, i.status, i.created_at, i.updated_at, i.deleted_at,
-		u.name as user_name,
-		ti.name as type_identifier_name
+	query := `SELECT * ` + from
 
-		FROM identifers i
-		JOIN users u ON i.user_id = u.id
-		JOIN type_identifiers ti ON i.type_identifier_id = ti.id
-	) AS alias WHERE 1=1 AND deleted_at IS NULL`
+	countQuery := `SELECT COUNT(*) ` + from
 
 	var args []interface{}
 
@@ -61,6 +54,13 @@ func (r *IdentifierRepository) GetIdentifiers(ctx context.Context, filters map[s
 				i++
 			}
 		}
+	}
+
+	if value, ok := filters["user_id"]; ok && value != "" {
+		query += fmt.Sprintf(" AND i.user_id = $%d", i)
+		countQuery += fmt.Sprintf(" AND i.user_id = $%d", i)
+		args = append(args, value)
+		i++
 	}
 
 	if value, ok := filters["global"]; ok && value != "" {
@@ -88,23 +88,23 @@ func (r *IdentifierRepository) GetIdentifiers(ctx context.Context, filters map[s
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", i, i+1)
 	args = append(args, perPage, (currentPage-1)*perPage)
 
-	err = r.sqlDB.SelectContext(ctx, &identifers, query, args...)
+	err = r.sqlDB.SelectContext(ctx, &identifiers, query, args...)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	return identifers, total, nil
+	return identifiers, total, nil
 }
 
 func (r *IdentifierRepository) GetIdentifierByID(ctx context.Context, params *dtos.GetIdentifierParams) (*dtos.IdentifierDetailDTO, error) {
-	var identifer dtos.IdentifierDetailDTO
+	var identifier dtos.IdentifierDetailDTO
 	// deletedAt := params.IsDeleted
 
 	query := `SELECT i.id, i.ref_num, i.status, i.created_at, i.updated_at, i.deleted_at,
 	u.name as user_name,
 	ti.name as type_identifier_name
 
-	FROM identifers i
+	FROM identifiers i
 	JOIN users u ON i.user_id = u.id
 	JOIN type_identifiers ti ON i.type_identifier_id = ti.id
 	WHERE 1=1`
@@ -124,11 +124,11 @@ func (r *IdentifierRepository) GetIdentifierByID(ctx context.Context, params *dt
 
 	query += isDeletedQuery
 
-	if err := r.sqlDB.Get(&identifer, query, args...); err != nil {
+	if err := r.sqlDB.Get(&identifier, query, args...); err != nil {
 		return nil, err
 	}
 
-	return &identifer, nil
+	return &identifier, nil
 }
 
 // BeginTransaction starts a new transaction
@@ -136,16 +136,16 @@ func (r *IdentifierRepository) BeginTransaction() *gorm.DB {
 	return r.db.Begin()
 }
 
-func (r *IdentifierRepository) CreateIdentifier(tx *gorm.DB, identifer *models.Identifier) error {
-	if err := tx.Create(identifer).Error; err != nil {
+func (r *IdentifierRepository) CreateIdentifier(tx *gorm.DB, identifier *models.Identifier) error {
+	if err := tx.Create(identifier).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *IdentifierRepository) UpdateIdentifier(tx *gorm.DB, identifer *models.Identifier) error {
+func (r *IdentifierRepository) UpdateIdentifier(tx *gorm.DB, identifier *models.Identifier) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Save(identifer).Error; err != nil {
+		if err := tx.Save(identifier).Error; err != nil {
 			return err
 		}
 		return nil
@@ -165,7 +165,7 @@ func (r *IdentifierRepository) DeleteIdentifier(tx *gorm.DB, id uint) error {
 
 func (r *IdentifierRepository) RestoreIdentifier(tx *gorm.DB, id uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Exec("UPDATE identifers SET deleted_at = NULL WHERE id = ?", id).Error; err != nil {
+		if err := tx.Exec("UPDATE identifiers SET deleted_at = NULL WHERE id = ?", id).Error; err != nil {
 			return err
 		}
 		return nil

@@ -21,8 +21,8 @@ func (s *IdentifierService) GetIdentifiers(ctx context.Context, filters map[stri
 	resultChan := make(chan dtos.GetIdentifiersResult, 1)
 
 	go func() {
-		identifers, total, err := s.repo.GetIdentifiers(ctx, filters)
-		resultChan <- dtos.GetIdentifiersResult{Identifiers: identifers, Total: total, Err: err}
+		identifiers, total, err := s.repo.GetIdentifiers(ctx, filters)
+		resultChan <- dtos.GetIdentifiersResult{Identifiers: identifiers, Total: total, Err: err}
 	}()
 
 	select {
@@ -33,15 +33,15 @@ func (s *IdentifierService) GetIdentifiers(ctx context.Context, filters map[stri
 	}
 }
 
-func (s *IdentifierService) CreateIdentifier(ctx context.Context, identifer *models.Identifier) (*models.Identifier, error) {
+func (s *IdentifierService) CreateIdentifier(ctx context.Context, identifier *models.Identifier) (*models.Identifier, error) {
 	// Transaction handling
 	tx := s.repo.BeginTransaction()
 	if err := tx.Error; err != nil {
 		return nil, err
 	}
 
-	// Create identifer
-	if err := s.repo.CreateIdentifier(tx, identifer); err != nil {
+	// Create identifier
+	if err := s.repo.CreateIdentifier(tx, identifier); err != nil {
 		tx.Rollback()
 		return nil, err
 	}
@@ -50,25 +50,25 @@ func (s *IdentifierService) CreateIdentifier(ctx context.Context, identifer *mod
 		return nil, err
 	}
 
-	return identifer, nil
+	return identifier, nil
 }
 
 func (s *IdentifierService) GetIdentifierByID(ctx context.Context, params *dtos.GetIdentifierParams) (*dtos.IdentifierDetailDTO, error) {
-	identiferChan := make(chan *dtos.IdentifierDetailDTO, 1)
+	identifierChan := make(chan *dtos.IdentifierDetailDTO, 1)
 	errChan := make(chan error, 1)
 
 	go func() {
-		identifer, err := s.repo.GetIdentifierByID(ctx, params)
+		identifier, err := s.repo.GetIdentifierByID(ctx, params)
 		if err != nil {
 			errChan <- err
 			return
 		}
-		identiferChan <- identifer
+		identifierChan <- identifier
 	}()
 
 	select {
-	case identifer := <-identiferChan:
-		return identifer, nil
+	case identifier := <-identifierChan:
+		return identifier, nil
 	case err := <-errChan:
 		return nil, err
 	case <-ctx.Done():
@@ -76,15 +76,15 @@ func (s *IdentifierService) GetIdentifierByID(ctx context.Context, params *dtos.
 	}
 }
 
-func (s *IdentifierService) UpdateIdentifier(ctx context.Context, identifer *models.Identifier) (*models.Identifier, error) {
+func (s *IdentifierService) UpdateIdentifier(ctx context.Context, identifier *models.Identifier) (*models.Identifier, error) {
 	// Transaction handling
 	tx := s.repo.BeginTransaction()
 	if err := tx.Error; err != nil {
 		return nil, err
 	}
 
-	// Update identifer
-	if err := s.repo.UpdateIdentifier(tx, identifer); err != nil {
+	// Update identifier
+	if err := s.repo.UpdateIdentifier(tx, identifier); err != nil {
 		tx.Rollback()
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (s *IdentifierService) UpdateIdentifier(ctx context.Context, identifer *mod
 		return nil, err
 	}
 
-	return identifer, nil
+	return identifier, nil
 }
 
 func (s *IdentifierService) DeleteIdentifier(ctx context.Context, id uint) error {
@@ -103,7 +103,7 @@ func (s *IdentifierService) DeleteIdentifier(ctx context.Context, id uint) error
 		return err
 	}
 
-	// Delete identifer
+	// Delete identifier
 	if err := s.repo.DeleteIdentifier(tx, id); err != nil {
 		tx.Rollback()
 		return err
@@ -123,7 +123,7 @@ func (s *IdentifierService) RestoreIdentifier(ctx context.Context, id uint) erro
 		return err
 	}
 
-	// Restore identifer
+	// Restore identifier
 	if err := s.repo.RestoreIdentifier(tx, id); err != nil {
 		tx.Rollback()
 		return err
