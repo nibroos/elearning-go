@@ -118,7 +118,9 @@ func (r *UserRepository) GetUserByID(ctx context.Context, params *dtos.GetUserBy
         JOIN mix_values mv ON p.mv2_id = mv.id
         JOIN groups g1 ON p.group1_id = g1.id
         JOIN groups g2 ON p.group2_id = g2.id
-        WHERE g1.name = 'users' AND g2.name = 'roles' AND p.mv1_id = $1
+        WHERE g1.name = 'users' AND g2.name = 'roles' 
+				AND p.deleted_at IS NULL
+				AND p.mv1_id = $1
     `
 	if err := r.sqlDB.Select(&roleNames, roleQuery, params.ID); err != nil {
 		return nil, err
@@ -254,6 +256,11 @@ func (r *UserRepository) AttachRoles(tx *gorm.DB, user *models.User, roleIDs []u
 			Mv2ID:    roleID,
 		}
 		pools = append(pools, pool)
+	}
+
+	// delete existing roles
+	if err := r.DeleteRolesByUserID(tx, user.ID); err != nil {
+		return err
 	}
 
 	// Insert all role_user relationships in a single query

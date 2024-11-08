@@ -16,7 +16,7 @@ func SetupIdentifierRoutes(identifiers fiber.Router, gormDB *gorm.DB, sqlDB *sql
 
 	// prefix /identifiers
 
-	identifiers.Post("/index-identifier", identifierController.GetIdentifiers)
+	identifiers.Post("/index-identifier", identifierController.ListIdentifiers)
 	identifiers.Post("/show-identifier", identifierController.GetIdentifierByID)
 	identifiers.Post("/create-identifier", identifierController.CreateIdentifier)
 	identifiers.Post("/update-identifier", identifierController.UpdateIdentifier)

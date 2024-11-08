@@ -267,3 +267,5 @@ func isExistsRule(field string, rule string, message string, value interface{}) 
 
 	return nil
 }
+
+// TODO make a function to validate mix_values group, 2 params, group and value

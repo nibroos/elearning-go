@@ -16,13 +16,13 @@ func NewIdentifierService(repo *repository.IdentifierRepository) *IdentifierServ
 	return &IdentifierService{repo: repo}
 }
 
-func (s *IdentifierService) GetIdentifiers(ctx context.Context, filters map[string]string) ([]dtos.IdentifierListDTO, int, error) {
+func (s *IdentifierService) ListIdentifiers(ctx context.Context, filters map[string]string) ([]dtos.IdentifierListDTO, int, error) {
 
-	resultChan := make(chan dtos.GetIdentifiersResult, 1)
+	resultChan := make(chan dtos.ListIdentifiersResult, 1)
 
 	go func() {
-		identifiers, total, err := s.repo.GetIdentifiers(ctx, filters)
-		resultChan <- dtos.GetIdentifiersResult{Identifiers: identifiers, Total: total, Err: err}
+		identifiers, total, err := s.repo.ListIdentifiers(ctx, filters)
+		resultChan <- dtos.ListIdentifiersResult{Identifiers: identifiers, Total: total, Err: err}
 	}()
 
 	select {

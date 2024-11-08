@@ -117,26 +117,28 @@ func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
 	}
 
-	params := &dtos.GetUserByIDParams{ID: req.ID}
-	// Fetch the existing user to get the current password if needed
-	existingUser, err := c.service.GetUserByID(ctx.Context(), params)
+	// Fetch existing user
+	existingUser, err := c.service.GetUserByID(ctx.Context(), &dtos.GetUserByIDParams{ID: req.ID})
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
 
 	user := models.User{
-		ID:        req.ID,
-		Name:      req.Name,
-		Username:  req.Username.Value,
-		Email:     req.Email,
-		Password:  *existingUser.Password.Value, // Default to existing password
-		Address:   req.Address.Value,
-		CreatedAt: *existingUser.CreatedAt,
+		ID:       req.ID,
+		Name:     req.Name,
+		Username: req.Username.Value,
+		Email:    req.Email,
+		Address:  req.Address.Value,
+		Password: *existingUser.Password,
 	}
 
 	// Update password only if a new one is provided
-	if req.Password.Value != nil {
-		user.Password, _ = utils.HashPassword(*req.Password.Value)
+	if req.Password.Value != nil && *req.Password.Value != "" {
+		hashedPassword, err := utils.HashPassword(*req.Password.Value)
+		if err != nil {
+			return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"errors": err.Error(), "message": "Failed to hash password", "status": http.StatusInternalServerError})
+		}
+		user.Password = hashedPassword
 	}
 
 	updatedUser, err := c.service.UpdateUser(ctx.Context(), &user, req.RoleIDs)
@@ -147,7 +149,7 @@ func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "Failed to update user", http.StatusInternalServerError, err.Error(), nil)
 	}
 
-	params = &dtos.GetUserByIDParams{ID: updatedUser.ID}
+	params := &dtos.GetUserByIDParams{ID: updatedUser.ID}
 	getUser, err := c.service.GetUserByID(ctx.Context(), params)
 	if err != nil {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)

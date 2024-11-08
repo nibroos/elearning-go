@@ -23,19 +23,20 @@ func NewIdentifierRepository(db *gorm.DB, sqlDB *sqlx.DB) *IdentifierRepository 
 	}
 }
 
-func (r *IdentifierRepository) GetIdentifiers(ctx context.Context, filters map[string]string) ([]dtos.IdentifierListDTO, int, error) {
+func (r *IdentifierRepository) ListIdentifiers(ctx context.Context, filters map[string]string) ([]dtos.IdentifierListDTO, int, error) {
 	identifiers := []dtos.IdentifierListDTO{}
 	var total int
 
 	from := `FROM (
-		SELECT i.id, i.ref_num, i.status, i.created_at, i.updated_at, i.deleted_at,
+		SELECT i.id, i.user_id, i.type_identifier_id, i.ref_num, i.status, i.created_at, i.updated_at,
 		u.name as user_name,
 		ti.name as type_identifier_name
 
 		FROM identifiers i
 		JOIN users u ON i.user_id = u.id
 		JOIN mix_values ti ON i.type_identifier_id = ti.id
-	) AS alias WHERE 1=1 AND deleted_at IS NULL`
+		WHERE i.deleted_at IS NULL
+	) AS alias WHERE 1=1`
 
 	query := `SELECT * ` + from
 
@@ -100,19 +101,19 @@ func (r *IdentifierRepository) GetIdentifierByID(ctx context.Context, params *dt
 	var identifier dtos.IdentifierDetailDTO
 	// deletedAt := params.IsDeleted
 
-	query := `SELECT i.id, i.ref_num, i.status, i.created_at, i.updated_at, i.deleted_at,
+	query := `SELECT i.id, i.user_id, i.type_identifier_id, i.ref_num, i.status, i.created_at, i.updated_at, i.deleted_at,
 	u.name as user_name,
 	ti.name as type_identifier_name
 
 	FROM identifiers i
 	JOIN users u ON i.user_id = u.id
-	JOIN type_identifiers ti ON i.type_identifier_id = ti.id
+	JOIN mix_values ti ON i.type_identifier_id = ti.id
 	WHERE 1=1`
 
 	var args []interface{}
 
 	i := 1
-	query += " AND e.id = $1"
+	query += " AND i.id = $1"
 	args = append(args, params.ID)
 	i++
 

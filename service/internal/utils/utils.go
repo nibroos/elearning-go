@@ -52,13 +52,12 @@ func JSONError(ctx *fiber.Ctx, status int, err error) error {
 	})
 }
 
+// HashPassword hashes a plain text password using bcrypt.
 func HashPassword(password string) (string, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hashedPassword), nil
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
 }
+
 func WrapResponse(data interface{}, pagination *Meta, message string, status int16, errors ...interface{}) Response {
 	meta := Meta{}
 	if pagination != nil {

@@ -22,8 +22,8 @@ func NewIdentifierUpdateRequest() *IdentifierUpdateRequest {
 // Validate validates the RegisterRequest.
 func (r *IdentifierUpdateRequest) Validate(req *dtos.UpdateIdentifierRequest, ctx context.Context) map[string]string {
 	rules := govalidator.MapData{
-		"type_identifier_id": []string{"required", "exists:identifiers,id"},
-		"ref_num":            []string{"required", fmt.Sprintf("unique_ig:identifiers,ref_num,%d", req.ID)},
+		"type_identifier_id": []string{"exists:mix_values,id"},
+		"ref_num":            []string{"required", fmt.Sprintf("unique_ig:identifiers,id,%d", req.ID)},
 		"status":             []string{"required"},
 	}
 

@@ -26,7 +26,6 @@ func (r *UserdUpdateRequest) Validate(req *dtos.UpdateUserRequest, ctx context.C
 		"name":     []string{"required", "min:3"},
 		"username": []string{fmt.Sprintf("unique_ig:users,username,%d", req.ID)},
 		"email":    []string{"required", "email", fmt.Sprintf("unique_ig:users,email,%d", req.ID)},
-		"password": []string{"required", "min:4"},
 		"role_ids": []string{"required"},
 	}
 

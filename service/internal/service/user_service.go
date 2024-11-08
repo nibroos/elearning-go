@@ -101,15 +101,6 @@ func (s *UserService) GetUserByID(ctx context.Context, params *dtos.GetUserByIDP
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, user *models.User, roleIDs []uint32) (*models.User, error) {
-	// TODO update hash password
-	hashedPassword, err := utils.HashPassword(user.Password)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO update user
-	user.Password = hashedPassword
-
 	// Transaction handling
 	tx := s.repo.BeginTransaction()
 	if err := tx.Error; err != nil {
@@ -122,7 +113,6 @@ func (s *UserService) UpdateUser(ctx context.Context, user *models.User, roleIDs
 		return nil, err
 	}
 
-	// TODO update roles
 	// Attach roles
 	if err := s.repo.AttachRoles(tx, user, roleIDs); err != nil {
 		tx.Rollback()
@@ -142,7 +132,7 @@ func (s *UserService) Authenticate(ctx context.Context, email, password string) 
 		return nil, err
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(*user.Password.Value), []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(*user.Password), []byte(password)); err != nil {
 		return nil, errors.New("invalid credentials")
 	}
 

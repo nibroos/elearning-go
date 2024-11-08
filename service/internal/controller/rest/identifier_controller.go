@@ -23,13 +23,13 @@ func NewIdentifierController(service *service.IdentifierService) *IdentifierCont
 
 // TODO : Fix all method below
 
-func (c *IdentifierController) GetIdentifiers(ctx *fiber.Ctx) error {
+func (c *IdentifierController) ListIdentifiers(ctx *fiber.Ctx) error {
 	filters, ok := ctx.Locals("filters").(map[string]string)
 	if !ok {
 		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, "Invalid filters", http.StatusBadRequest), http.StatusBadRequest)
 	}
 
-	identifiers, total, err := c.service.GetIdentifiers(ctx.Context(), filters)
+	identifiers, total, err := c.service.ListIdentifiers(ctx.Context(), filters)
 	if err != nil {
 		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, err.Error(), http.StatusInternalServerError), http.StatusInternalServerError)
 	}
@@ -67,6 +67,7 @@ func (c *IdentifierController) CreateIdentifier(ctx *fiber.Ctx) error {
 		RefNum:           req.RefNum,
 		Status:           req.Status,
 		CreatedAt:        &createdAt,
+		OptionsJSON:      nil,
 	}
 
 	createdIdentifier, err := c.service.CreateIdentifier(ctx.Context(), &identifier)
@@ -140,10 +141,15 @@ func (c *IdentifierController) UpdateIdentifier(ctx *fiber.Ctx) error {
 	userID := uint(claims["user_id"].(float64))
 
 	identifier := models.Identifier{
+		ID:               req.ID,
 		TypeIdentifierID: existingIdentifier.TypeIdentifierID,
 		UserID:           &userID,
 		RefNum:           req.RefNum,
 		Status:           req.Status,
+	}
+
+	if req.TypeIdentifierID != nil {
+		identifier.TypeIdentifierID = *req.TypeIdentifierID
 	}
 
 	updatedIdentifier, err := c.service.UpdateIdentifier(ctx.Context(), &identifier)
@@ -217,3 +223,5 @@ func (c *IdentifierController) RestoreIdentifier(ctx *fiber.Ctx) error {
 
 	return utils.GetResponse(ctx, nil, nil, "Identifier restored successfully", http.StatusOK, nil, nil)
 }
+
+// TODO add list of identifier by auth user

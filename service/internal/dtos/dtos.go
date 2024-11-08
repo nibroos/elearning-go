@@ -62,7 +62,7 @@ type UserDetailDTO struct {
 	Username    utils.Nullable[string] `json:"username"`
 	Email       string                 `json:"email"`
 	Address     utils.Nullable[string] `json:"address"`
-	Password    utils.Nullable[string] `json:"password"`
+	Password    *string                `json:"password"`
 	Roles       []string               `json:"roles"`
 	Permissions []string               `json:"permissions"`
 	CreatedAt   *string                `json:"created_at"`
@@ -365,18 +365,18 @@ type GetEducationsResult struct {
 }
 
 type CreateIdentifierRequest struct {
-	UserID           uint `json:"user_id"`
-	TypeIdentifierID uint `json:"type_identifier_id"`
-	RefNum           uint `json:"ref_num"`
-	Status           uint `json:"status"`
+	UserID           uint   `json:"user_id"`
+	TypeIdentifierID uint   `json:"type_identifier_id"`
+	RefNum           string `json:"ref_num"`
+	Status           uint   `json:"status"`
 }
 
 type UpdateIdentifierRequest struct {
-	ID               uint `json:"id"`
-	UserID           uint `json:"user_id"`
-	TypeIdentifierID uint `json:"type_identifier_id"`
-	RefNum           uint `json:"ref_num"`
-	Status           uint `json:"status"`
+	ID               uint   `json:"id"`
+	UserID           uint   `json:"user_id"`
+	TypeIdentifierID *uint  `json:"type_identifier_id"`
+	RefNum           string `json:"ref_num"`
+	Status           uint   `json:"status"`
 }
 
 type GetIdentifierByIDRequest struct {
@@ -406,11 +406,10 @@ type IdentifierListDTO struct {
 	UserName           string  `json:"user_name" db:"user_name"`
 	TypeIdentifierID   uint    `json:"type_identifier_id" db:"type_identifier_id"`
 	TypeIdentifierName string  `json:"type_identifier_name" db:"type_identifier_name"`
-	RefNum             uint    `json:"ref_num" db:"ref_num"`
+	RefNum             string  `json:"ref_num" db:"ref_num"`
 	Status             uint    `json:"status" db:"status"`
 	CreatedAt          *string `json:"created_at" db:"created_at"`
 	UpdatedAt          *string `json:"updated_at" db:"updated_at"`
-	DeleteAt           *string `json:"deleted_at" db:"deleted_at"`
 }
 
 type IdentifierDetailDTO struct {
@@ -419,13 +418,13 @@ type IdentifierDetailDTO struct {
 	UserName           string     `json:"user_name" db:"user_name"`
 	TypeIdentifierID   uint       `json:"type_identifier_id" db:"type_identifier_id"`
 	TypeIdentifierName string     `json:"type_identifier_name" db:"type_identifier_name"`
-	RefNum             uint       `json:"ref_num" db:"ref_num"`
+	RefNum             string     `json:"ref_num" db:"ref_num"`
 	Status             uint       `json:"status" db:"status"`
 	CreatedAt          *time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt          *time.Time `json:"updated_at" db:"updated_at"`
 	DeletedAt          *time.Time `json:"deleted_at" db:"deleted_at"`
 }
-type GetIdentifiersResult struct {
+type ListIdentifiersResult struct {
 	Identifiers []IdentifierListDTO
 	Total       int
 	Err         error
