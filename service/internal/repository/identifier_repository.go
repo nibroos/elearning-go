@@ -28,22 +28,20 @@ func (r *IdentifierRepository) ListIdentifiers(ctx context.Context, filters map[
 	var total int
 
 	from := `FROM (
-		SELECT i.id, i.user_id, i.type_identifier_id, i.ref_num, i.status, i.created_at, i.updated_at,
-		u.name as user_name,
-		ti.name as type_identifier_name
+        SELECT i.id, i.user_id, i.type_identifier_id, i.ref_num, i.status, i.created_at, i.updated_at,
+        u.name as user_name,
+        ti.name as type_identifier_name
 
-		FROM identifiers i
-		JOIN users u ON i.user_id = u.id
-		JOIN mix_values ti ON i.type_identifier_id = ti.id
-		WHERE i.deleted_at IS NULL
-	) AS alias WHERE 1=1`
+        FROM identifiers i
+        JOIN users u ON i.user_id = u.id
+        JOIN mix_values ti ON i.type_identifier_id = ti.id
+        WHERE i.deleted_at IS NULL
+    ) AS alias WHERE 1=1`
 
 	query := `SELECT * ` + from
-
 	countQuery := `SELECT COUNT(*) ` + from
 
 	var args []interface{}
-
 	i := 1
 	for key, value := range filters {
 		switch key {
@@ -58,8 +56,8 @@ func (r *IdentifierRepository) ListIdentifiers(ctx context.Context, filters map[
 	}
 
 	if value, ok := filters["user_id"]; ok && value != "" {
-		query += fmt.Sprintf(" AND i.user_id = $%d", i)
-		countQuery += fmt.Sprintf(" AND i.user_id = $%d", i)
+		query += fmt.Sprintf(" AND user_id = $%d", i)
+		countQuery += fmt.Sprintf(" AND user_id = $%d", i)
 		args = append(args, value)
 		i++
 	}
@@ -72,12 +70,7 @@ func (r *IdentifierRepository) ListIdentifiers(ctx context.Context, filters map[
 	}
 
 	countArgs := append([]interface{}{}, args...)
-	err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
-	if err != nil {
-		return nil, 0, err
-	}
 
-	// orderColumn := utils.GetStringOrDefault(filters["order_column"], "id")
 	allowedOrderColumns := []string{"id", "ref_num", "user_name", "type_identifier_name"}
 	orderColumn := utils.GetStringOrDefaultFromArray(filters["order_column"], allowedOrderColumns, "id")
 	orderDirection := utils.GetStringOrDefault(filters["order_direction"], "asc")
@@ -89,9 +82,32 @@ func (r *IdentifierRepository) ListIdentifiers(ctx context.Context, filters map[
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", i, i+1)
 	args = append(args, perPage, (currentPage-1)*perPage)
 
-	err = r.sqlDB.SelectContext(ctx, &identifiers, query, args...)
-	if err != nil {
-		return nil, 0, err
+	// Channels for concurrent execution
+	countChan := make(chan error)
+	selectChan := make(chan error)
+
+	// Goroutine for count query
+	go func() {
+		err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
+		countChan <- err
+	}()
+
+	// Goroutine for select query
+	go func() {
+		err := r.sqlDB.SelectContext(ctx, &identifiers, query, args...)
+		selectChan <- err
+	}()
+
+	// Wait for both goroutines to finish
+	countErr := <-countChan
+	selectErr := <-selectChan
+
+	if countErr != nil {
+		return nil, 0, countErr
+	}
+
+	if selectErr != nil {
+		return nil, 0, selectErr
 	}
 
 	return identifiers, total, nil

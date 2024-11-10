@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -224,4 +225,27 @@ func (c *IdentifierController) RestoreIdentifier(ctx *fiber.Ctx) error {
 	return utils.GetResponse(ctx, nil, nil, "Identifier restored successfully", http.StatusOK, nil, nil)
 }
 
-// TODO add list of identifier by auth user
+func (c *IdentifierController) ListIdentifiersByAuthUser(ctx *fiber.Ctx) error {
+	// Extract user ID from JWT
+	claims, err := middleware.GetAuthUser(ctx)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Unauthorized", http.StatusUnauthorized, err.Error(), nil)
+	}
+	userID := uint(claims["user_id"].(float64))
+
+	filters, ok := ctx.Locals("filters").(map[string]string)
+	filters["user_id"] = fmt.Sprint(userID)
+
+	if !ok {
+		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, "Invalid filters", http.StatusBadRequest), http.StatusBadRequest)
+	}
+
+	identifiers, total, err := c.service.ListIdentifiersByAuthUser(ctx.Context(), filters)
+	if err != nil {
+		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, err.Error(), http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+
+	paginationMeta := utils.CreatePaginationMeta(filters, total)
+
+	return utils.GetResponse(ctx, identifiers, paginationMeta, "Identifiers fetched successfully", http.StatusOK, nil, nil)
+}

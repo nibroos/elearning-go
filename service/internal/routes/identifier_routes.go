@@ -22,4 +22,5 @@ func SetupIdentifierRoutes(identifiers fiber.Router, gormDB *gorm.DB, sqlDB *sql
 	identifiers.Post("/update-identifier", identifierController.UpdateIdentifier)
 	identifiers.Post("/delete-identifier", identifierController.DeleteIdentifier)
 	identifiers.Post("/restore-identifier", identifierController.RestoreIdentifier)
+	identifiers.Post("/auth-index-identifier", identifierController.ListIdentifiersByAuthUser)
 }

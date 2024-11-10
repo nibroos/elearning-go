@@ -135,3 +135,19 @@ func (s *IdentifierService) RestoreIdentifier(ctx context.Context, id uint) erro
 
 	return nil
 }
+
+func (s *IdentifierService) ListIdentifiersByAuthUser(ctx context.Context, filters map[string]string) ([]dtos.IdentifierListDTO, int, error) {
+	resultChan := make(chan dtos.ListIdentifiersResult, 1)
+
+	go func() {
+		identifiers, total, err := s.repo.ListIdentifiers(ctx, filters)
+		resultChan <- dtos.ListIdentifiersResult{Identifiers: identifiers, Total: total, Err: err}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.Identifiers, res.Total, res.Err
+	case <-ctx.Done():
+		return nil, 0, ctx.Err()
+	}
+}

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"sync"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
@@ -29,11 +30,25 @@ func main() {
 		log.Fatalf("Failed to connect to the SQL database: %v", err)
 	}
 
+	// Configure SQLx connection pool
+	sqlDB.SetMaxOpenConns(100)          // Maximum number of open connections
+	sqlDB.SetMaxIdleConns(10)           // Maximum number of idle connections
+	sqlDB.SetConnMaxLifetime(time.Hour) // Maximum lifetime of a connection
+
 	// Initialize the Gorm database connection
 	gormDB, err := gorm.Open(postgres.Open(config.GetDatabaseURL()), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to the Gorm database: %v", err)
 	}
+
+	// Configure Gorm connection pool
+	sqlDBGorm, err := gormDB.DB()
+	if err != nil {
+		log.Fatalf("Failed to get Gorm DB instance: %v", err)
+	}
+	sqlDBGorm.SetMaxOpenConns(100)          // Maximum number of open connections
+	sqlDBGorm.SetMaxIdleConns(10)           // Maximum number of idle connections
+	sqlDBGorm.SetConnMaxLifetime(time.Hour) // Maximum lifetime of a connection
 
 	// Initialize the validator with the database connection
 	validators.InitValidator(sqlDB)
