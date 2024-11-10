@@ -22,31 +22,30 @@ func NewSubscribeRepository(db *gorm.DB, sqlDB *sqlx.DB) *SubscribeRepository {
 		sqlDB: sqlDB,
 	}
 }
-
 func (r *SubscribeRepository) GetSubscribes(ctx context.Context, filters map[string]string) ([]dtos.SubscribeListDTO, int, error) {
 	subscribes := []dtos.SubscribeListDTO{}
 	var total int
 
 	query := `SELECT *
-	FROM ( 
-		SELECT s.id, s.name, s.description, s.created_at, s.updated_at, s.deleted_at,
-		cu.name as created_by_name,
-		uu.name as updated_by_name
+    FROM ( 
+        SELECT s.id, s.name, s.description, s.created_at, s.updated_at, s.deleted_at,
+        cu.name as created_by_name,
+        uu.name as updated_by_name
 
-		FROM subscribes s
-		JOIN users cu ON s.created_by_id = cu.id
-		LEFT JOIN users uu ON s.updated_by_id = uu.id
-	) AS alias WHERE 1=1 AND deleted_at IS NULL`
+        FROM subscribes s
+        JOIN users cu ON s.created_by_id = cu.id
+        LEFT JOIN users uu ON s.updated_by_id = uu.id
+    ) AS alias WHERE 1=1 AND deleted_at IS NULL`
 
 	countQuery := `SELECT COUNT(*) FROM (
-		SELECT s.id, s.name, s.description, s.created_at, s.updated_at, s.deleted_at,
-		cu.name as created_by_name,
-		uu.name as updated_by_name
+        SELECT s.id, s.name, s.description, s.created_at, s.updated_at, s.deleted_at,
+        cu.name as created_by_name,
+        uu.name as updated_by_name
 
-		FROM subscribes s
-		JOIN users cu ON s.created_by_id = cu.id
-		LEFT JOIN users uu ON s.updated_by_id = uu.id
-	) AS alias WHERE 1=1 AND deleted_at IS NULL`
+        FROM subscribes s
+        JOIN users cu ON s.created_by_id = cu.id
+        LEFT JOIN users uu ON s.updated_by_id = uu.id
+    ) AS alias WHERE 1=1 AND deleted_at IS NULL`
 
 	var args []interface{}
 
@@ -71,10 +70,16 @@ func (r *SubscribeRepository) GetSubscribes(ctx context.Context, filters map[str
 	}
 
 	countArgs := append([]interface{}{}, args...)
-	err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
-	if err != nil {
-		return nil, 0, err
-	}
+
+	// Channels for concurrent execution
+	countChan := make(chan error)
+	selectChan := make(chan error)
+
+	// Goroutine for count query
+	go func() {
+		err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
+		countChan <- err
+	}()
 
 	orderColumn := utils.GetStringOrDefault(filters["order_column"], "id")
 	orderDirection := utils.GetStringOrDefault(filters["order_direction"], "asc")
@@ -86,9 +91,22 @@ func (r *SubscribeRepository) GetSubscribes(ctx context.Context, filters map[str
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", i, i+1)
 	args = append(args, perPage, (currentPage-1)*perPage)
 
-	err = r.sqlDB.SelectContext(ctx, &subscribes, query, args...)
-	if err != nil {
-		return nil, 0, err
+	// Goroutine for select query
+	go func() {
+		err := r.sqlDB.SelectContext(ctx, &subscribes, query, args...)
+		selectChan <- err
+	}()
+
+	// Wait for both goroutines to finish
+	countErr := <-countChan
+	selectErr := <-selectChan
+
+	if countErr != nil {
+		return nil, 0, countErr
+	}
+
+	if selectErr != nil {
+		return nil, 0, selectErr
 	}
 
 	return subscribes, total, nil

@@ -11,15 +11,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// type UserService interface {
-//     GetUsers(searchParams map[string]string) ([]models.User, error)
-// }
-
-// type UserService struct {
-//     repo repository.UserRepository
-//     // pb.UnimplementedUserServiceServer
-// }
-
 type UserService struct {
 	repo *repository.UserRepository
 }
@@ -146,16 +137,34 @@ func (s *UserService) DeleteUser(ctx context.Context, id uint) error {
 		return err
 	}
 
-	// delete roles
-	if err := s.repo.DeleteRolesByUserID(tx, id); err != nil {
+	// Channels for concurrent execution
+	deleteRolesChan := make(chan error)
+	deleteUserChan := make(chan error)
+
+	// Goroutine for deleting roles
+	go func() {
+		err := s.repo.DeleteRolesByUserID(tx, id)
+		deleteRolesChan <- err
+	}()
+
+	// Goroutine for deleting user
+	go func() {
+		err := s.repo.DeleteUser(tx, id)
+		deleteUserChan <- err
+	}()
+
+	// Wait for both goroutines to finish
+	deleteRolesErr := <-deleteRolesChan
+	deleteUserErr := <-deleteUserChan
+
+	if deleteRolesErr != nil {
 		tx.Rollback()
-		return err
+		return deleteRolesErr
 	}
 
-	// Delete user
-	if err := s.repo.DeleteUser(tx, id); err != nil {
+	if deleteUserErr != nil {
 		tx.Rollback()
-		return err
+		return deleteUserErr
 	}
 
 	if err := tx.Commit().Error; err != nil {

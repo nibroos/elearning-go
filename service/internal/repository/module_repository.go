@@ -28,29 +28,29 @@ func (r *ModuleRepository) GetModules(ctx context.Context, filters map[string]st
 	var total int
 
 	query := `SELECT *
-	FROM ( 
-		SELECT s.id, s.name, s.description, s.class_id, s.created_at, s.updated_at, s.deleted_at,
-		c.name as class_name,
-		cu.name as created_by_name,
-		uu.name as updated_by_name
+    FROM ( 
+        SELECT s.id, s.name, s.description, s.class_id, s.created_at, s.updated_at, s.deleted_at,
+        c.name as class_name,
+        cu.name as created_by_name,
+        uu.name as updated_by_name
 
-		FROM modules s
-		JOIN users cu ON s.created_by_id = cu.id
-		LEFT JOIN users uu ON s.updated_by_id = uu.id
-		JOIN classes c ON s.class_id = c.id
-	) AS alias WHERE 1=1 AND deleted_at IS NULL`
+        FROM modules s
+        JOIN users cu ON s.created_by_id = cu.id
+        LEFT JOIN users uu ON s.updated_by_id = uu.id
+        JOIN classes c ON s.class_id = c.id
+    ) AS alias WHERE 1=1 AND deleted_at IS NULL`
 
 	countQuery := `SELECT COUNT(*) FROM (
-		SELECT s.id, s.name, s.description, s.class_id, s.created_at, s.updated_at, s.deleted_at,
-		c.name as class_name,
-		cu.name as created_by_name,
-		uu.name as updated_by_name
+        SELECT s.id, s.name, s.description, s.class_id, s.created_at, s.updated_at, s.deleted_at,
+        c.name as class_name,
+        cu.name as created_by_name,
+        uu.name as updated_by_name
 
-		FROM modules s
-		JOIN users cu ON s.created_by_id = cu.id
-		LEFT JOIN users uu ON s.updated_by_id = uu.id
-		JOIN classes c ON s.class_id = c.id
-	) AS alias WHERE 1=1 AND deleted_at IS NULL`
+        FROM modules s
+        JOIN users cu ON s.created_by_id = cu.id
+        LEFT JOIN users uu ON s.updated_by_id = uu.id
+        JOIN classes c ON s.class_id = c.id
+    ) AS alias WHERE 1=1 AND deleted_at IS NULL`
 
 	var args []interface{}
 
@@ -75,10 +75,16 @@ func (r *ModuleRepository) GetModules(ctx context.Context, filters map[string]st
 	}
 
 	countArgs := append([]interface{}{}, args...)
-	err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
-	if err != nil {
-		return nil, 0, err
-	}
+
+	// Channels for concurrent execution
+	countChan := make(chan error)
+	selectChan := make(chan error)
+
+	// Goroutine for count query
+	go func() {
+		err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
+		countChan <- err
+	}()
 
 	orderColumn := utils.GetStringOrDefault(filters["order_column"], "id")
 	orderDirection := utils.GetStringOrDefault(filters["order_direction"], "asc")
@@ -90,9 +96,22 @@ func (r *ModuleRepository) GetModules(ctx context.Context, filters map[string]st
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", i, i+1)
 	args = append(args, perPage, (currentPage-1)*perPage)
 
-	err = r.sqlDB.SelectContext(ctx, &modules, query, args...)
-	if err != nil {
-		return nil, 0, err
+	// Goroutine for select query
+	go func() {
+		err := r.sqlDB.SelectContext(ctx, &modules, query, args...)
+		selectChan <- err
+	}()
+
+	// Wait for both goroutines to finish
+	countErr := <-countChan
+	selectErr := <-selectChan
+
+	if countErr != nil {
+		return nil, 0, countErr
+	}
+
+	if selectErr != nil {
+		return nil, 0, selectErr
 	}
 
 	return modules, total, nil

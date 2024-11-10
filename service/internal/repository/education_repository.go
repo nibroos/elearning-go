@@ -28,29 +28,29 @@ func (r *EducationRepository) GetEducations(ctx context.Context, filters map[str
 	var total int
 
 	query := `SELECT *
-	FROM ( 
-		SELECT e.id, e.name, e.description, e.module_id, e.created_at, e.updated_at, e.deleted_at,
-		m.name as module_name,
-		cu.name as created_by_name,
-		uu.name as updated_by_name
+    FROM ( 
+        SELECT e.id, e.name, e.description, e.module_id, e.created_at, e.updated_at, e.deleted_at,
+        m.name as module_name,
+        cu.name as created_by_name,
+        uu.name as updated_by_name
 
-		FROM educations e
-		JOIN users cu ON e.created_by_id = cu.id
-		LEFT JOIN users uu ON e.updated_by_id = uu.id
-		JOIN modules m ON e.module_id = m.id
-	) AS alias WHERE 1=1 AND deleted_at IS NULL`
+        FROM educations e
+        JOIN users cu ON e.created_by_id = cu.id
+        LEFT JOIN users uu ON e.updated_by_id = uu.id
+        JOIN modules m ON e.module_id = m.id
+    ) AS alias WHERE 1=1 AND deleted_at IS NULL`
 
 	countQuery := `SELECT COUNT(*) FROM (
-		SELECT e.id, e.name, e.description, e.module_id, e.created_at, e.updated_at, e.deleted_at,
-		m.name as module_name,
-		cu.name as created_by_name,
-		uu.name as updated_by_name
+        SELECT e.id, e.name, e.description, e.module_id, e.created_at, e.updated_at, e.deleted_at,
+        m.name as module_name,
+        cu.name as created_by_name,
+        uu.name as updated_by_name
 
-		FROM educations e
-		JOIN users cu ON e.created_by_id = cu.id
-		LEFT JOIN users uu ON e.updated_by_id = uu.id
-		JOIN modules m ON e.module_id = m.id
-	) AS alias WHERE 1=1 AND deleted_at IS NULL`
+        FROM educations e
+        JOIN users cu ON e.created_by_id = cu.id
+        LEFT JOIN users uu ON e.updated_by_id = uu.id
+        JOIN modules m ON e.module_id = m.id
+    ) AS alias WHERE 1=1 AND deleted_at IS NULL`
 
 	var args []interface{}
 
@@ -82,10 +82,16 @@ func (r *EducationRepository) GetEducations(ctx context.Context, filters map[str
 	}
 
 	countArgs := append([]interface{}{}, args...)
-	err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
-	if err != nil {
-		return nil, 0, err
-	}
+
+	// Channels for concurrent execution
+	countChan := make(chan error)
+	selectChan := make(chan error)
+
+	// Goroutine for count query
+	go func() {
+		err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
+		countChan <- err
+	}()
 
 	orderColumn := utils.GetStringOrDefault(filters["order_column"], "id")
 	orderDirection := utils.GetStringOrDefault(filters["order_direction"], "asc")
@@ -97,9 +103,22 @@ func (r *EducationRepository) GetEducations(ctx context.Context, filters map[str
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", i, i+1)
 	args = append(args, perPage, (currentPage-1)*perPage)
 
-	err = r.sqlDB.SelectContext(ctx, &educations, query, args...)
-	if err != nil {
-		return nil, 0, err
+	// Goroutine for select query
+	go func() {
+		err := r.sqlDB.SelectContext(ctx, &educations, query, args...)
+		selectChan <- err
+	}()
+
+	// Wait for both goroutines to finish
+	countErr := <-countChan
+	selectErr := <-selectChan
+
+	if countErr != nil {
+		return nil, 0, countErr
+	}
+
+	if selectErr != nil {
+		return nil, 0, selectErr
 	}
 
 	return educations, total, nil

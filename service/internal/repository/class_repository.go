@@ -109,10 +109,15 @@ func (r *ClassRepository) GetClasses(ctx context.Context, filters map[string]str
 
 	countArgs := append([]interface{}{}, args...)
 
-	err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
-	if err != nil {
-		return nil, 0, err
-	}
+	// Channels for concurrent execution
+	countChan := make(chan error)
+	selectChan := make(chan error)
+
+	// Goroutine for count query
+	go func() {
+		err := r.sqlDB.GetContext(ctx, &total, countQuery, countArgs...)
+		countChan <- err
+	}()
 
 	orderColumn := utils.GetStringOrDefault(filters["order_column"], "id")
 	orderDirection := utils.GetStringOrDefault(filters["order_direction"], "asc")
@@ -124,9 +129,22 @@ func (r *ClassRepository) GetClasses(ctx context.Context, filters map[string]str
 	query += fmt.Sprintf(" LIMIT $%d OFFSET $%d", i, i+1)
 	args = append(args, perPage, (currentPage-1)*perPage)
 
-	err = r.sqlDB.SelectContext(ctx, &classes, query, args...)
-	if err != nil {
-		return nil, 0, err
+	// Goroutine for select query
+	go func() {
+		err := r.sqlDB.SelectContext(ctx, &classes, query, args...)
+		selectChan <- err
+	}()
+
+	// Wait for both goroutines to finish
+	countErr := <-countChan
+	selectErr := <-selectChan
+
+	if countErr != nil {
+		return nil, 0, countErr
+	}
+
+	if selectErr != nil {
+		return nil, 0, selectErr
 	}
 
 	return classes, total, nil
