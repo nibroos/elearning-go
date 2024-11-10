@@ -429,3 +429,70 @@ type ListIdentifiersResult struct {
 	Total       int
 	Err         error
 }
+
+type CreateContactRequest struct {
+	TypeContactID uint   `json:"type_contact_id"`
+	UserID        uint   `json:"user_id"`
+	RefNum        string `json:"ref_num"`
+	Status        uint   `json:"status"`
+}
+
+type UpdateContactRequest struct {
+	ID            uint   `json:"id"`
+	UserID        uint   `json:"user_id"`
+	TypeContactID *uint  `json:"type_contact_id"`
+	RefNum        string `json:"ref_num"`
+	Status        uint   `json:"status"`
+}
+
+type GetContactByIDRequest struct {
+	ID uint `json:"id"`
+}
+
+type GetContactParams struct {
+	ID        uint
+	UserID    uint
+	IsDeleted *int
+}
+
+func NewGetContactParams(id uint) *GetContactParams {
+	defaultIsDeleted := 0
+	return &GetContactParams{
+		ID:        id,
+		IsDeleted: &defaultIsDeleted,
+	}
+}
+
+type DeleteContactRequest struct {
+	ID uint `json:"id"`
+}
+
+type ContactListDTO struct {
+	ID              int     `json:"id" db:"id"`
+	UserID          uint    `json:"user_id" db:"user_id"`
+	UserName        string  `json:"user_name" db:"user_name"`
+	TypeContactID   uint    `json:"type_contact_id" db:"type_contact_id"`
+	TypeContactName string  `json:"type_contact_name" db:"type_contact_name"`
+	RefNum          string  `json:"ref_num" db:"ref_num"`
+	Status          uint    `json:"status" db:"status"`
+	CreatedAt       *string `json:"created_at" db:"created_at"`
+	UpdatedAt       *string `json:"updated_at" db:"updated_at"`
+}
+
+type ContactDetailDTO struct {
+	ID              uint       `json:"id" db:"id"`
+	UserID          uint       `json:"user_id" db:"user_id"`
+	UserName        string     `json:"user_name" db:"user_name"`
+	TypeContactID   uint       `json:"type_contact_id" db:"type_contact_id"`
+	TypeContactName string     `json:"type_contact_name" db:"type_contact_name"`
+	RefNum          string     `json:"ref_num" db:"ref_num"`
+	Status          uint       `json:"status" db:"status"`
+	CreatedAt       *time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt       *time.Time `json:"updated_at" db:"updated_at"`
+	DeletedAt       *time.Time `json:"deleted_at" db:"deleted_at"`
+}
+type ListContactsResult struct {
+	Contacts []ContactListDTO
+	Total    int
+	Err      error
+}

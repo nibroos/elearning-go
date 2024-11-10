@@ -22,8 +22,6 @@ func NewIdentifierController(service *service.IdentifierService) *IdentifierCont
 	return &IdentifierController{service: service}
 }
 
-// TODO : Fix all method below
-
 func (c *IdentifierController) ListIdentifiers(ctx *fiber.Ctx) error {
 	filters, ok := ctx.Locals("filters").(map[string]string)
 	if !ok {
@@ -147,6 +145,7 @@ func (c *IdentifierController) UpdateIdentifier(ctx *fiber.Ctx) error {
 		UserID:           &userID,
 		RefNum:           req.RefNum,
 		Status:           req.Status,
+		CreatedAt:        existingIdentifier.CreatedAt,
 	}
 
 	if req.TypeIdentifierID != nil {
