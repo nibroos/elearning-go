@@ -22,6 +22,7 @@ func NewIdentifierStoreRequest() *IdentifierStoreRequest {
 func (r *IdentifierStoreRequest) Validate(req *dtos.CreateIdentifierRequest, ctx context.Context) map[string]string {
 	rules := govalidator.MapData{
 		"type_identifier_id": []string{"required", "exists:mix_values,id"},
+		"user_id":            []string{"required", "exists:users,id"},
 		"ref_num":            []string{"required"},
 		"status":             []string{"required"},
 	}

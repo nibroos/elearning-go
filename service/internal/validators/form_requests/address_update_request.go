@@ -8,23 +8,23 @@ import (
 	"github.com/thedevsaddam/govalidator"
 )
 
-// ContactUpdateRequest handles the validation for the RegisterRequest.
-type ContactUpdateRequest struct {
+// AddressUpdateRequest handles the validation for the RegisterRequest.
+type AddressUpdateRequest struct {
 	Validator *govalidator.Validator
 }
 
-// NewRegisterUpdateRequest creates a new instance of ContactUpdateRequest.
-func NewContactUpdateRequest() *ContactUpdateRequest {
+// NewRegisterUpdateRequest creates a new instance of AddressUpdateRequest.
+func NewAddressUpdateRequest() *AddressUpdateRequest {
 	v := govalidator.New(govalidator.Options{})
-	return &ContactUpdateRequest{Validator: v}
+	return &AddressUpdateRequest{Validator: v}
 }
 
 // Validate validates the RegisterRequest.
-func (r *ContactUpdateRequest) Validate(req *dtos.UpdateContactRequest, ctx context.Context) map[string]string {
+func (r *AddressUpdateRequest) Validate(req *dtos.UpdateAddressRequest, ctx context.Context) map[string]string {
 	rules := govalidator.MapData{
-		"type_contact_id": []string{"exists:mix_values,id"},
+		"type_address_id": []string{"exists:mix_values,id"},
 		"user_id":         []string{"required", "exists:users,id"},
-		"ref_num":         []string{"required", fmt.Sprintf("unique_ig:contacts,id,%d", req.ID)},
+		"ref_num":         []string{"required", fmt.Sprintf("unique_ig:addresses,id,%d", req.ID)},
 		"status":          []string{"required"},
 	}
 

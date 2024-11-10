@@ -23,6 +23,7 @@ func NewIdentifierUpdateRequest() *IdentifierUpdateRequest {
 func (r *IdentifierUpdateRequest) Validate(req *dtos.UpdateIdentifierRequest, ctx context.Context) map[string]string {
 	rules := govalidator.MapData{
 		"type_identifier_id": []string{"exists:mix_values,id"},
+		"user_id":            []string{"required", "exists:users,id"},
 		"ref_num":            []string{"required", fmt.Sprintf("unique_ig:identifiers,id,%d", req.ID)},
 		"status":             []string{"required"},
 	}

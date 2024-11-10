@@ -267,6 +267,57 @@ func (c *IdentifierController) GetIdentifierByAuthUser(ctx *fiber.Ctx) error {
 	return utils.GetResponse(ctx, identifierArray, paginationMeta, "Identifier fetched successfully", http.StatusOK, nil, nil)
 }
 
+func (c *IdentifierController) CreateIdentifierByAuthUser(ctx *fiber.Ctx) error {
+	// Extract user ID from JWT
+	claims, err := middleware.GetAuthUser(ctx)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Unauthorized", http.StatusUnauthorized, err.Error(), nil)
+	}
+	userID := uint(claims["user_id"].(float64))
+
+	var req dtos.CreateIdentifierRequest
+
+	req.UserID = userID
+
+	// Use the utility function to parse the request body
+	if err := utils.BodyParserWithNull(ctx, &req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusBadRequest})
+	}
+
+	// Validate the request
+	reqValidator := form_requests.NewIdentifierStoreRequest().Validate(&req, ctx.Context())
+	if reqValidator != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
+	}
+
+	createdAt := time.Now()
+
+	identifier := models.Identifier{
+		TypeIdentifierID: req.TypeIdentifierID,
+		UserID:           userID,
+		RefNum:           req.RefNum,
+		Status:           req.Status,
+		CreatedAt:        &createdAt,
+		OptionsJSON:      nil,
+	}
+
+	createdIdentifier, err := c.service.CreateIdentifier(ctx.Context(), &identifier)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Failed to create identifier", http.StatusInternalServerError, err.Error(), nil)
+	}
+
+	params := &dtos.GetIdentifierParams{ID: createdIdentifier.ID, UserID: userID}
+	getIdentifier, err := c.service.GetIdentifierByID(ctx.Context(), params)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	filters := ctx.Locals("filters").(map[string]string)
+	paginationMeta := utils.CreatePaginationMeta(filters, 1)
+
+	return utils.GetResponse(ctx, []interface{}{getIdentifier}, paginationMeta, "Identifier created successfully", http.StatusCreated, nil, nil)
+}
+
 func (c *IdentifierController) UpdateIdentifierByAuthUser(ctx *fiber.Ctx) error {
 	// Extract user ID from JWT
 	claims, err := middleware.GetAuthUser(ctx)

@@ -6,10 +6,10 @@ import (
 	"gorm.io/gorm"
 )
 
-type Contact struct {
+type Address struct {
 	gorm.Model
 	ID            uint       `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
-	TypeContactID uint       `json:"type_contact_id" gorm:"column:type_contact_id"`
+	TypeAddressID uint       `json:"type_address_id" gorm:"column:type_address_id"`
 	UserID        uint       `json:"user_id" gorm:"column:user_id"`
 	RefNum        string     `json:"ref_num" gorm:"column:ref_num"`
 	Status        uint       `json:"status" gorm:"column:status"`

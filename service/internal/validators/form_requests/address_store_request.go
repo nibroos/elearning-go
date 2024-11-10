@@ -2,29 +2,28 @@ package form_requests
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/nibroos/elearning-go/service/internal/dtos"
 	"github.com/thedevsaddam/govalidator"
 )
 
-// ContactUpdateRequest handles the validation for the RegisterRequest.
-type ContactUpdateRequest struct {
+// AddressStoreRequest handles the validation for the RegisterRequest.
+type AddressStoreRequest struct {
 	Validator *govalidator.Validator
 }
 
-// NewRegisterUpdateRequest creates a new instance of ContactUpdateRequest.
-func NewContactUpdateRequest() *ContactUpdateRequest {
+// NewRegisterStoreRequest creates a new instance of AddressStoreRequest.
+func NewAddressStoreRequest() *AddressStoreRequest {
 	v := govalidator.New(govalidator.Options{})
-	return &ContactUpdateRequest{Validator: v}
+	return &AddressStoreRequest{Validator: v}
 }
 
 // Validate validates the RegisterRequest.
-func (r *ContactUpdateRequest) Validate(req *dtos.UpdateContactRequest, ctx context.Context) map[string]string {
+func (r *AddressStoreRequest) Validate(req *dtos.CreateAddressRequest, ctx context.Context) map[string]string {
 	rules := govalidator.MapData{
-		"type_contact_id": []string{"exists:mix_values,id"},
+		"type_address_id": []string{"required", "exists:mix_values,id"},
 		"user_id":         []string{"required", "exists:users,id"},
-		"ref_num":         []string{"required", fmt.Sprintf("unique_ig:contacts,id,%d", req.ID)},
+		"ref_num":         []string{"required"},
 		"status":          []string{"required"},
 	}
 

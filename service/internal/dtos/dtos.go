@@ -497,3 +497,70 @@ type ListContactsResult struct {
 	Total    int
 	Err      error
 }
+
+type CreateAddressRequest struct {
+	TypeAddressID uint   `json:"type_address_id"`
+	UserID        uint   `json:"user_id"`
+	RefNum        string `json:"ref_num"`
+	Status        uint   `json:"status"`
+}
+
+type UpdateAddressRequest struct {
+	ID            uint   `json:"id"`
+	UserID        uint   `json:"user_id"`
+	TypeAddressID *uint  `json:"type_address_id"`
+	RefNum        string `json:"ref_num"`
+	Status        uint   `json:"status"`
+}
+
+type GetAddressByIDRequest struct {
+	ID uint `json:"id"`
+}
+
+type GetAddressParams struct {
+	ID        uint
+	UserID    uint
+	IsDeleted *int
+}
+
+func NewGetAddressParams(id uint) *GetAddressParams {
+	defaultIsDeleted := 0
+	return &GetAddressParams{
+		ID:        id,
+		IsDeleted: &defaultIsDeleted,
+	}
+}
+
+type DeleteAddressRequest struct {
+	ID uint `json:"id"`
+}
+
+type AddressListDTO struct {
+	ID              int     `json:"id" db:"id"`
+	UserID          uint    `json:"user_id" db:"user_id"`
+	UserName        string  `json:"user_name" db:"user_name"`
+	TypeAddressID   uint    `json:"type_address_id" db:"type_address_id"`
+	TypeAddressName string  `json:"type_address_name" db:"type_address_name"`
+	RefNum          string  `json:"ref_num" db:"ref_num"`
+	Status          uint    `json:"status" db:"status"`
+	CreatedAt       *string `json:"created_at" db:"created_at"`
+	UpdatedAt       *string `json:"updated_at" db:"updated_at"`
+}
+
+type AddressDetailDTO struct {
+	ID              uint       `json:"id" db:"id"`
+	UserID          uint       `json:"user_id" db:"user_id"`
+	UserName        string     `json:"user_name" db:"user_name"`
+	TypeAddressID   uint       `json:"type_address_id" db:"type_address_id"`
+	TypeAddressName string     `json:"type_address_name" db:"type_address_name"`
+	RefNum          string     `json:"ref_num" db:"ref_num"`
+	Status          uint       `json:"status" db:"status"`
+	CreatedAt       *time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt       *time.Time `json:"updated_at" db:"updated_at"`
+	DeletedAt       *time.Time `json:"deleted_at" db:"deleted_at"`
+}
+type ListAddressesResult struct {
+	Addresses []AddressListDTO
+	Total     int
+	Err       error
+}

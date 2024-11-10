@@ -57,7 +57,7 @@ func (c *ContactController) CreateContact(ctx *fiber.Ctx) error {
 
 	contact := models.Contact{
 		TypeContactID: req.TypeContactID,
-		UserID:        &req.UserID,
+		UserID:        req.UserID,
 		RefNum:        req.RefNum,
 		Status:        req.Status,
 		CreatedAt:     &createdAt,
@@ -130,7 +130,7 @@ func (c *ContactController) UpdateContact(ctx *fiber.Ctx) error {
 	contact := models.Contact{
 		ID:            req.ID,
 		TypeContactID: existingContact.TypeContactID,
-		UserID:        &req.UserID,
+		UserID:        req.UserID,
 		RefNum:        req.RefNum,
 		Status:        req.Status,
 		CreatedAt:     existingContact.CreatedAt,
@@ -263,7 +263,7 @@ func (c *ContactController) CreateContactByAuthUser(ctx *fiber.Ctx) error {
 
 	contact := models.Contact{
 		TypeContactID: req.TypeContactID,
-		UserID:        &userID,
+		UserID:        userID,
 		RefNum:        req.RefNum,
 		Status:        req.Status,
 		CreatedAt:     &createdAt,
@@ -355,7 +355,7 @@ func (c *ContactController) UpdateContactByAuthUser(ctx *fiber.Ctx) error {
 	contact := models.Contact{
 		ID:            req.ID,
 		TypeContactID: existingContact.TypeContactID,
-		UserID:        &userID,
+		UserID:        userID,
 		RefNum:        req.RefNum,
 		Status:        req.Status,
 		CreatedAt:     existingContact.CreatedAt,
