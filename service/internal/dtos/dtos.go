@@ -385,6 +385,7 @@ type GetIdentifierByIDRequest struct {
 
 type GetIdentifierParams struct {
 	ID        uint
+	UserID    uint
 	IsDeleted *int
 }
 

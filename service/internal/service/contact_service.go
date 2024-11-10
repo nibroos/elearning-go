@@ -135,19 +135,3 @@ func (s *ContactService) RestoreContact(ctx context.Context, id uint) error {
 
 	return nil
 }
-
-func (s *ContactService) ListContactsByAuthUser(ctx context.Context, filters map[string]string) ([]dtos.ContactListDTO, int, error) {
-	resultChan := make(chan dtos.ListContactsResult, 1)
-
-	go func() {
-		contacts, total, err := s.repo.ListContacts(ctx, filters)
-		resultChan <- dtos.ListContactsResult{Contacts: contacts, Total: total, Err: err}
-	}()
-
-	select {
-	case res := <-resultChan:
-		return res.Contacts, res.Total, res.Err
-	case <-ctx.Done():
-		return nil, 0, ctx.Err()
-	}
-}

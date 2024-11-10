@@ -227,7 +227,7 @@ func (c *ContactController) ListContactsByAuthUser(ctx *fiber.Ctx) error {
 		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, "Invalid filters", http.StatusBadRequest), http.StatusBadRequest)
 	}
 
-	contacts, total, err := c.service.ListContactsByAuthUser(ctx.Context(), filters)
+	contacts, total, err := c.service.ListContacts(ctx.Context(), filters)
 	if err != nil {
 		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, err.Error(), http.StatusInternalServerError), http.StatusInternalServerError)
 	}

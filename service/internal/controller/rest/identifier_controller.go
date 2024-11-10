@@ -51,18 +51,11 @@ func (c *IdentifierController) CreateIdentifier(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
 	}
 
-	// Extract user ID from JWT
-	claims, err := middleware.GetAuthUser(ctx)
-	if err != nil {
-		return utils.GetResponse(ctx, nil, nil, "Unauthorized", http.StatusUnauthorized, err.Error(), nil)
-	}
-	userID := uint(claims["user_id"].(float64))
-
 	createdAt := time.Now()
 
 	identifier := models.Identifier{
 		TypeIdentifierID: req.TypeIdentifierID,
-		UserID:           &userID,
+		UserID:           req.UserID,
 		RefNum:           req.RefNum,
 		Status:           req.Status,
 		CreatedAt:        &createdAt,
@@ -132,17 +125,10 @@ func (c *IdentifierController) UpdateIdentifier(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
 	}
 
-	// Extract user ID from JWT
-	claims, err := middleware.GetAuthUser(ctx)
-	if err != nil {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"errors": err.Error(), "message": "Unauthorized", "status": fiber.StatusUnauthorized})
-	}
-	userID := uint(claims["user_id"].(float64))
-
 	identifier := models.Identifier{
 		ID:               req.ID,
 		TypeIdentifierID: existingIdentifier.TypeIdentifierID,
-		UserID:           &userID,
+		UserID:           req.UserID,
 		RefNum:           req.RefNum,
 		Status:           req.Status,
 		CreatedAt:        existingIdentifier.CreatedAt,
@@ -247,4 +233,160 @@ func (c *IdentifierController) ListIdentifiersByAuthUser(ctx *fiber.Ctx) error {
 	paginationMeta := utils.CreatePaginationMeta(filters, total)
 
 	return utils.GetResponse(ctx, identifiers, paginationMeta, "Identifiers fetched successfully", http.StatusOK, nil, nil)
+}
+
+func (c *IdentifierController) GetIdentifierByAuthUser(ctx *fiber.Ctx) error {
+	// Extract user ID from JWT
+	claims, err := middleware.GetAuthUser(ctx)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Unauthorized", http.StatusUnauthorized, err.Error(), nil)
+	}
+	userID := uint(claims["user_id"].(float64))
+
+	var req dtos.GetIdentifierByIDRequest
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusBadRequest, err.Error(), nil)
+	}
+
+	if req.ID == 0 {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusBadRequest, "ID is required", nil)
+	}
+
+	params := &dtos.GetIdentifierParams{ID: req.ID, UserID: userID}
+	identifier, err := c.service.GetIdentifierByID(ctx.Context(), params)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	identifierArray := []interface{}{identifier}
+
+	filters := ctx.Locals("filters").(map[string]string)
+	paginationMeta := utils.CreatePaginationMeta(filters, 1)
+
+	return utils.GetResponse(ctx, identifierArray, paginationMeta, "Identifier fetched successfully", http.StatusOK, nil, nil)
+}
+
+func (c *IdentifierController) UpdateIdentifierByAuthUser(ctx *fiber.Ctx) error {
+	// Extract user ID from JWT
+	claims, err := middleware.GetAuthUser(ctx)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Unauthorized", http.StatusUnauthorized, err.Error(), nil)
+	}
+	userID := uint(claims["user_id"].(float64))
+
+	var req dtos.UpdateIdentifierRequest
+
+	if err := utils.BodyParserWithNull(ctx, &req); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": err.Error(), "message": "Invalid request", "status": http.StatusBadRequest})
+	}
+
+	// Validate the request
+	reqValidator := form_requests.NewIdentifierUpdateRequest().Validate(&req, ctx.Context())
+	if reqValidator != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"errors": reqValidator, "message": "Validation failed", "status": http.StatusBadRequest})
+	}
+
+	params := &dtos.GetIdentifierParams{ID: req.ID, UserID: userID}
+	// Fetch the existing identifier to get the current data
+	existingIdentifier, err := c.service.GetIdentifierByID(ctx.Context(), params)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	identifier := models.Identifier{
+		ID:               req.ID,
+		TypeIdentifierID: existingIdentifier.TypeIdentifierID,
+		UserID:           userID,
+		RefNum:           req.RefNum,
+		Status:           req.Status,
+		CreatedAt:        existingIdentifier.CreatedAt,
+	}
+
+	if req.TypeIdentifierID != nil {
+		identifier.TypeIdentifierID = *req.TypeIdentifierID
+	}
+
+	updatedIdentifier, err := c.service.UpdateIdentifier(ctx.Context(), &identifier)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Failed to update identifier", http.StatusInternalServerError, err.Error(), nil)
+	}
+
+	params = &dtos.GetIdentifierParams{ID: updatedIdentifier.ID, UserID: userID}
+	getIdentifier, err := c.service.GetIdentifierByID(ctx.Context(), params)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	filters := ctx.Locals("filters").(map[string]string)
+	paginationMeta := utils.CreatePaginationMeta(filters, 1)
+
+	return utils.GetResponse(ctx, []interface{}{getIdentifier}, paginationMeta, "Identifier updated successfully", http.StatusOK, nil, nil)
+}
+
+func (c *IdentifierController) DeleteIdentifierByAuthUser(ctx *fiber.Ctx) error {
+	// Extract user ID from JWT
+	claims, err := middleware.GetAuthUser(ctx)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Unauthorized", http.StatusUnauthorized, err.Error(), nil)
+	}
+	userID := uint(claims["user_id"].(float64))
+
+	var req dtos.DeleteIdentifierRequest
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusBadRequest, err.Error(), nil)
+	}
+
+	if req.ID == 0 {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusBadRequest, "ID is required", nil)
+	}
+
+	params := &dtos.GetIdentifierParams{ID: req.ID, UserID: userID}
+	// GET identifier by ID
+	_, err = c.service.GetIdentifierByID(ctx.Context(), params)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	err = c.service.DeleteIdentifier(ctx.Context(), req.ID)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Failed to delete identifier", http.StatusInternalServerError, err.Error(), nil)
+	}
+
+	return utils.GetResponse(ctx, nil, nil, "Identifier deleted successfully", http.StatusOK, nil, nil)
+}
+
+func (c *IdentifierController) RestoreIdentifierByAuthUser(ctx *fiber.Ctx) error {
+	// Extract user ID from JWT
+	claims, err := middleware.GetAuthUser(ctx)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Unauthorized", http.StatusUnauthorized, err.Error(), nil)
+	}
+	userID := uint(claims["user_id"].(float64))
+
+	var req dtos.DeleteIdentifierRequest
+
+	if err := ctx.BodyParser(&req); err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusBadRequest, err.Error(), nil)
+	}
+
+	if req.ID == 0 {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusBadRequest, "ID is required", nil)
+	}
+
+	isDeleted := 1
+	params := &dtos.GetIdentifierParams{ID: req.ID, UserID: userID, IsDeleted: &isDeleted}
+	// GET identifier by ID
+	_, err = c.service.GetIdentifierByID(ctx.Context(), params)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Identifier not found", http.StatusNotFound, err.Error(), nil)
+	}
+
+	err = c.service.RestoreIdentifier(ctx.Context(), req.ID)
+	if err != nil {
+		return utils.GetResponse(ctx, nil, nil, "Failed to restore identifier", http.StatusInternalServerError, err.Error(), nil)
+	}
+
+	return utils.GetResponse(ctx, nil, nil, "Identifier restored successfully", http.StatusOK, nil, nil)
 }

@@ -136,7 +136,6 @@ func (r *IdentifierRepository) GetIdentifierByID(ctx context.Context, params *dt
 	isDeletedQuery := ` AND i.deleted_at IS NULL`
 	if params.IsDeleted != nil && *params.IsDeleted == 1 {
 		isDeletedQuery = " AND i.deleted_at IS NOT NULL"
-		i++
 	}
 
 	query += isDeletedQuery
