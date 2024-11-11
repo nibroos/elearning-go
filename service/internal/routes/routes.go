@@ -58,6 +58,9 @@ func SetupRoutes(app *fiber.App, gormDB *gorm.DB, sqlDB *sqlx.DB) {
 	addresses := version.Group("/addresses")
 	SetupAddressRoutes(addresses, gormDB, sqlDB)
 
+	records := version.Group("/records")
+	SetupRecordRoutes(records, gormDB, sqlDB)
+
 	// Seeder route
 	version.Post("/seeders/run", rest.NewSeederController(sqlDB.DB).RunSeeders)
 }

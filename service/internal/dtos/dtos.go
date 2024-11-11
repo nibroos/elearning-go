@@ -564,3 +564,66 @@ type ListAddressesResult struct {
 	Total     int
 	Err       error
 }
+
+type CreateRecordRequest struct {
+	EducationID uint   `json:"education_id"`
+	UserID      uint   `json:"user_id"`
+	TimeSpent   string `json:"time_spent"`
+}
+
+type UpdateRecordRequest struct {
+	ID          uint   `json:"id"`
+	UserID      uint   `json:"user_id"`
+	EducationID *uint  `json:"education_id"`
+	TimeSpent   string `json:"time_spent"`
+}
+
+type GetRecordByIDRequest struct {
+	ID uint `json:"id"`
+}
+
+type GetRecordParams struct {
+	ID        uint
+	UserID    uint
+	IsDeleted *int
+}
+
+func NewGetRecordParams(id uint) *GetRecordParams {
+	defaultIsDeleted := 0
+	return &GetRecordParams{
+		ID:        id,
+		IsDeleted: &defaultIsDeleted,
+	}
+}
+
+type DeleteRecordRequest struct {
+	ID uint `json:"id"`
+}
+
+type RecordListDTO struct {
+	ID            int     `json:"id" db:"id"`
+	UserID        uint    `json:"user_id" db:"user_id"`
+	UserName      string  `json:"user_name" db:"user_name"`
+	EducationID   uint    `json:"education_id" db:"education_id"`
+	EducationName string  `json:"education_name" db:"education_name"`
+	TimeSpent     uint    `json:"time_spent" db:"time_spent"`
+	CreatedAt     *string `json:"created_at" db:"created_at"`
+	UpdatedAt     *string `json:"updated_at" db:"updated_at"`
+}
+
+type RecordDetailDTO struct {
+	ID            uint       `json:"id" db:"id"`
+	UserID        uint       `json:"user_id" db:"user_id"`
+	UserName      string     `json:"user_name" db:"user_name"`
+	EducationID   uint       `json:"education_id" db:"education_id"`
+	EducationName string     `json:"education_name" db:"education_name"`
+	TimeSpent     uint       `json:"time_spent" db:"time_spent"`
+	CreatedAt     *time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt     *time.Time `json:"updated_at" db:"updated_at"`
+	DeletedAt     *time.Time `json:"deleted_at" db:"deleted_at"`
+}
+type ListRecordsResult struct {
+	Records []RecordListDTO
+	Total   int
+	Err     error
+}

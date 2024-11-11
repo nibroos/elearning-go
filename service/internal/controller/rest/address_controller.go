@@ -22,8 +22,6 @@ func NewAddressController(service *service.AddressService) *AddressController {
 	return &AddressController{service: service}
 }
 
-// TODO : Fix all method below
-
 func (c *AddressController) ListAddresses(ctx *fiber.Ctx) error {
 	filters, ok := ctx.Locals("filters").(map[string]string)
 	if !ok {

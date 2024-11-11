@@ -22,8 +22,6 @@ func NewContactController(service *service.ContactService) *ContactController {
 	return &ContactController{service: service}
 }
 
-// TODO : Fix all method below
-
 func (c *ContactController) ListContacts(ctx *fiber.Ctx) error {
 	filters, ok := ctx.Locals("filters").(map[string]string)
 	if !ok {
