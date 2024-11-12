@@ -22,7 +22,7 @@ func NewRecordController(service *service.RecordService) *RecordController {
 	return &RecordController{service: service}
 }
 
-// TODO : Fix all method below
+// TODO : test all the functions
 
 func (c *RecordController) ListRecords(ctx *fiber.Ctx) error {
 	filters, ok := ctx.Locals("filters").(map[string]string)

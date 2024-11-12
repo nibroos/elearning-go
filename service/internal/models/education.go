@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// TODO : add minimum time
 type Education struct {
 	gorm.Model
 	ID            uint       `json:"id" gorm:"column:id;primaryKey;autoIncrement"`

@@ -627,3 +627,61 @@ type ListRecordsResult struct {
 	Total   int
 	Err     error
 }
+
+type CreateQuizRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Threshold   uint   `json:"threshold"`
+}
+
+type UpdateQuizRequest struct {
+	ID          uint   `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Threshold   uint   `json:"threshold"`
+}
+
+type GetQuizByIDRequest struct {
+	ID uint `json:"id"`
+}
+
+type GetQuizParams struct {
+	ID        uint
+	IsDeleted *int
+}
+
+func NewGetQuizParams(id uint) *GetQuizParams {
+	defaultIsDeleted := 0
+	return &GetQuizParams{
+		ID:        id,
+		IsDeleted: &defaultIsDeleted,
+	}
+}
+
+type DeleteQuizRequest struct {
+	ID uint `json:"id"`
+}
+
+type QuizListDTO struct {
+	ID          int     `json:"id" db:"id"`
+	Name        string  `json:"name" db:"name"`
+	Description string  `json:"description" db:"description"`
+	Threshold   uint    `json:"threshold" db:"threshold"`
+	CreatedAt   *string `json:"created_at" db:"created_at"`
+	UpdatedAt   *string `json:"updated_at" db:"updated_at"`
+}
+
+type QuizDetailDTO struct {
+	ID          uint       `json:"id" db:"id"`
+	Name        string     `json:"name" db:"name"`
+	Description string     `json:"description" db:"description"`
+	Threshold   uint       `json:"threshold" db:"threshold"`
+	CreatedAt   *time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt   *time.Time `json:"updated_at" db:"updated_at"`
+	DeletedAt   *time.Time `json:"deleted_at" db:"deleted_at"`
+}
+type ListQuizesResult struct {
+	Quizes []QuizListDTO
+	Total  int
+	Err    error
+}
