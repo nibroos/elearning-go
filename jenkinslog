@@ -1,0 +1,110 @@
+Started by an SCM change
+Obtained Jenkinsfile from git git@github.com:nibroos/elearning-go.git
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins
+ in /var/jenkins_home/workspace/e-learning/build-test
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+The recommended git tool is: git
+using credential 2dcfa3e4-fa4d-4702-a362-4ace13f87646
+ > git rev-parse --resolve-git-dir /var/jenkins_home/workspace/e-learning/build-test/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url git@github.com:nibroos/elearning-go.git # timeout=10
+Fetching upstream changes from git@github.com:nibroos/elearning-go.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.39.5'
+using GIT_SSH to set credentials 
+Verifying host key using known hosts file
+ > git fetch --tags --force --progress -- git@github.com:nibroos/elearning-go.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse origin/build-test^{commit} # timeout=10
+Checking out Revision c6bdefd9f9f4c72f64a8fa882d824e29d7e37383 (origin/build-test)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f c6bdefd9f9f4c72f64a8fa882d824e29d7e37383 # timeout=10
+Commit message: "wip: ssh id 🚧"
+ > git rev-list --no-walk 9dca6d519b541cff8093e588112b3a03c3027a49 # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] withCredentials
+Masking supported pattern matches of $POSTGRES_USER or $GATEWAY_PORT or $POSTGRES_HOST or $SERVICE_REST_PORT or $SERVICE_GRPC_PORT or $POSTGRES_PASSWORD or $POSTGRES_PORT or $POSTGRES_DB or $VPS_DEPLOY_DIR or $VPS_USER or $JWT_SECRET or $VPS_HOST or $MASTER_SERVICE_GRPC_PORT or $MASTER_SERVICE_REST_PORT or $ACTIVITIES_SERVICE_GRPC_PORT or $ACTIVITIES_SERVICE_REST_PORT
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Clone Repository on VPS)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] sshagent
+[ssh-agent] Using credentials nibros_do_server
+$ ssh-agent
+SSH_AUTH_SOCK=/tmp/ssh-XXXXXXWH5YbC/agent.445962
+SSH_AGENT_PID=445965
+Running ssh-add (command line suppressed)
+Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_12714526667482532565.key (nibrosmaverick3@gmail.com)
+[ssh-agent] Started.
+[Pipeline] {
+[Pipeline] sh
+Warning: A secret was passed to "sh" using Groovy String interpolation, which is insecure.
+		 Affected argument(s) used the following variable(s): [VPS_DEPLOY_DIR, VPS_USER, VPS_HOST]
+		 See https://jenkins.io/redirect/groovy-string-interpolation for details.
++ ssh -o StrictHostKeyChecking=no ****@**** git clone git@github.com:nibroos/elearning-go.git **** || (cd **** && git pull)
+[Pipeline] }
+$ ssh-agent -k
+unset SSH_AUTH_SOCK;
+unset SSH_AGENT_PID;
+echo Agent pid 445965 killed;
+[ssh-agent] Stopped.
+[Pipeline] // sshagent
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Build Docker Images on VPS)
+Stage "Build Docker Images on VPS" skipped due to earlier failure(s)
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Deploy)
+Stage "Deploy" skipped due to earlier failure(s)
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Run Migrations)
+Stage "Run Migrations" skipped due to earlier failure(s)
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Check Logs)
+Stage "Check Logs" skipped due to earlier failure(s)
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] echo
+Build failed. Keeping the previous build up and running.
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+ERROR: script returned exit code 1
+Finished: FAILURE
