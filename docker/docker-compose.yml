@@ -38,10 +38,21 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ./../service:/app
-      - public-data:/app/public
-    env_file:
-      - .env
+      - public-data:/apps/public
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      GATEWAY_PORT: ${GATEWAY_PORT}
+      SERVICE_GRPC_PORT: ${SERVICE_GRPC_PORT}
+      SERVICE_REST_PORT: ${SERVICE_REST_PORT}
+      MASTER_SERVICE_GRPC_PORT: ${MASTER_SERVICE_GRPC_PORT}
+      MASTER_SERVICE_REST_PORT: ${MASTER_SERVICE_REST_PORT}
+      ACTIVITIES_SERVICE_GRPC_PORT: ${ACTIVITIES_SERVICE_GRPC_PORT}
+      ACTIVITIES_SERVICE_REST_PORT: ${ACTIVITIES_SERVICE_REST_PORT}
+      JWT_SECRET: ${JWT_SECRET}
 
   # master-service:
   #   build: 

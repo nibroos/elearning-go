@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine as builder
+FROM golang:1.23-alpine AS builder
 
 RUN apk add --no-cache curl
 
@@ -35,6 +35,9 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 COPY --from=builder /workdir/app /bin/app
 COPY --from=builder /workdir /apps
 
+# Copy the .env file
+COPY .env /apps/.env
+
 USER 65534
 
-ENTRYPOINT ["/bin/app"]
+ENTRYPOINT ["/apps/app"]
