@@ -28,7 +28,7 @@ pipeline {
     stage('Clone Repository on VPS') {
       steps {
         script {
-          sshagent([SSH_CREDENTIALS_ID]) {
+          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
               ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'git clone ${GIT_REPO} ${VPS_DEPLOY_DIR} || (cd ${VPS_DEPLOY_DIR} && git pull)' > clone_output.log 2>&1
               cat clone_output.log
@@ -41,7 +41,7 @@ pipeline {
     stage('Build Docker Images on VPS') {
       steps {
         script {
-          sshagent([SSH_CREDENTIALS_ID]) {
+          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
               ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
                 cd ${VPS_DEPLOY_DIR} &&
@@ -57,7 +57,7 @@ pipeline {
     stage('Deploy') {
       steps {
         script {
-          sshagent([SSH_CREDENTIALS_ID]) {
+          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
               ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
                 cd ${VPS_DEPLOY_DIR} &&
@@ -73,7 +73,7 @@ pipeline {
     stage('Run Migrations') {
       steps {
         script {
-          sshagent([SSH_CREDENTIALS_ID]) {
+          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
               ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
                 docker exec -it service-prod-learninggo /usr/local/bin/migrate -path /app/migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable up > migrate_output.log 2>&1
@@ -88,7 +88,7 @@ pipeline {
     stage('Check Logs') {
       steps {
         script {
-          sshagent([SSH_CREDENTIALS_ID]) {
+          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
               ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
                 docker logs service-prod-learninggo > service_logs.log 2>&1
