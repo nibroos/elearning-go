@@ -30,7 +30,7 @@ pipeline {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'git clone ${GIT_REPO} ${VPS_DEPLOY_DIR} || (cd ${VPS_DEPLOY_DIR} && git pull)' > clone_output.log 2>&1
+              ssh ${VPS_USER}@${VPS_HOST} 'git clone ${GIT_REPO} ${VPS_DEPLOY_DIR} || (cd ${VPS_DEPLOY_DIR} && git pull)' > clone_output.log 2>&1
               cat clone_output.log
             """
           }
