@@ -71,6 +71,14 @@ endif
 	docker run --rm -v $(PWD)/$(SEEDER_DIR):/seeders --network host postgres:latest \
 	psql $(DB_URL) -f /seeders/$(file)
 
+.PHONY: seed-run-prod
+seed-run:
+ifndef file
+	$(error file is undefined. Usage: make seed-run file=<seeder_file>)
+endif
+	@echo "Running seeder file: $(SEEDER_DIR)/$(file)"
+	psql $(DB_URL) -f /seeders/$(file)
+
 .PHONY: build
 build:
 	go build -o bin/app cmd/main.go

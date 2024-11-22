@@ -58,6 +58,9 @@ You can run multiple seeder references in the seeder_controller.go file.
 #### error running migration fix migration
 Change the 'version' column name on schema_migrations to latest succeed migration, change the 'dirty' column to false, then run the migration again
 
+#### postgre extensions
+`CREATE EXTENSION IF NOT EXISTS pgcrypto;`
+
 ### 📗 API Document
 All endpoints stored in  `-.json`
 
