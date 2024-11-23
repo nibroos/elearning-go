@@ -68,7 +68,8 @@ pipeline {
                 echo "ACTIVITIES_SERVICE_GRPC_PORT=${ACTIVITIES_SERVICE_GRPC_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "ACTIVITIES_SERVICE_REST_PORT=${ACTIVITIES_SERVICE_REST_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "JWT_SECRET=${JWT_SECRET}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
-                cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/service/.env
+                cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/service/.env &&
+                cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/gateway/.env
               '
             """
           }
