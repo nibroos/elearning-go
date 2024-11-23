@@ -2,7 +2,7 @@ pipeline {
   agent any
   environment {
     GIT_REPO = 'git@github.com:nibroos/elearning-go.git'
-    SSH_CREDENTIALS_ID = 'vps-ssh-credentials-elearning-27'
+    SSH_CREDENTIALS_ID = credentials('vps-ssh-credentials-elearning-27')
     VPS_USER = credentials('vps-user-27')
     VPS_HOST = credentials('vps-host-27')
     VPS_DEPLOY_DIR = credentials('vps-deploy-dir-elearningbe-27')

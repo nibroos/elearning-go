@@ -1,4 +1,5 @@
-Started by an SCM change
+Started by user Nibros
+
 Obtained Jenkinsfile from git git@github.com:nibroos/elearning-go.git
 [Pipeline] Start of Pipeline
 [Pipeline] node
@@ -20,11 +21,11 @@ using GIT_SSH to set credentials
 Verifying host key using known hosts file
  > git fetch --tags --force --progress -- git@github.com:nibroos/elearning-go.git +refs/heads/*:refs/remotes/origin/* # timeout=10
  > git rev-parse origin/build-test^{commit} # timeout=10
-Checking out Revision c6bdefd9f9f4c72f64a8fa882d824e29d7e37383 (origin/build-test)
+Checking out Revision 31bc10f2de167494e8d32c622557450d05c96eec (origin/build-test)
  > git config core.sparsecheckout # timeout=10
- > git checkout -f c6bdefd9f9f4c72f64a8fa882d824e29d7e37383 # timeout=10
-Commit message: "wip: ssh id 🚧"
- > git rev-list --no-walk 9dca6d519b541cff8093e588112b3a03c3027a49 # timeout=10
+ > git checkout -f 31bc10f2de167494e8d32c622557450d05c96eec # timeout=10
+Commit message: "wip: cred ssh test 2 🚧"
+ > git rev-list --no-walk 5280879f16d421d20c52b04e40fa722dfb8cde01 # timeout=10
 [Pipeline] }
 [Pipeline] // stage
 [Pipeline] withEnv
@@ -39,24 +40,24 @@ Masking supported pattern matches of $POSTGRES_USER or $GATEWAY_PORT or $POSTGRE
 [Pipeline] script
 [Pipeline] {
 [Pipeline] sshagent
-[ssh-agent] Using credentials nibros_do_server
+[ssh-agent] Using credentials nibroos
 $ ssh-agent
-SSH_AUTH_SOCK=/tmp/ssh-XXXXXXWH5YbC/agent.445962
-SSH_AGENT_PID=445965
+SSH_AUTH_SOCK=/tmp/ssh-XXXXXXcBq4GC/agent.448551
+SSH_AGENT_PID=448554
 Running ssh-add (command line suppressed)
-Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_12714526667482532565.key (nibrosmaverick3@gmail.com)
+Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_8423518074292878259.key (nibrosmaverick3@gmail.com)
 [ssh-agent] Started.
 [Pipeline] {
 [Pipeline] sh
 Warning: A secret was passed to "sh" using Groovy String interpolation, which is insecure.
 		 Affected argument(s) used the following variable(s): [VPS_DEPLOY_DIR, VPS_USER, VPS_HOST]
 		 See https://jenkins.io/redirect/groovy-string-interpolation for details.
-+ ssh -o StrictHostKeyChecking=no ****@**** git clone git@github.com:nibroos/elearning-go.git **** || (cd **** && git pull)
++ ssh ****@**** git clone git@github.com:nibroos/elearning-go.git **** || (cd **** && git pull)
 [Pipeline] }
 $ ssh-agent -k
 unset SSH_AUTH_SOCK;
 unset SSH_AGENT_PID;
-echo Agent pid 445965 killed;
+echo Agent pid 448554 killed;
 [ssh-agent] Stopped.
 [Pipeline] // sshagent
 [Pipeline] }
