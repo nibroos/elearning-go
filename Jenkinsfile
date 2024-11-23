@@ -49,32 +49,16 @@ pipeline {
       }
     }
 
-    stage('Build Docker Images on VPS') {
+    stage('Build & Deploy') {
       steps {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
               ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
                 cd ${VPS_DEPLOY_DIR} &&
-                docker-compose -f docker/docker-compose.yml up --build -d > build_output.log 2>&1
+                docker compose -f docker/docker-compose.yml up --build -d > build_output.log 2>&1
               '
               ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat ${VPS_DEPLOY_DIR}/build_output.log'
-            """
-          }
-        }
-      }
-    }
-
-    stage('Deploy') {
-      steps {
-        script {
-          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-            sh """
-              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
-                cd ${VPS_DEPLOY_DIR} &&
-                docker-compose -f docker/docker-compose.yml up -d > deploy_output.log 2>&1
-              '
-              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat ${VPS_DEPLOY_DIR}/deploy_output.log'
             """
           }
         }
