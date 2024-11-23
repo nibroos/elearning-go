@@ -36,7 +36,7 @@ pipeline {
               
               # Test SSH connection first
               echo "Testing SSH connection..."
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'echo "SSH connection successful"'
+              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'source ~/.bashrc; echo "SSH connection successful!"'
               
               # Clone the repository
               echo "Cloning repository..."
