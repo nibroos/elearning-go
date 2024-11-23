@@ -1,5 +1,4 @@
-Started by user Nibros
-
+Started by an SCM change
 Obtained Jenkinsfile from git git@github.com:nibroos/elearning-go.git
 [Pipeline] Start of Pipeline
 [Pipeline] node
@@ -21,11 +20,11 @@ using GIT_SSH to set credentials
 Verifying host key using known hosts file
  > git fetch --tags --force --progress -- git@github.com:nibroos/elearning-go.git +refs/heads/*:refs/remotes/origin/* # timeout=10
  > git rev-parse origin/build-test^{commit} # timeout=10
-Checking out Revision 8ca4fa1650d9357cc04cc99a66c7ecdf88835172 (origin/build-test)
+Checking out Revision 13e7eda7bca4f7fb8ae5b5395cd10ddab357e5ac (origin/build-test)
  > git config core.sparsecheckout # timeout=10
- > git checkout -f 8ca4fa1650d9357cc04cc99a66c7ecdf88835172 # timeout=10
-Commit message: "wip: cred binding uuid 🚧"
- > git rev-list --no-walk db60475bd2eadb9c908ae30b47210992e4715d4f # timeout=10
+ > git checkout -f 13e7eda7bca4f7fb8ae5b5395cd10ddab357e5ac # timeout=10
+Commit message: "wip: cred binding keyscan2 🚧"
+ > git rev-list --no-walk 8e6b1426e3cc7da6763582a070db90cef6d9d435 # timeout=10
 [Pipeline] }
 [Pipeline] // stage
 [Pipeline] withEnv
@@ -42,24 +41,27 @@ Masking supported pattern matches of $POSTGRES_USER or $GATEWAY_PORT or $POSTGRE
 [Pipeline] sshagent
 [ssh-agent] Using credentials nibros_do_server
 $ ssh-agent
-
-SSH_AUTH_SOCK=/tmp/ssh-XXXXXXml4TrZ/agent.458050
-SSH_AGENT_PID=458053
+SSH_AUTH_SOCK=/tmp/ssh-XXXXXXm9KiCs/agent.459109
+SSH_AGENT_PID=459112
 Running ssh-add (command line suppressed)
-Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_9553870604040784239.key (nibrosmaverick3@gmail.com)
+Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_8297006058201960035.key (nibrosmaverick3@gmail.com)
 [ssh-agent] Started.
 [Pipeline] {
 [Pipeline] sh
-Warning: A secret was passed to "sh" using Groovy String interpolation, which is insecure.
-		 Affected argument(s) used the following variable(s): [VPS_DEPLOY_DIR, VPS_USER, VPS_HOST]
-		 See https://jenkins.io/redirect/groovy-string-interpolation for details.
-+ ssh ****@**** git clone git@github.com:nibroos/elearning-go.git **** || (cd **** && git pull)
-
++ ssh-keyscan -H github.com
+# github.com:22 SSH-2.0-babeld-33cdb9234
+# github.com:22 SSH-2.0-babeld-33cdb9234
+# github.com:22 SSH-2.0-babeld-33cdb9234
+# github.com:22 SSH-2.0-babeld-33cdb9234
+# github.com:22 SSH-2.0-babeld-33cdb9234
++ ssh -o StrictHostKeyChecking=no ****@**** 
+                git clone ${GIT_REPO} ${VPS_DEPLOY_DIR} > clone_output.log 2>&1
+              
 [Pipeline] }
 $ ssh-agent -k
 unset SSH_AUTH_SOCK;
 unset SSH_AGENT_PID;
-echo Agent pid 458053 killed;
+echo Agent pid 459112 killed;
 [ssh-agent] Stopped.
 [Pipeline] // sshagent
 [Pipeline] }
@@ -90,7 +92,6 @@ Stage "Check Logs" skipped due to earlier failure(s)
 [Pipeline] getContext
 [Pipeline] }
 [Pipeline] // stage
-
 [Pipeline] stage
 [Pipeline] { (Declarative: Post Actions)
 [Pipeline] script
@@ -110,5 +111,5 @@ Build failed. Keeping the previous build up and running.
 [Pipeline] }
 [Pipeline] // node
 [Pipeline] End of Pipeline
-ERROR: script returned exit code 1
+ERROR: script returned exit code 129
 Finished: FAILURE

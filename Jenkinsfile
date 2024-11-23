@@ -34,7 +34,7 @@ pipeline {
               ssh-keyscan -H github.com >> ~/.ssh/known_hosts
               
               ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
-                git clone ${GIT_REPO} ${VPS_DEPLOY_DIR} > clone_output.log 2>&1
+                mkdir -p ${VPS_DEPLOY_DIR}
               '
             '''
           }
