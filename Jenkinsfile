@@ -22,6 +22,7 @@ pipeline {
     ACTIVITIES_SERVICE_REST_PORT = credentials('vps-activities-service-rest-elearningbe-27')
 
     JWT_SECRET = credentials('vps-jwt-secret-elearning-27')
+    BUILD_DIR = "build-${env.BUILD_ID}"
   }
 
   stages {
@@ -40,7 +41,8 @@ pipeline {
               
               # Clone the repository
               echo "Cloning repository..."
-              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'git clone ${GIT_REPO} ${VPS_DEPLOY_DIR}'
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'rm -rf ${VPS_DEPLOY_DIR} &&
+              git clone ${GIT_REPO} ${VPS_DEPLOY_DIR}'
             """
           }
         }
@@ -111,6 +113,10 @@ pipeline {
   }
 
   post {
+    always {
+      cleanWs()
+    }
+
     failure {
       script {
         echo 'Build failed. Keeping the previous build up and running.'
