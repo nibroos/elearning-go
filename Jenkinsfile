@@ -29,10 +29,21 @@ pipeline {
       steps {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-            sh """
-              ssh ${VPS_USER}@${VPS_HOST} 'git clone ${GIT_REPO} ${VPS_DEPLOY_DIR} || (cd ${VPS_DEPLOY_DIR} && git pull)' > clone_output.log 2>&1
-              cat clone_output.log
-            """
+            sh '''
+              # Add known hosts for GitHub
+              ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+              
+              # Execute remote commands
+              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "
+                if [ -d \"${VPS_DEPLOY_DIR}\" ]; then
+                  cd ${VPS_DEPLOY_DIR}
+                  git pull origin build-test
+                else
+                  mkdir -p ${VPS_DEPLOY_DIR}
+                  git clone -b build-test ${GIT_REPO} ${VPS_DEPLOY_DIR}
+                fi
+              "
+            '''
           }
         }
       }
