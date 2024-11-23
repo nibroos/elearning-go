@@ -25,11 +25,11 @@ Verifying host key using known hosts file
  > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
 Avoid second fetch
  > git rev-parse origin/build-test^{commit} # timeout=10
-Checking out Revision 3b6cba5cbbf1b368ab899bbca622a6539c02b7b7 (origin/build-test)
+Checking out Revision c0f69b8de3231e5da17849db53ca4a25a6b59bdf (origin/build-test)
  > git config core.sparsecheckout # timeout=10
- > git checkout -f 3b6cba5cbbf1b368ab899bbca622a6539c02b7b7 # timeout=10
-Commit message: "wip: using docker compose plugin 🚧"
- > git rev-list --no-walk 7cf45ac9ae8faf0837cdbfa5f68640dc879838b1 # timeout=10
+ > git checkout -f c0f69b8de3231e5da17849db53ca4a25a6b59bdf # timeout=10
+Commit message: "wip: added make, try dir migration"
+ > git rev-list --no-walk de9950aaacee35e30e913648eceb62997294a1b0 # timeout=10
 [Pipeline] }
 [Pipeline] // stage
 [Pipeline] withEnv
@@ -46,10 +46,10 @@ Masking supported pattern matches of $POSTGRES_USER or $GATEWAY_PORT or $POSTGRE
 [Pipeline] sshagent
 [ssh-agent] Using credentials nibros_do_server
 $ ssh-agent
-SSH_AUTH_SOCK=/tmp/ssh-XXXXXXcmgyKb/agent.504509
-SSH_AGENT_PID=504512
+SSH_AUTH_SOCK=/tmp/ssh-XXXXXXF86pB7/agent.513455
+SSH_AGENT_PID=513458
 Running ssh-add (command line suppressed)
-Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_9593387919655885362.key (nibrosmaverick3@gmail.com)
+Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_14210294481715964281.key (nibrosmaverick3@gmail.com)
 [ssh-agent] Started.
 [Pipeline] {
 [Pipeline] sh
@@ -80,14 +80,60 @@ SSH connection successful!
 + echo Cloning repository...
 Cloning repository...
 + ssh -A -o StrictHostKeyChecking=no ****@**** rm -rf **** &&
-              git clone git@github.com:nibroos/elearning-go.git ****
+              git clone -b build-test git@github.com:nibroos/elearning-go.git ****
 Cloning into ****...
 
 [Pipeline] }
 $ ssh-agent -k
 unset SSH_AUTH_SOCK;
 unset SSH_AGENT_PID;
-echo Agent pid 504512 killed;
+echo Agent pid 513458 killed;
+[ssh-agent] Stopped.
+[Pipeline] // sshagent
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Create .env File)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] sshagent
+[ssh-agent] Using credentials nibros_do_server
+$ ssh-agent
+SSH_AUTH_SOCK=/tmp/ssh-XXXXXXnEiMDz/agent.513571
+SSH_AGENT_PID=513574
+Running ssh-add (command line suppressed)
+Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_8694589551033206467.key (nibrosmaverick3@gmail.com)
+[ssh-agent] Started.
+[Pipeline] {
+[Pipeline] sh
+Warning: A secret was passed to "sh" using Groovy String interpolation, which is insecure.
+		 Affected argument(s) used the following variable(s): [POSTGRES_USER, GATEWAY_PORT, POSTGRES_HOST, SERVICE_REST_PORT, SERVICE_GRPC_PORT, POSTGRES_PASSWORD, POSTGRES_PORT, POSTGRES_DB, VPS_DEPLOY_DIR, VPS_USER, JWT_SECRET, VPS_HOST, MASTER_SERVICE_GRPC_PORT, MASTER_SERVICE_REST_PORT, ACTIVITIES_SERVICE_GRPC_PORT, ACTIVITIES_SERVICE_REST_PORT]
+		 See https://jenkins.io/redirect/groovy-string-interpolation for details.
+
++ ssh -A -o StrictHostKeyChecking=no ****@**** 
+                echo "POSTGRES_USER=****" > ****/docker/.env &&
+                echo "POSTGRES_PASSWORD=****" >> ****/docker/.env &&
+                echo "POSTGRES_DB=****" >> ****/docker/.env &&
+                echo "POSTGRES_PORT=****" >> ****/docker/.env &&
+                echo "POSTGRES_HOST=****" >> ****/docker/.env &&
+                echo "GATEWAY_PORT=****" >> ****/docker/.env &&
+                echo "SERVICE_GRPC_PORT=****" >> ****/docker/.env &&
+                echo "SERVICE_REST_PORT=****" >> ****/docker/.env &&
+                echo "MASTER_SERVICE_GRPC_PORT=****" >> ****/docker/.env &&
+                echo "MASTER_SERVICE_REST_PORT=****" >> ****/docker/.env &&
+                echo "ACTIVITIES_SERVICE_GRPC_PORT=****" >> ****/docker/.env &&
+                echo "ACTIVITIES_SERVICE_REST_PORT=****" >> ****/docker/.env &&
+                echo "JWT_SECRET=****" >> ****/docker/.env &&
+                cp ****/docker/.env ****/service/.env &&
+                cp ****/docker/.env ****/gateway/.env
+              
+[Pipeline] }
+$ ssh-agent -k
+unset SSH_AUTH_SOCK;
+unset SSH_AGENT_PID;
+echo Agent pid 513574 killed;
 [ssh-agent] Stopped.
 [Pipeline] // sshagent
 [Pipeline] }
@@ -101,26 +147,220 @@ echo Agent pid 504512 killed;
 [Pipeline] sshagent
 [ssh-agent] Using credentials nibros_do_server
 $ ssh-agent
-SSH_AUTH_SOCK=/tmp/ssh-XXXXXXMtmVQN/agent.504563
-SSH_AGENT_PID=504566
+SSH_AUTH_SOCK=/tmp/ssh-XXXXXX2G6mDL/agent.513591
+SSH_AGENT_PID=513594
 Running ssh-add (command line suppressed)
-Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_7823083235763328051.key (nibrosmaverick3@gmail.com)
+Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_1440978203152446445.key (nibrosmaverick3@gmail.com)
 [ssh-agent] Started.
 [Pipeline] {
 [Pipeline] sh
 Warning: A secret was passed to "sh" using Groovy String interpolation, which is insecure.
 		 Affected argument(s) used the following variable(s): [VPS_DEPLOY_DIR, VPS_USER, VPS_HOST]
 		 See https://jenkins.io/redirect/groovy-string-interpolation for details.
-
 + ssh -A -o StrictHostKeyChecking=no ****@**** 
                 cd **** &&
+                docker compose -f docker/docker-compose.yml down &&
                 docker compose -f docker/docker-compose.yml up --build -d > build_output.log 2>&1
               
+
+ Container gateway-prod-learninggo  Stopping
+ Container gateway-prod-learninggo  Stopped
+ Container gateway-prod-learninggo  Removing
+ Container gateway-prod-learninggo  Removed
+ Container service-prod-learninggo  Stopping
+ Container service-prod-learninggo  Stopped
+ Container service-prod-learninggo  Removing
+ Container service-prod-learninggo  Removed
+ Container ****-prod-learninggo  Stopping
+ Container ****-prod-learninggo  Stopped
+ Container ****-prod-learninggo  Removing
+ Container ****-prod-learninggo  Removed
+ Network learning-go_learning-network  Removing
+ Network learning-go_learning-network  Removed
+
++ ssh -A -o StrictHostKeyChecking=no ****@**** cat ****/build_output.log
+#0 building with "default" instance using docker driver
+
+#1 [service internal] load .dockerignore
+#1 transferring context: 2B done
+#1 DONE 0.0s
+
+#2 [service internal] load build definition from Dockerfile
+#2 transferring dockerfile: 1.24kB done
+#2 DONE 0.0s
+
+#3 [service internal] load metadata for docker.io/library/golang:1.23-alpine
+#3 ...
+
+#4 [service internal] load metadata for docker.io/library/alpine:latest
+#4 DONE 1.7s
+
+#3 [service internal] load metadata for docker.io/library/golang:1.23-alpine
+#3 DONE 1.7s
+
+#5 [service stage-1 1/9] FROM docker.io/library/alpine:latest@sha256:1e42bbe2508154c9126d48c2b8a75420c3544343bf86fd041fb7527e017a4b4a
+#5 DONE 0.0s
+
+#6 [service builder 1/6] FROM docker.io/library/golang:1.23-alpine@sha256:c694a4d291a13a9f9d94933395673494fc2cc9d4777b85df3a7e70b3492d3574
+#6 CACHED
+
+#7 [service internal] load build context
+#7 transferring context: 424.12kB 0.2s done
+#7 DONE 0.3s
+
+#8 [service builder 2/6] RUN apk add --no-cache make curl
+#8 0.404 fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/main/x86_64/APKINDEX.tar.gz
+#8 0.524 fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/APKINDEX.tar.gz
+#8 1.017 (1/10) Installing brotli-libs (1.1.0-r2)
+#8 1.033 (2/10) Installing c-ares (1.33.1-r0)
+#8 1.039 (3/10) Installing libunistring (1.2-r0)
+#8 1.058 (4/10) Installing libidn2 (2.3.7-r0)
+#8 1.063 (5/10) Installing nghttp2-libs (1.62.1-r0)
+#8 1.069 (6/10) Installing libpsl (0.21.5-r1)
+#8 1.073 (7/10) Installing zstd-libs (1.5.6-r0)
+#8 1.088 (8/10) Installing libcurl (8.11.0-r2)
+#8 1.101 (9/10) Installing curl (8.11.0-r2)
+#8 1.108 (10/10) Installing make (4.4.1-r2)
+#8 1.116 Executing busybox-1.36.1-r29.trigger
+#8 1.127 OK: 13 MiB in 25 packages
+#8 DONE 1.3s
+
+#9 [service builder 3/6] RUN go install -tags **** github.com/golang-migrate/migrate/v4/cmd/migrate@v4.15.2
+#9 0.773 go: downloading github.com/golang-migrate/migrate/v4 v4.15.2
+#9 116.8 go: downloading github.com/hashicorp/go-multierror v1.1.1
+#9 116.8 go: downloading go.uber.org/atomic v1.7.0
+#9 116.8 go: downloading github.com/lib/pq v1.10.0
+#9 117.0 go: downloading github.com/hashicorp/errwrap v1.1.0
+#9 DONE 151.8s
+
+#10 [service builder 4/6] COPY . /workdir
+#10 DONE 0.1s
+
+#11 [service builder 5/6] WORKDIR /workdir
+#11 DONE 0.0s
+
+#12 [service builder 6/6] RUN go build -ldflags "-s -w" -trimpath -o app .
+#12 0.238 go: downloading github.com/gofiber/fiber/v2 v2.52.5
+#12 0.507 go: downloading github.com/jmoiron/sqlx v1.4.0
+#12 0.535 go: downloading github.com/joho/godotenv v1.5.1
+#12 0.555 go: downloading github.com/lib/pq v1.10.9
+#12 0.598 go: downloading gorm.io/driver/**** v1.5.9
+#12 0.613 go: downloading gorm.io/gorm v1.25.11
+#12 0.664 go: downloading github.com/google/uuid v1.6.0
+#12 0.680 go: downloading github.com/mattn/go-colorable v0.1.13
+#12 0.694 go: downloading github.com/mattn/go-isatty v0.0.20
+#12 0.711 go: downloading github.com/mattn/go-runewidth v0.0.15
+#12 0.726 go: downloading github.com/valyala/bytebufferpool v1.0.0
+#12 0.749 go: downloading github.com/valyala/fasthttp v1.51.0
+#12 0.878 go: downloading github.com/golang-jwt/jwt/v4 v4.5.0
+#12 0.916 go: downloading github.com/go-playground/validator/v10 v10.22.1
+#12 0.984 go: downloading github.com/thedevsaddam/govalidator v1.9.10
+#12 1.005 go: downloading github.com/jackc/pgx/v5 v5.5.5
+#12 1.111 go: downloading github.com/jinzhu/now v1.1.5
+#12 1.150 go: downloading golang.org/x/sys v0.20.0
+#12 1.414 go: downloading github.com/rivo/uniseg v0.2.0
+#12 1.508 go: downloading github.com/andybalholm/brotli v1.0.5
+#12 1.619 go: downloading github.com/klauspost/compress v1.17.0
+#12 6.332 go: downloading github.com/valyala/tcplisten v1.0.0
+#12 6.468 go: downloading golang.org/x/crypto v0.23.0
+#12 6.664 go: downloading github.com/gabriel-vasile/mimetype v1.4.3
+#12 10.00 go: downloading github.com/go-playground/universal-translator v0.18.1
+#12 10.02 go: downloading github.com/leodido/go-urn v1.4.0
+#12 10.14 go: downloading golang.org/x/text v0.15.0
+#12 11.22 go: downloading github.com/jackc/pgpassfile v1.0.0
+#12 11.23 go: downloading github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a
+#12 11.25 go: downloading github.com/jinzhu/inflection v1.0.0
+#12 11.29 go: downloading google.golang.org/grpc v1.65.0
+#12 11.72 go: downloading google.golang.org/protobuf v1.34.2
+#12 12.04 go: downloading github.com/go-playground/locales v0.14.1
+#12 12.92 go: downloading github.com/jackc/puddle/v2 v2.2.1
+#12 12.96 go: downloading golang.org/x/net v0.25.0
+#12 13.33 go: downloading google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157
+#12 13.43 go: downloading golang.org/x/sync v0.7.0
+#12 DONE 120.1s
+
+#13 [service stage-1 2/9] RUN apk --no-cache add ca-certificates tzdata     && cp /usr/share/zoneinfo/Asia/Bangkok /etc/localtime     && echo "Asia/Bangkok" > /etc/timezone     && apk del tzdata
+#13 CACHED
+
+#14 [service stage-1 3/9] COPY --from=builder /go/bin/migrate /usr/local/bin/migrate
+#14 CACHED
+
+#15 [service stage-1 4/9] RUN mkdir -p /apps/public/pdf /apps/public/csv /apps/public/pictures /apps/public/videos     && chmod -R 755 /apps/public
+#15 DONE 0.5s
+
+#16 [service stage-1 5/9] RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+#16 DONE 0.4s
+
+#17 [service stage-1 6/9] COPY --from=builder /workdir/app /bin/app
+#17 DONE 0.2s
+
+#18 [service stage-1 7/9] COPY --from=builder /workdir /apps
+#18 DONE 0.1s
+
+#19 [service stage-1 8/9] COPY .env /apps/.env
+#19 DONE 0.0s
+
+#20 [service stage-1 9/9] COPY --from=builder /usr/bin/make /usr/bin/make
+#20 DONE 0.0s
+
+#21 [service] exporting to image
+#21 exporting layers
+#21 exporting layers 0.3s done
+#21 writing image sha256:88a5ae354ba791b773e1897ea80533cf1b67173eda2463db909d545b47d9ad6b done
+#21 naming to docker.io/library/learning-go-service done
+#21 DONE 0.3s
+
+#22 [service] resolving provenance for metadata file
+#22 DONE 0.0s
+
+#23 [gateway internal] load .dockerignore
+#23 transferring context: 2B done
+#23 DONE 0.0s
+
+#24 [gateway internal] load build definition from Dockerfile
+#24 transferring dockerfile: 122B 0.0s done
+#24 DONE 0.0s
+
+#25 [gateway internal] load metadata for docker.io/library/nginx:latest
+#25 DONE 2.0s
+
+#26 [gateway 1/2] FROM docker.io/library/nginx@sha256:bc5eac5eafc581aeda3008b4b1f07ebba230de2f27d47767129a6a905c84f470
+#26 DONE 0.0s
+
+#27 [gateway internal] load build context
+#27 transferring context: 1.22kB done
+#27 DONE 0.0s
+
+#28 [gateway 2/2] COPY nginx.conf /etc/nginx/nginx.conf
+#28 CACHED
+
+#29 [gateway] exporting to image
+#29 exporting layers done
+#29 writing image sha256:14f55f3de8b408e30c29282a394c1e43a88a25f74db4138c380ef620d3722297 done
+#29 naming to docker.io/library/learning-go-gateway done
+#29 DONE 0.0s
+
+#30 [gateway] resolving provenance for metadata file
+#30 DONE 0.0s
+ Network learning-go_learning-network  Creating
+ Network learning-go_learning-network  Created
+ Container ****-prod-learninggo  Creating
+ Container ****-prod-learninggo  Created
+ Container service-prod-learninggo  Creating
+ Container service-prod-learninggo  Created
+ Container gateway-prod-learninggo  Creating
+ Container gateway-prod-learninggo  Created
+ Container ****-prod-learninggo  Starting
+ Container ****-prod-learninggo  Started
+ Container service-prod-learninggo  Starting
+ Container service-prod-learninggo  Started
+ Container gateway-prod-learninggo  Starting
+ Container gateway-prod-learninggo  Started
 [Pipeline] }
 $ ssh-agent -k
 unset SSH_AUTH_SOCK;
 unset SSH_AGENT_PID;
-echo Agent pid 504566 killed;
+echo Agent pid 513594 killed;
 [ssh-agent] Stopped.
 [Pipeline] // sshagent
 [Pipeline] }
@@ -129,8 +369,33 @@ echo Agent pid 504566 killed;
 [Pipeline] // stage
 [Pipeline] stage
 [Pipeline] { (Run Migrations)
-Stage "Run Migrations" skipped due to earlier failure(s)
-[Pipeline] getContext
+[Pipeline] script
+[Pipeline] {
+[Pipeline] sshagent
+[ssh-agent] Using credentials nibros_do_server
+$ ssh-agent
+SSH_AUTH_SOCK=/tmp/ssh-XXXXXXxKFLf5/agent.514087
+SSH_AGENT_PID=514090
+Running ssh-add (command line suppressed)
+Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_5133799795043312024.key (nibrosmaverick3@gmail.com)
+[ssh-agent] Started.
+[Pipeline] {
+[Pipeline] sh
+Warning: A secret was passed to "sh" using Groovy String interpolation, which is insecure.
+		 Affected argument(s) used the following variable(s): [POSTGRES_USER, POSTGRES_HOST, POSTGRES_PASSWORD, POSTGRES_PORT, POSTGRES_DB, VPS_USER, VPS_HOST]
+		 See https://jenkins.io/redirect/groovy-string-interpolation for details.
++ ssh -A -o StrictHostKeyChecking=no ****@**** 
+                docker exec -it service-prod-learninggo /usr/local/bin/migrate -path /apps/internal/database/migrations -database ****://****:****@****:****/****?sslmode=disable up > migrate_output.log 2>&1
+              
+[Pipeline] }
+$ ssh-agent -k
+unset SSH_AUTH_SOCK;
+unset SSH_AGENT_PID;
+echo Agent pid 514090 killed;
+[ssh-agent] Stopped.
+[Pipeline] // sshagent
+[Pipeline] }
+[Pipeline] // script
 [Pipeline] }
 [Pipeline] // stage
 [Pipeline] stage
@@ -150,6 +415,7 @@ Stage "Check Logs" skipped due to earlier failure(s)
 [Pipeline] echo
 Build failed. Keeping the previous build up and running.
 [Pipeline] }
+
 [Pipeline] // script
 [Pipeline] }
 [Pipeline] // stage
@@ -161,7 +427,6 @@ Build failed. Keeping the previous build up and running.
 [Pipeline] // withEnv
 [Pipeline] }
 [Pipeline] // node
-
 [Pipeline] End of Pipeline
-ERROR: script returned exit code 14
+ERROR: script returned exit code 1
 Finished: FAILURE

@@ -100,7 +100,7 @@ pipeline {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
               ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
-                docker exec -it service-prod-learninggo /usr/local/bin/migrate -path /apps/internal/database/migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable up > migrate_output.log 2>&1
+                docker exec service-prod-learninggo /usr/local/bin/migrate -path /apps/internal/database/migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable up > migrate_output.log 2>&1
               '
               ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat migrate_output.log'
             """
