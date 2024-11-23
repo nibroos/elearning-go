@@ -26,18 +26,21 @@ RUN apk --no-cache add ca-certificates tzdata \
 COPY --from=builder /go/bin/migrate /usr/local/bin/migrate
 
 # Create a public directory for temporary files
-RUN mkdir -p /apps/public/pdf /apps/public/csv /apps/public/pictures /apps/public/videos \
-    && chmod -R 755 /apps/public
+RUN mkdir -p /app/public/pdf /app/public/csv /app/public/pictures /app/public/videos \
+    && chmod -R 755 /app/public
 
 # Create a non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY --from=builder /workdir/app /bin/app
+COPY --from=builder /workdir/app /test/app
+COPY --from=builder /workdir/app /app/app
 COPY --from=builder /workdir /apps
 
 # Copy the .env file
 COPY .env /apps/.env
+COPY .env /app/.env
 
 USER 65534
 
-ENTRYPOINT ["/apps/app"]
+ENTRYPOINT ["/app/app"]

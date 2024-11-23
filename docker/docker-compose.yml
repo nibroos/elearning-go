@@ -40,7 +40,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - public-data:/apps/public
+      - public-data:/app/public
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
