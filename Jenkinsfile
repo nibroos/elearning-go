@@ -32,6 +32,7 @@ pipeline {
             sh """
               # Add known hosts for GitHub
               ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'ssh-keyscan -H github.com >> ~/.ssh/known_hosts'
               
               # Test SSH connection first
               echo "Testing SSH connection..."
