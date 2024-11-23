@@ -11,21 +11,25 @@ Running on Jenkins
 [Pipeline] checkout
 The recommended git tool is: git
 using credential 2dcfa3e4-fa4d-4702-a362-4ace13f87646
- > git rev-parse --resolve-git-dir /var/jenkins_home/workspace/e-learning/build-test/.git # timeout=10
-Fetching changes from the remote Git repository
- > git config remote.origin.url git@github.com:nibroos/elearning-go.git # timeout=10
+Cloning the remote Git repository
+Cloning repository git@github.com:nibroos/elearning-go.git
+ > git init /var/jenkins_home/workspace/e-learning/build-test # timeout=10
 Fetching upstream changes from git@github.com:nibroos/elearning-go.git
  > git --version # timeout=10
  > git --version # 'git version 2.39.5'
 using GIT_SSH to set credentials 
 Verifying host key using known hosts file
  > git fetch --tags --force --progress -- git@github.com:nibroos/elearning-go.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+
+ > git config remote.origin.url git@github.com:nibroos/elearning-go.git # timeout=10
+ > git config --add remote.origin.fetch +refs/heads/*:refs/remotes/origin/* # timeout=10
+Avoid second fetch
  > git rev-parse origin/build-test^{commit} # timeout=10
-Checking out Revision c5e5b7196ae9b16b1554661cd5412d82f05c1067 (origin/build-test)
+Checking out Revision 3b6cba5cbbf1b368ab899bbca622a6539c02b7b7 (origin/build-test)
  > git config core.sparsecheckout # timeout=10
- > git checkout -f c5e5b7196ae9b16b1554661cd5412d82f05c1067 # timeout=10
-Commit message: "wip: try ssh without cred 🚧"
- > git rev-list --no-walk c607b19666bbeea324719bda4a63f822846bbd2b # timeout=10
+ > git checkout -f 3b6cba5cbbf1b368ab899bbca622a6539c02b7b7 # timeout=10
+Commit message: "wip: using docker compose plugin 🚧"
+ > git rev-list --no-walk 7cf45ac9ae8faf0837cdbfa5f68640dc879838b1 # timeout=10
 [Pipeline] }
 [Pipeline] // stage
 [Pipeline] withEnv
@@ -42,15 +46,15 @@ Masking supported pattern matches of $POSTGRES_USER or $GATEWAY_PORT or $POSTGRE
 [Pipeline] sshagent
 [ssh-agent] Using credentials nibros_do_server
 $ ssh-agent
-SSH_AUTH_SOCK=/tmp/ssh-XXXXXXxRTYjT/agent.500617
-SSH_AGENT_PID=500620
+SSH_AUTH_SOCK=/tmp/ssh-XXXXXXcmgyKb/agent.504509
+SSH_AGENT_PID=504512
 Running ssh-add (command line suppressed)
-Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_5028029985461715284.key (nibrosmaverick3@gmail.com)
+Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_9593387919655885362.key (nibrosmaverick3@gmail.com)
 [ssh-agent] Started.
 [Pipeline] {
 [Pipeline] sh
 Warning: A secret was passed to "sh" using Groovy String interpolation, which is insecure.
-		 Affected argument(s) used the following variable(s): [VPS_USER, VPS_HOST]
+		 Affected argument(s) used the following variable(s): [VPS_DEPLOY_DIR, VPS_USER, VPS_HOST]
 		 See https://jenkins.io/redirect/groovy-string-interpolation for details.
 
 + ssh-keyscan -H github.com
@@ -60,35 +64,30 @@ Warning: A secret was passed to "sh" using Groovy String interpolation, which is
 
 # github.com:22 SSH-2.0-babeld-33cdb9234
 # github.com:22 SSH-2.0-babeld-33cdb9234
-+ ssh -o StrictHostKeyChecking=no ****@**** ssh-keyscan -H github.com >> ~/.ssh/known_hosts
++ ssh -A -o StrictHostKeyChecking=no ****@**** ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
-# github.com:22 SSH-2.0-babeld-33cdb9234
-
-# github.com:22 SSH-2.0-babeld-33cdb9234
 # github.com:22 SSH-2.0-babeld-33cdb9234
 # github.com:22 SSH-2.0-babeld-33cdb9234
 
+# github.com:22 SSH-2.0-babeld-33cdb9234
+# github.com:22 SSH-2.0-babeld-33cdb9234
 # github.com:22 SSH-2.0-babeld-33cdb9234
 + echo Testing SSH connection...
 Testing SSH connection...
-+ ssh -o StrictHostKeyChecking=no ****@**** source ~/.bashrc; echo "SSH connection successful!"
++ ssh -A -o StrictHostKeyChecking=no ****@**** source ~/.bashrc; echo "SSH connection successful!"
+
 SSH connection successful!
 + echo Cloning repository...
 Cloning repository...
-+ ssh -o StrictHostKeyChecking=no ****@**** git clone git@github.com:nibroos/elearning-go.git /var/www/e-learning
++ ssh -A -o StrictHostKeyChecking=no ****@**** rm -rf **** &&
+              git clone git@github.com:nibroos/elearning-go.git ****
+Cloning into ****...
 
-Cloning into '/var/www/e-learning'...
-
-git@github.com: Permission denied (publickey).
-fatal: Could not read from remote repository.
-
-Please make sure you have the correct access rights
-and the repository exists.
 [Pipeline] }
 $ ssh-agent -k
 unset SSH_AUTH_SOCK;
 unset SSH_AGENT_PID;
-echo Agent pid 500620 killed;
+echo Agent pid 504512 killed;
 [ssh-agent] Stopped.
 [Pipeline] // sshagent
 [Pipeline] }
@@ -96,15 +95,36 @@ echo Agent pid 500620 killed;
 [Pipeline] }
 [Pipeline] // stage
 [Pipeline] stage
-[Pipeline] { (Build Docker Images on VPS)
-Stage "Build Docker Images on VPS" skipped due to earlier failure(s)
-[Pipeline] getContext
+[Pipeline] { (Build & Deploy)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] sshagent
+[ssh-agent] Using credentials nibros_do_server
+$ ssh-agent
+SSH_AUTH_SOCK=/tmp/ssh-XXXXXXMtmVQN/agent.504563
+SSH_AGENT_PID=504566
+Running ssh-add (command line suppressed)
+Identity added: /var/jenkins_home/workspace/e-learning/build-test@tmp/private_key_7823083235763328051.key (nibrosmaverick3@gmail.com)
+[ssh-agent] Started.
+[Pipeline] {
+[Pipeline] sh
+Warning: A secret was passed to "sh" using Groovy String interpolation, which is insecure.
+		 Affected argument(s) used the following variable(s): [VPS_DEPLOY_DIR, VPS_USER, VPS_HOST]
+		 See https://jenkins.io/redirect/groovy-string-interpolation for details.
+
++ ssh -A -o StrictHostKeyChecking=no ****@**** 
+                cd **** &&
+                docker compose -f docker/docker-compose.yml up --build -d > build_output.log 2>&1
+              
 [Pipeline] }
-[Pipeline] // stage
-[Pipeline] stage
-[Pipeline] { (Deploy)
-Stage "Deploy" skipped due to earlier failure(s)
-[Pipeline] getContext
+$ ssh-agent -k
+unset SSH_AUTH_SOCK;
+unset SSH_AGENT_PID;
+echo Agent pid 504566 killed;
+[ssh-agent] Stopped.
+[Pipeline] // sshagent
+[Pipeline] }
+[Pipeline] // script
 [Pipeline] }
 [Pipeline] // stage
 [Pipeline] stage
@@ -121,6 +141,10 @@ Stage "Check Logs" skipped due to earlier failure(s)
 [Pipeline] // stage
 [Pipeline] stage
 [Pipeline] { (Declarative: Post Actions)
+[Pipeline] cleanWs
+[WS-CLEANUP] Deleting project workspace...
+[WS-CLEANUP] Deferred wipeout is used...
+[WS-CLEANUP] done
 [Pipeline] script
 [Pipeline] {
 [Pipeline] echo
@@ -134,10 +158,10 @@ Build failed. Keeping the previous build up and running.
 [Pipeline] }
 [Pipeline] // withCredentials
 [Pipeline] }
-
 [Pipeline] // withEnv
 [Pipeline] }
 [Pipeline] // node
+
 [Pipeline] End of Pipeline
-ERROR: script returned exit code 128
+ERROR: script returned exit code 14
 Finished: FAILURE
