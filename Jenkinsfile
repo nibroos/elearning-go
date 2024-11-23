@@ -84,6 +84,7 @@ pipeline {
             sh """
               ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
                 cd ${VPS_DEPLOY_DIR} &&
+                docker compose -f docker/docker-compose.yml down &&
                 docker compose -f docker/docker-compose.yml up --build -d > build_output.log 2>&1
               '
               ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat ${VPS_DEPLOY_DIR}/build_output.log'
