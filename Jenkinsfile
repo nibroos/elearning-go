@@ -37,14 +37,6 @@ pipeline {
               echo "Testing SSH connection..."
               ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'echo "SSH connection successful"'
               
-              # Try mkdir with explicit path
-              echo "Creating directory..."
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'mkdir -p /var/www/e-learning'
-              
-              # Verify directory exists
-              echo "Verifying directory..."
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'ls -la /var/www/e-learning'
-
               # Clone the repository
               echo "Cloning repository..."
               ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'git clone ${GIT_REPO} /var/www/e-learning'
