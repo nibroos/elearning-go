@@ -23,7 +23,6 @@ pipeline {
 
     JWT_SECRET = credentials('vps-jwt-secret-elearning-27')
     BUILD_DIR = "build-${env.BUILD_ID}"
-    BRANCH = "${env.BRANCH_NAME}"
   }
 
   stages {
@@ -43,7 +42,7 @@ pipeline {
               # Clone the repository
               echo "Cloning repository..."
               ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'rm -rf ${VPS_DEPLOY_DIR} &&
-              git clone -b ${BRANCH} ${GIT_REPO} ${VPS_DEPLOY_DIR}'
+              git clone -b build-test ${GIT_REPO} ${VPS_DEPLOY_DIR}'
             """
           }
         }
