@@ -40,7 +40,7 @@ pipeline {
               
               # Clone the repository
               echo "Cloning repository..."
-              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'git clone ${GIT_REPO} /var/www/e-learning'
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'git clone ${GIT_REPO} ${VPS_DEPLOY_DIR}'
             """
           }
         }
