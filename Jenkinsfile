@@ -29,14 +29,22 @@ pipeline {
       steps {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-            sh '''
+            sh """
               # Add known hosts for GitHub
               ssh-keyscan -H github.com >> ~/.ssh/known_hosts
               
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
-                mkdir -p ${VPS_DEPLOY_DIR}
-              '
-            '''
+              # Test SSH connection first
+              echo "Testing SSH connection..."
+              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'echo "SSH connection successful"'
+              
+              # Try mkdir with explicit path
+              echo "Creating directory..."
+              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'mkdir -p /var/www/e-learning'
+              
+              # Verify directory exists
+              echo "Verifying directory..."
+              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'ls -la /var/www/e-learning'
+            """
           }
         }
       }
