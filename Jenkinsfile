@@ -34,15 +34,28 @@ pipeline {
               ssh-keyscan -H github.com >> ~/.ssh/known_hosts
               
               # Execute remote commands
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "
-                if [ -d \"${VPS_DEPLOY_DIR}\" ]; then
-                  cd ${VPS_DEPLOY_DIR}
-                  git pull origin build-test
+              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+                set -e
+                if [ -d "${VPS_DEPLOY_DIR}" ]; then
+                  echo "Directory exists, updating repository..."
+                  cd "${VPS_DEPLOY_DIR}"
+                  if [ ! -d ".git" ]; then
+                    git init
+                    git remote add origin ${GIT_REPO}
+                  fi
+                  git fetch origin
+                  git checkout build-test
+                  git reset --hard origin/build-test
                 else
-                  mkdir -p ${VPS_DEPLOY_DIR}
-                  git clone -b build-test ${GIT_REPO} ${VPS_DEPLOY_DIR}
+                  echo "Creating new repository..."
+                  mkdir -p "${VPS_DEPLOY_DIR}"
+                  cd "${VPS_DEPLOY_DIR}"
+                  git init
+                  git remote add origin ${GIT_REPO}
+                  git fetch origin
+                  git checkout -b build-test origin/build-test
                 fi
-              "
+              '
             '''
           }
         }
