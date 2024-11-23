@@ -32,15 +32,15 @@ pipeline {
             sh """
               # Add known hosts for GitHub
               ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'ssh-keyscan -H github.com >> ~/.ssh/known_hosts'
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'ssh-keyscan -H github.com >> ~/.ssh/known_hosts'
               
               # Test SSH connection first
               echo "Testing SSH connection..."
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'source ~/.bashrc; echo "SSH connection successful!"'
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'source ~/.bashrc; echo "SSH connection successful!"'
               
               # Clone the repository
               echo "Cloning repository..."
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'git clone ${GIT_REPO} /var/www/e-learning'
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'git clone ${GIT_REPO} /var/www/e-learning'
             """
           }
         }
@@ -52,11 +52,11 @@ pipeline {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
                 cd ${VPS_DEPLOY_DIR} &&
                 docker-compose -f docker/docker-compose.yml build > build_output.log 2>&1
               '
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat ${VPS_DEPLOY_DIR}/build_output.log'
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat ${VPS_DEPLOY_DIR}/build_output.log'
             """
           }
         }
@@ -68,11 +68,11 @@ pipeline {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
                 cd ${VPS_DEPLOY_DIR} &&
                 docker-compose -f docker/docker-compose.yml up -d > deploy_output.log 2>&1
               '
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat ${VPS_DEPLOY_DIR}/deploy_output.log'
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat ${VPS_DEPLOY_DIR}/deploy_output.log'
             """
           }
         }
@@ -84,10 +84,10 @@ pipeline {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
                 docker exec -it service-prod-learninggo /usr/local/bin/migrate -path /app/migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable up > migrate_output.log 2>&1
               '
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat migrate_output.log'
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat migrate_output.log'
             """
           }
         }
@@ -99,10 +99,10 @@ pipeline {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
                 docker logs service-prod-learninggo > service_logs.log 2>&1
               '
-              ssh -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat service_logs.log'
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat service_logs.log'
             """
           }
         }
