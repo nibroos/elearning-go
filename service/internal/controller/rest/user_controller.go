@@ -172,7 +172,7 @@ func (c *UserController) Login(ctx *fiber.Ctx) error {
 		return ctx.Status(http.StatusUnauthorized).JSON(fiber.Map{"message": "Invalid credentials", "status": "error", "err": err.Error()})
 	}
 
-	token, err := middleware.GenerateJWT(user.ID)
+	token, err := middleware.GenerateJWT(user.ID, user.Roles, user.Permissions)
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to generate token", "status": "error", "err": err.Error()})
 	}
@@ -217,7 +217,7 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 		return utils.GetResponse(ctx, nil, nil, "User not found", http.StatusNotFound, err.Error(), nil)
 	}
 
-	token, err := middleware.GenerateJWT(createdUser.ID)
+	token, err := middleware.GenerateJWT(createdUser.ID, getUser.Roles, getUser.Permissions)
 	if err != nil {
 		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"message": "Failed to generate token", "status": "error", "err": err.Error()})
 	}
