@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -23,6 +24,10 @@ func main() {
 	if err != nil {
 		log.Println("No .env file found")
 	}
+
+	// Log the JWT_SECRET value to verify it is loaded correctly
+	jwtSecret := os.Getenv("JWT_SECRET")
+	log.Printf("JWT_SECRET: %s", jwtSecret)
 
 	// Initialize the SQLx database connection
 	sqlDB, err := sqlx.Connect("postgres", config.GetDatabaseURL())
