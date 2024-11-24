@@ -29,7 +29,6 @@ services:
     build: 
       context: ../service
       dockerfile: Dockerfile
-    container_name: service-prod-learninggo
     networks:
       - learning-network
     depends_on:
