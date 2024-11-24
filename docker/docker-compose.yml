@@ -2,28 +2,28 @@ name: learning-go
 
 services:
 
-  gateway:
-    build:
-      context: ../gateway
-      dockerfile: Dockerfile
-    ports:
-      - "${GATEWAY_PORT:-80}:80"
-    container_name: gateway-prod-learninggo
-    networks:
-      - learning-network
-    depends_on:
-      - service
-      # - master-service
-      # - activities-service
-    environment:
-      - USERS_SERVICE_HOST=service
-      - USERS_SERVICE_GRPC_PORT=${USERS_SERVICE_GRPC_PORT:-50051}
-      - USERS_SERVICE_REST_PORT=${USERS_SERVICE_REST_PORT:-4001}
-      - MASTER_SERVICE_HOST=master-service
-      - MASTER_SERVICE_GRPC_PORT=${MASTER_SERVICE_GRPC_PORT:-50052}
-      - MASTER_SERVICE_REST_PORT=${MASTER_SERVICE_REST_PORT:-4002}
-      - ACTIVITIES_SERVICE_HOST=activities-service
-      - ACTIVITIES_SERVICE_PORT=${ACTIVITIES_SERVICE_PORT:-50053}
+  # gateway:
+  #   build:
+  #     context: ../gateway
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "${GATEWAY_PORT:-80}:80"
+  #   container_name: gateway-prod-learninggo
+  #   networks:
+  #     - learning-network
+  #   depends_on:
+  #     - service
+  #     # - master-service
+  #     # - activities-service
+  #   environment:
+  #     - USERS_SERVICE_HOST=service
+  #     - USERS_SERVICE_GRPC_PORT=${USERS_SERVICE_GRPC_PORT:-50051}
+  #     - USERS_SERVICE_REST_PORT=${USERS_SERVICE_REST_PORT:-4001}
+  #     - MASTER_SERVICE_HOST=master-service
+  #     - MASTER_SERVICE_GRPC_PORT=${MASTER_SERVICE_GRPC_PORT:-50052}
+  #     - MASTER_SERVICE_REST_PORT=${MASTER_SERVICE_REST_PORT:-4002}
+  #     - ACTIVITIES_SERVICE_HOST=activities-service
+  #     - ACTIVITIES_SERVICE_PORT=${ACTIVITIES_SERVICE_PORT:-50053}
 
   service:
     build: 
