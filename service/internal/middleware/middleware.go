@@ -68,6 +68,9 @@ func ConvertRequestToFilters() fiber.Handler {
 					filters[key] = strconv.Itoa(v)
 				case float64:
 					filters[key] = strconv.FormatFloat(v, 'f', -1, 64)
+				// case if nil
+				// case nil:
+				// 	filters[key] = ""
 				default:
 					log.Printf("Unsupported type for key %s: %T", key, v)
 				}
