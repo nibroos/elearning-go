@@ -35,6 +35,9 @@ services:
       - postgres
     volumes:
       - public-data:/apps/public
+    ports:
+      - "${SERVICE_GRPC_PORT:-50051}"
+      - "${SERVICE_REST_PORT:-4001}"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
