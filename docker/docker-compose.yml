@@ -2,28 +2,19 @@ name: learning-go
 
 services:
 
-  # gateway:
-  #   build:
-  #     context: ../gateway
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "${GATEWAY_PORT:-80}:80"
-  #   container_name: gateway-prod-learninggo
-  #   networks:
-  #     - learning-network
-  #   depends_on:
-  #     - service
-  #     # - master-service
-  #     # - activities-service
-  #   environment:
-  #     - USERS_SERVICE_HOST=service
-  #     - USERS_SERVICE_GRPC_PORT=${USERS_SERVICE_GRPC_PORT:-50051}
-  #     - USERS_SERVICE_REST_PORT=${USERS_SERVICE_REST_PORT:-4001}
-  #     - MASTER_SERVICE_HOST=master-service
-  #     - MASTER_SERVICE_GRPC_PORT=${MASTER_SERVICE_GRPC_PORT:-50052}
-  #     - MASTER_SERVICE_REST_PORT=${MASTER_SERVICE_REST_PORT:-4002}
-  #     - ACTIVITIES_SERVICE_HOST=activities-service
-  #     - ACTIVITIES_SERVICE_PORT=${ACTIVITIES_SERVICE_PORT:-50053}
+  load-balancer-learninggo:
+    build:
+      context: ../gateway
+      dockerfile: Dockerfile
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+    ports:
+      - "50061:50051" # Expose gRPC port
+      - "4011:4001"   # Expose HTTP REST port
+    networks:
+      - learning-network
+    depends_on:
+      - service
 
   service:
     build: 
@@ -36,8 +27,8 @@ services:
     volumes:
       - public-data:/apps/public
     ports:
-      - "${SERVICE_GRPC_PORT:-50051}"
-      - "${SERVICE_REST_PORT:-4001}"
+      - "50051"
+      - "4001"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -52,38 +43,6 @@ services:
       ACTIVITIES_SERVICE_GRPC_PORT: ${ACTIVITIES_SERVICE_GRPC_PORT}
       ACTIVITIES_SERVICE_REST_PORT: ${ACTIVITIES_SERVICE_REST_PORT}
       JWT_SECRET: ${JWT_SECRET}
-
-  # master-service:
-  #   build: 
-  #     context: ../master-service
-  #     dockerfile: Dockerfile
-  #   container_name: master-service
-  #   networks:
-  #     - learning-network
-  #   ports:
-  #     - "${MASTER_SERVICE_PORT:-8082}:${MASTER_SERVICE_PORT:-8082}"
-  #   depends_on:
-  #     - postgres
-  #   volumes:
-  #     - ./master-service:/app
-  #   environment:
-  #     - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB}?sslmode=disable
-
-  # activities-service:
-  #   build: 
-  #     context: ../activities-service
-  #     dockerfile: Dockerfile
-  #   container_name: activities-service
-  #   networks:
-  #     - learning-network
-  #   ports:
-  #     - "${ACTIVITIES_SERVICE_PORT:-50052}:${ACTIVITIES_SERVICE_PORT:-50052}"
-  #   depends_on:
-  #     - postgres
-  #   volumes:
-  #     - ./activities-service:/app
-  #   environment:
-  #     - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB}?sslmode=disable
 
   postgres:
     image: postgres:13-alpine
@@ -102,6 +61,7 @@ services:
 volumes:
   postgres-data:
   public-data:
+
 
 
 networks:
