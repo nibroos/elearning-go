@@ -42,7 +42,7 @@ pipeline {
               # Clone the repository
               echo "Cloning repository..."
               ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'rm -rf ${VPS_DEPLOY_DIR} &&
-              git clone -b master ${GIT_REPO} ${VPS_DEPLOY_DIR}'
+              git clone -b rebase-test ${GIT_REPO} ${VPS_DEPLOY_DIR}'
             """
           }
         }
