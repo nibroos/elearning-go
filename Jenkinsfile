@@ -94,22 +94,6 @@ pipeline {
       }
     }
 
-    stage('Scale Service') {
-      steps {
-        script {
-          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-            sh """
-              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
-                cd ${VPS_DEPLOY_DIR} &&
-                docker compose -f docker/docker-compose.yml up --scale service=3 -d > scale_output.log 2>&1
-              '
-              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat ${VPS_DEPLOY_DIR}/scale_output.log'
-            """
-          }
-        }
-      }
-    }
-    
     stage('Run Migrations') {
       steps {
         script {
