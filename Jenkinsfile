@@ -30,22 +30,20 @@ pipeline {
       steps {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-            withEnv(["VPS_USER=${VPS_USER}", "VPS_HOST=${VPS_HOST}", "VPS_DEPLOY_DIR=${VPS_DEPLOY_DIR}"]) {
-              sh """
-                # Add known hosts for GitHub
-                ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-                ssh -A -o StrictHostKeyChecking=no \$VPS_USER@\$VPS_HOST "ssh-keyscan -H github.com >> ~/.ssh/known_hosts"
-                
-                # Test SSH connection first
-                echo "Testing SSH connection..."
-                ssh -A -o StrictHostKeyChecking=no \$VPS_USER@\$VPS_HOST "source ~/.bashrc; echo 'SSH connection successful!'"
-                
-                # Clone the repository
-                echo "Cloning repository..."
-                ssh -A -o StrictHostKeyChecking=no \$VPS_USER@\$VPS_HOST "rm -rf \$VPS_DEPLOY_DIR &&
-                git clone -b build-test \$GIT_REPO \$VPS_DEPLOY_DIR"
-              """
-            }
+            sh """
+              # Add known hosts for GitHub
+              ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'ssh-keyscan -H github.com >> ~/.ssh/known_hosts'
+              
+              # Test SSH connection first
+              echo "Testing SSH connection..."
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'source ~/.bashrc; echo "SSH connection successful!"'
+              
+              # Clone the repository
+              echo "Cloning repository..."
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'rm -rf ${VPS_DEPLOY_DIR} &&
+              git clone -b build-test ${GIT_REPO} ${VPS_DEPLOY_DIR}'
+            """
           }
         }
       }
@@ -55,27 +53,25 @@ pipeline {
       steps {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-            withEnv(["VPS_USER=${VPS_USER}", "VPS_HOST=${VPS_HOST}", "VPS_DEPLOY_DIR=${VPS_DEPLOY_DIR}", "POSTGRES_USER=${POSTGRES_USER}", "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}", "POSTGRES_DB=${POSTGRES_DB}", "POSTGRES_PORT=${POSTGRES_PORT}", "POSTGRES_HOST=${POSTGRES_HOST}", "GATEWAY_PORT=${GATEWAY_PORT}", "SERVICE_GRPC_PORT=${SERVICE_GRPC_PORT}", "SERVICE_REST_PORT=${SERVICE_REST_PORT}", "MASTER_SERVICE_GRPC_PORT=${MASTER_SERVICE_GRPC_PORT}", "MASTER_SERVICE_REST_PORT=${MASTER_SERVICE_REST_PORT}", "ACTIVITIES_SERVICE_GRPC_PORT=${ACTIVITIES_SERVICE_GRPC_PORT}", "ACTIVITIES_SERVICE_REST_PORT=${ACTIVITIES_SERVICE_REST_PORT}", "JWT_SECRET=${JWT_SECRET}"]) {
-              sh """
-                ssh -A -o StrictHostKeyChecking=no \$VPS_USER@\$VPS_HOST "
-                  echo 'POSTGRES_USER=\$POSTGRES_USER' > \$VPS_DEPLOY_DIR/docker/.env &&
-                  echo 'POSTGRES_PASSWORD=\$POSTGRES_PASSWORD' >> \$VPS_DEPLOY_DIR/docker/.env &&
-                  echo 'POSTGRES_DB=\$POSTGRES_DB' >> \$VPS_DEPLOY_DIR/docker/.env &&
-                  echo 'POSTGRES_PORT=\$POSTGRES_PORT' >> \$VPS_DEPLOY_DIR/docker/.env &&
-                  echo 'POSTGRES_HOST=\$POSTGRES_HOST' >> \$VPS_DEPLOY_DIR/docker/.env &&
-                  echo 'GATEWAY_PORT=\$GATEWAY_PORT' >> \$VPS_DEPLOY_DIR/docker/.env &&
-                  echo 'SERVICE_GRPC_PORT=\$SERVICE_GRPC_PORT' >> \$VPS_DEPLOY_DIR/docker/.env &&
-                  echo 'SERVICE_REST_PORT=\$SERVICE_REST_PORT' >> \$VPS_DEPLOY_DIR/docker/.env &&
-                  echo 'MASTER_SERVICE_GRPC_PORT=\$MASTER_SERVICE_GRPC_PORT' >> \$VPS_DEPLOY_DIR/docker/.env &&
-                  echo 'MASTER_SERVICE_REST_PORT=\$MASTER_SERVICE_REST_PORT' >> \$VPS_DEPLOY_DIR/docker/.env &&
-                  echo 'ACTIVITIES_SERVICE_GRPC_PORT=\$ACTIVITIES_SERVICE_GRPC_PORT' >> \$VPS_DEPLOY_DIR/docker/.env &&
-                  echo 'ACTIVITIES_SERVICE_REST_PORT=\$ACTIVITIES_SERVICE_REST_PORT' >> \$VPS_DEPLOY_DIR/docker/.env &&
-                  echo 'JWT_SECRET=\$JWT_SECRET' >> \$VPS_DEPLOY_DIR/docker/.env &&
-                  cp \$VPS_DEPLOY_DIR/docker/.env \$VPS_DEPLOY_DIR/service/.env &&
-                  cp \$VPS_DEPLOY_DIR/docker/.env \$VPS_DEPLOY_DIR/gateway/.env
-                "
-              """
-            }
+            sh """
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+                echo "POSTGRES_USER=${POSTGRES_USER}" > ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "POSTGRES_DB=${POSTGRES_DB}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "POSTGRES_PORT=${POSTGRES_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "POSTGRES_HOST=${POSTGRES_HOST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "GATEWAY_PORT=${GATEWAY_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "SERVICE_GRPC_PORT=${SERVICE_GRPC_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "SERVICE_REST_PORT=${SERVICE_REST_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "MASTER_SERVICE_GRPC_PORT=${MASTER_SERVICE_GRPC_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "MASTER_SERVICE_REST_PORT=${MASTER_SERVICE_REST_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "ACTIVITIES_SERVICE_GRPC_PORT=${ACTIVITIES_SERVICE_GRPC_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "ACTIVITIES_SERVICE_REST_PORT=${ACTIVITIES_SERVICE_REST_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "JWT_SECRET=${JWT_SECRET}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/service/.env &&
+                cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/gateway/.env
+              '
+            """
           }
         }
       }
@@ -85,16 +81,14 @@ pipeline {
       steps {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-            withEnv(["VPS_USER=${VPS_USER}", "VPS_HOST=${VPS_HOST}", "VPS_DEPLOY_DIR=${VPS_DEPLOY_DIR}"]) {
-              sh """
-                ssh -A -o StrictHostKeyChecking=no \$VPS_USER@\$VPS_HOST "
-                  cd \$VPS_DEPLOY_DIR &&
-                  docker compose -f docker/docker-compose.yml down &&
-                  docker compose -f docker/docker-compose.yml up --build -d > build_output.log 2>&1
-                "
-                ssh -A -o StrictHostKeyChecking=no \$VPS_USER@\$VPS_HOST "cat \$VPS_DEPLOY_DIR/build_output.log"
-              """
-            }
+            sh """
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+                cd ${VPS_DEPLOY_DIR} &&
+                docker compose -f docker/docker-compose.yml down &&
+                docker compose -f docker/docker-compose.yml up --build -d > build_output.log 2>&1
+              '
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat ${VPS_DEPLOY_DIR}/build_output.log'
+            """
           }
         }
       }
@@ -104,14 +98,12 @@ pipeline {
       steps {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-            withEnv(["VPS_USER=${VPS_USER}", "VPS_HOST=${VPS_HOST}", "POSTGRES_USER=${POSTGRES_USER}", "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}", "POSTGRES_DB=${POSTGRES_DB}", "POSTGRES_PORT=${POSTGRES_PORT}", "POSTGRES_HOST=${POSTGRES_HOST}"]) {
-              sh """
-                ssh -A -o StrictHostKeyChecking=no \$VPS_USER@\$VPS_HOST "
-                  docker exec \$(docker ps --filter 'name=service' --format '{{.ID}}' | head -n 1) /usr/local/bin/migrate -path /apps/internal/database/migrations -database postgres://\$POSTGRES_USER:\$POSTGRES_PASSWORD@\$POSTGRES_HOST:\$POSTGRES_PORT/\$POSTGRES_DB?sslmode=disable up > migrate_output.log 2>&1
-                "
-                ssh -A -o StrictHostKeyChecking=no \$VPS_USER@\$VPS_HOST "cat migrate_output.log"
-              """
-            }
+            sh """
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "
+                docker exec \$(docker ps --filter 'name=service' --format '{{.ID}}' | head -n 1) /usr/local/bin/migrate -path /apps/internal/database/migrations -database postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable up > migrate_output.log 2>&1
+              "
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "cat migrate_output.log"
+            """
           }
         }
       }
@@ -121,14 +113,12 @@ pipeline {
       steps {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-            withEnv(["VPS_USER=${VPS_USER}", "VPS_HOST=${VPS_HOST}"]) {
-              sh """
-                ssh -A -o StrictHostKeyChecking=no \$VPS_USER@\$VPS_HOST "
-                  docker logs service-prod-learninggo > service_logs.log 2>&1
-                "
-                ssh -A -o StrictHostKeyChecking=no \$VPS_USER@\$VPS_HOST "cat service_logs.log"
-              """
-            }
+            sh """
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+                docker logs service-prod-learninggo > service_logs.log 2>&1
+              '
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat service_logs.log'
+            """
           }
         }
       }
