@@ -32,9 +32,6 @@ services:
     container_name: service-prod-learninggo
     networks:
       - learning-network
-    ports:
-      - "${USERS_SERVICE_GRPC_PORT:-50051}:${USERS_SERVICE_GRPC_PORT:-50051}"
-      - "${USERS_SERVICE_REST_PORT:-4001}:${USERS_SERVICE_REST_PORT:-4001}"
     depends_on:
       - postgres
     volumes:
