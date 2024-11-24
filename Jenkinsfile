@@ -108,21 +108,6 @@ pipeline {
         }
       }
     }
-
-    stage('Check Logs') {
-      steps {
-        script {
-          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-            sh """
-              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "
-                docker logs \$(docker ps --filter 'name=service' --format '{{.ID}}' | head -n 1) > service_logs.log 2>&1
-              "
-              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} "cat service_logs.log"
-            """
-          }
-        }
-      }
-    }
   }
 
   post {
