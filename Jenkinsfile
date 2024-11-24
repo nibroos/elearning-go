@@ -115,9 +115,9 @@ pipeline {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
             sh """
               ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
-                docker logs service-prod-learninggo > service_logs.log 2>&1
+                docker logs \$(docker ps --filter "name=service" --format "{{.ID}}") > service_logs.log 2>&1 &&
+                cat service_logs.log
               '
-              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat service_logs.log'
             """
           }
         }
