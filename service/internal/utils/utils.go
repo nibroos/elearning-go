@@ -428,3 +428,7 @@ func GetStringOrDefaultFromArray(value interface{}, allowedValues []string, defa
 
 	return defaultValue
 }
+
+func Ptr(s string) *string {
+	return &s
+}

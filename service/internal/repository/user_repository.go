@@ -11,19 +11,32 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserRepository struct {
+type UserRepository interface {
+    GetUsers(ctx context.Context, filters map[string]string) ([]dtos.UserListDTO, int, error)
+		GetUserByID(ctx context.Context, params *dtos.GetUserByIDParams) (*dtos.UserDetailDTO, error)
+		GetUserByEmail(ctx context.Context, email string) (*dtos.UserDetailDTO, error)
+		BeginTransaction() *gorm.DB
+		AttachRoles(tx *gorm.DB, user *models.User, roleIDs []uint32) error
+		CreateUser(tx *gorm.DB, user *models.User) error
+		UpdateUser(tx *gorm.DB, user *models.User) error
+		DeleteUser(tx *gorm.DB, id uint) error
+		DeleteRolesByUserID(tx *gorm.DB, userID uint) error
+		RestoreUser(tx *gorm.DB, id uint) error
+}
+
+type userRepository struct {
 	db    *gorm.DB
 	sqlDB *sqlx.DB
 }
 
-func NewUserRepository(db *gorm.DB, sqlDB *sqlx.DB) *UserRepository {
-	return &UserRepository{
+func NewUserRepository(db *gorm.DB, sqlDB *sqlx.DB) *userRepository {
+	return &userRepository{
 		db:    db,
 		sqlDB: sqlDB,
 	}
 }
 
-func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string) ([]dtos.UserListDTO, int, error) {
+func (r *userRepository) GetUsers(ctx context.Context, filters map[string]string) ([]dtos.UserListDTO, int, error) {
 	users := []dtos.UserListDTO{}
 	var total int
 
@@ -94,7 +107,7 @@ func (r *UserRepository) GetUsers(ctx context.Context, filters map[string]string
 	return users, total, nil
 }
 
-func (r *UserRepository) GetUserByID(ctx context.Context, params *dtos.GetUserByIDParams) (*dtos.UserDetailDTO, error) {
+func (r *userRepository) GetUserByID(ctx context.Context, params *dtos.GetUserByIDParams) (*dtos.UserDetailDTO, error) {
 	var user dtos.UserDetailDTO
 
 	query := `SELECT id, username, name, email, address, password FROM users WHERE id = $1`
@@ -186,7 +199,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, params *dtos.GetUserBy
 
 	return &user, nil
 }
-func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*dtos.UserDetailDTO, error) {
+func (r *userRepository) GetUserByEmail(ctx context.Context, email string) (*dtos.UserDetailDTO, error) {
 	var user dtos.UserDetailDTO
 
 	query := `SELECT id, username, name, email, password, address FROM users WHERE deleted_at IS NULL AND (email = $1 OR username = $1)`
@@ -261,11 +274,11 @@ func (r *UserRepository) GetUserByEmail(ctx context.Context, email string) (*dto
 }
 
 // BeginTransaction starts a new transaction
-func (r *UserRepository) BeginTransaction() *gorm.DB {
+func (r *userRepository) BeginTransaction() *gorm.DB {
 	return r.db.Begin()
 }
 
-func (r *UserRepository) AttachRoles(tx *gorm.DB, user *models.User, roleIDs []uint32) error {
+func (r *userRepository) AttachRoles(tx *gorm.DB, user *models.User, roleIDs []uint32) error {
 	// Prepare batch insert for new role_user relationships
 	var pools []models.Pool
 	for _, roleID := range roleIDs {
@@ -293,14 +306,14 @@ func (r *UserRepository) AttachRoles(tx *gorm.DB, user *models.User, roleIDs []u
 	return nil
 }
 
-func (r *UserRepository) CreateUser(tx *gorm.DB, user *models.User) error {
+func (r *userRepository) CreateUser(tx *gorm.DB, user *models.User) error {
 	if err := tx.Create(user).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *UserRepository) UpdateUser(tx *gorm.DB, user *models.User) error {
+func (r *userRepository) UpdateUser(tx *gorm.DB, user *models.User) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(user).Error; err != nil {
 			return err
@@ -310,7 +323,7 @@ func (r *UserRepository) UpdateUser(tx *gorm.DB, user *models.User) error {
 
 }
 
-func (r *UserRepository) DeleteUser(tx *gorm.DB, id uint) error {
+func (r *userRepository) DeleteUser(tx *gorm.DB, id uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		// if err := tx.Unscoped().Delete(&models.User{}, id).Error; err != nil {
 		if err := tx.Delete(&models.User{}, id).Error; err != nil {
@@ -321,7 +334,7 @@ func (r *UserRepository) DeleteUser(tx *gorm.DB, id uint) error {
 }
 
 // DeleteRolesByUserID
-func (r *UserRepository) DeleteRolesByUserID(tx *gorm.DB, userID uint) error {
+func (r *userRepository) DeleteRolesByUserID(tx *gorm.DB, userID uint) error {
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Exec(`
 			UPDATE pools SET deleted_at = NOW() 
@@ -334,7 +347,7 @@ func (r *UserRepository) DeleteRolesByUserID(tx *gorm.DB, userID uint) error {
 	})
 }
 
-func (s *UserRepository) RestoreUser(tx *gorm.DB, id uint) error {
+func (s *userRepository) RestoreUser(tx *gorm.DB, id uint) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Exec("UPDATE users SET deleted_at = NULL WHERE id = ?", id).Error; err != nil {
 			return err
