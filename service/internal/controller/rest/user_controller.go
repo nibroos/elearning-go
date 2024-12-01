@@ -53,10 +53,10 @@ func (c *UserController) CreateUser(ctx *fiber.Ctx) error {
 
 	user := models.User{
 		Name:     req.Name,
-		Username: req.Username.Value,
+		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
-		Address:  req.Address.Value,
+		Address:  req.Address,
 	}
 
 	createdUser, err := c.service.CreateUser(ctx.Context(), &user, req.RoleIDs)
@@ -126,15 +126,15 @@ func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
 	user := models.User{
 		ID:       req.ID,
 		Name:     req.Name,
-		Username: req.Username.Value,
+		Username: req.Username,
 		Email:    req.Email,
-		Address:  req.Address.Value,
+		Address:  req.Address,
 		Password: *existingUser.Password,
 	}
 
 	// Update password only if a new one is provided
-	if req.Password.Value != nil && *req.Password.Value != "" {
-		hashedPassword, err := utils.HashPassword(*req.Password.Value)
+	if req.Password != nil && *req.Password != "" {
+		hashedPassword, err := utils.HashPassword(*req.Password)
 		if err != nil {
 			return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"errors": err.Error(), "message": "Failed to hash password", "status": http.StatusInternalServerError})
 		}
@@ -196,7 +196,7 @@ func (c *UserController) Register(ctx *fiber.Ctx) error {
 
 	user := models.User{
 		Name:     req.Name,
-		Username: req.Username.Value,
+		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
 	}

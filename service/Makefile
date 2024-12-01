@@ -1,22 +1,3 @@
-# include .env
-
-#   create_migration:
-#     migrate create -ext=sql -dir=internal/database/migrations -seq init
-
-#   migrate_up:
-#     migrate -path=internal/database/migrations -database "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable" -verbose up
-
-#   migrate_down:
-#     migrate -path=internal/database/migrations -database "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable" -verbose down
-
-#   .PHONY: create_migration migrate_up migrate_down
-
-#   build:
-#     go build -o bin/main main.go
-
-#   run:
-#     go run main.go
-
 # Makefile
 
 # Load environment variables from .env
@@ -37,20 +18,48 @@ SEEDER_DIR=internal/database/seeders
 
 .PHONY: migrate-create
 migrate-create:
+	@echo "Creating migration file: $(MIGRATE_DIR)/$(name)"
+	docker compose -f ../docker/docker-compose-dev.yml run --rm \
+	-e POSTGRES_USER=$(POSTGRES_USER) \
+	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	-e POSTGRES_DB=$(POSTGRES_DB) \
+	-e POSTGRES_PORT=$(POSTGRES_PORT) \
+	service \
 	$(MIGRATE) create -ext sql -dir internal/database/migrations $(name)
 
 .PHONY: migrate-up
 migrate-up:
+	@echo "Running migrations up inside Docker container"
+	docker compose -f ../docker/docker-compose-dev.yml run --rm \
+	-e POSTGRES_USER=$(POSTGRES_USER) \
+	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	-e POSTGRES_DB=$(POSTGRES_DB) \
+	-e POSTGRES_PORT=$(POSTGRES_PORT) \
+	service \
 	$(MIGRATE) up
 
 .PHONY: migrate-down
 migrate-down:
+	@echo "Running migrations down inside Docker container"
+	docker compose -f ../docker/docker-compose-dev.yml run --rm \
+	-e POSTGRES_USER=$(POSTGRES_USER) \
+	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	-e POSTGRES_DB=$(POSTGRES_DB) \
+	-e POSTGRES_PORT=$(POSTGRES_PORT) \
+	service \
 	$(MIGRATE) down 1
 
 .PHONY: migrate-force
 migrate-force:
+	@echo "Running migrations force inside Docker container"
+	docker compose -f ../docker/docker-compose-dev.yml run --rm \
+	-e POSTGRES_USER=$(POSTGRES_USER) \
+	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	-e POSTGRES_DB=$(POSTGRES_DB) \
+	-e POSTGRES_PORT=$(POSTGRES_PORT) \
+	service \
 	$(MIGRATE) force $(v-force)
-	
+
 .PHONY: seed-create
 seed-create:
 ifndef name
@@ -67,25 +76,15 @@ seed-run:
 ifndef file
 	$(error file is undefined. Usage: make seed-run file=<seeder_file>)
 endif
-	@echo "Running seeder file: $(SEEDER_DIR)/$(file)"
-	docker run --rm -v $(PWD)/$(SEEDER_DIR):/seeders --network host postgres:latest \
-	psql $(DB_URL) -f /seeders/$(file)
-
-.PHONY: seed-run-prod
-seed-run:
-ifndef file
-	$(error file is undefined. Usage: make seed-run file=<seeder_file>)
-endif
-	@echo "Running seeder file: $(SEEDER_DIR)/$(file)"
-	psql $(DB_URL) -f /seeders/$(file)
+	@echo "Running seeder file: $(SEEDER_DIR)/$(file) inside Docker container"
+	docker compose -f ../docker/docker-compose-dev.yml run --rm \
+	-v $(PWD)/$(SEEDER_DIR):/seeders \
+	service \
+	psql postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable -f internal/database/seeders/$(file)
 
 .PHONY: build
 build:
 	go build -o bin/app cmd/main.go
-
-# .PHONY: test
-# test:
-# 	go test ./...
 
 .PHONY: run
 run: build

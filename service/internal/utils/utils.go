@@ -430,6 +430,10 @@ func GetStringOrDefaultFromArray(value interface{}, allowedValues []string, defa
 	return defaultValue
 }
 
+func Ptr(s string) *string {
+	return &s
+}
+
 // HasPermission checks if the user has the required permission
 func HasPermission(ctx *fiber.Ctx, requiredPermission string) bool {
 	userClaims, ok := ctx.Locals("user").(jwt.MapClaims)
