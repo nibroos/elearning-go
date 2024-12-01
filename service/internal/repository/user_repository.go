@@ -12,16 +12,17 @@ import (
 )
 
 type UserRepository interface {
-    GetUsers(ctx context.Context, filters map[string]string) ([]dtos.UserListDTO, int, error)
-		GetUserByID(ctx context.Context, params *dtos.GetUserByIDParams) (*dtos.UserDetailDTO, error)
-		GetUserByEmail(ctx context.Context, email string) (*dtos.UserDetailDTO, error)
-		BeginTransaction() *gorm.DB
-		AttachRoles(tx *gorm.DB, user *models.User, roleIDs []uint32) error
-		CreateUser(tx *gorm.DB, user *models.User) error
-		UpdateUser(tx *gorm.DB, user *models.User) error
-		DeleteUser(tx *gorm.DB, id uint) error
-		DeleteRolesByUserID(tx *gorm.DB, userID uint) error
-		RestoreUser(tx *gorm.DB, id uint) error
+	GetUsers(ctx context.Context, filters map[string]string) ([]dtos.UserListDTO, int, error)
+	GetUserByID(ctx context.Context, params *dtos.GetUserByIDParams) (*dtos.UserDetailDTO, error)
+	GetUserByEmail(ctx context.Context, email string) (*dtos.UserDetailDTO, error)
+	BeginTransaction() *gorm.DB
+	AttachRoles(tx *gorm.DB, user *models.User, roleIDs []uint32) error
+	CreateUser(tx *gorm.DB, user *models.User) error
+	UpdateUser(tx *gorm.DB, user *models.User) error
+	DeleteUser(tx *gorm.DB, id uint) error
+	DeleteRolesByUserID(tx *gorm.DB, userID uint) error
+	RestoreUser(tx *gorm.DB, id uint) error
+	Commit(tx *gorm.DB) error
 }
 
 type userRepository struct {
@@ -354,4 +355,9 @@ func (s *userRepository) RestoreUser(tx *gorm.DB, id uint) error {
 		}
 		return nil
 	})
+}
+
+// commit or rollback
+func (r *userRepository) Commit(tx *gorm.DB) error {
+	return tx.Commit().Error
 }

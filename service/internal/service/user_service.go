@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/nibroos/elearning-go/service/internal/dtos"
 	"github.com/nibroos/elearning-go/service/internal/models"
@@ -12,11 +13,11 @@ import (
 )
 
 type UserService struct {
-    repo repository.UserRepository
+	repo repository.UserRepository
 }
 
 func NewUserService(repo repository.UserRepository) *UserService {
-    return &UserService{repo: repo}
+	return &UserService{repo: repo}
 }
 
 func (s *UserService) GetUsers(ctx context.Context, filters map[string]string) ([]dtos.UserListDTO, int, error) {
@@ -35,18 +36,27 @@ func (s *UserService) GetUsers(ctx context.Context, filters map[string]string) (
 		return nil, 0, ctx.Err()
 	}
 }
+
 func (s *UserService) CreateUser(ctx context.Context, user *models.User, roleIDs []uint32) (*models.User, error) {
 	// Hash password before saving
+	if user.Password == "" {
+		return nil, bcrypt.ErrHashTooShort
+	}
+
+	if len(roleIDs) == 0 {
+		return nil, errors.New("roleIDs cannot be empty")
+	}
+
 	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
 		return nil, err
 	}
 	user.Password = hashedPassword
 
-	// Transaction handling
+	// Begin transaction
 	tx := s.repo.BeginTransaction()
-	if err := tx.Error; err != nil {
-		return nil, err
+	if tx == nil {
+		return nil, errors.New("failed to begin transaction")
 	}
 
 	// Create user
@@ -61,7 +71,7 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User, roleIDs
 		return nil, err
 	}
 
-	if err := tx.Commit().Error; err != nil {
+	if err := s.repo.Commit(tx); err != nil {
 		return nil, err
 	}
 
@@ -92,6 +102,11 @@ func (s *UserService) GetUserByID(ctx context.Context, params *dtos.GetUserByIDP
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, user *models.User, roleIDs []uint32) (*models.User, error) {
+
+	if len(roleIDs) == 0 {
+		return nil, errors.New("roleIDs cannot be empty")
+	}
+
 	// Transaction handling
 	tx := s.repo.BeginTransaction()
 	if err := tx.Error; err != nil {
@@ -110,7 +125,7 @@ func (s *UserService) UpdateUser(ctx context.Context, user *models.User, roleIDs
 		return nil, err
 	}
 
-	if err := tx.Commit().Error; err != nil {
+	if err := s.repo.Commit(tx); err != nil {
 		return nil, err
 	}
 
@@ -137,23 +152,32 @@ func (s *UserService) DeleteUser(ctx context.Context, id uint) error {
 		return err
 	}
 
+	var wg sync.WaitGroup
+	wg.Add(2)
+
 	// Channels for concurrent execution
-	deleteRolesChan := make(chan error)
-	deleteUserChan := make(chan error)
+	deleteRolesChan := make(chan error, 1)
+	deleteUserChan := make(chan error, 1)
 
 	// Goroutine for deleting roles
 	go func() {
+		defer wg.Done()
 		err := s.repo.DeleteRolesByUserID(tx, id)
 		deleteRolesChan <- err
 	}()
 
 	// Goroutine for deleting user
 	go func() {
+		defer wg.Done()
 		err := s.repo.DeleteUser(tx, id)
 		deleteUserChan <- err
 	}()
 
 	// Wait for both goroutines to finish
+	wg.Wait()
+	close(deleteRolesChan)
+	close(deleteUserChan)
+
 	deleteRolesErr := <-deleteRolesChan
 	deleteUserErr := <-deleteUserChan
 
@@ -167,7 +191,7 @@ func (s *UserService) DeleteUser(ctx context.Context, id uint) error {
 		return deleteUserErr
 	}
 
-	if err := tx.Commit().Error; err != nil {
+	if err := s.repo.Commit(tx); err != nil {
 		return err
 	}
 

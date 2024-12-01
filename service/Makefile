@@ -80,7 +80,7 @@ endif
 	docker compose -f ../docker/docker-compose-dev.yml run --rm \
 	-v $(PWD)/$(SEEDER_DIR):/seeders \
 	service \
-	psql postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@user-postgres:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable -f internal/database/seeders/$(file)
+	psql postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable -f internal/database/seeders/$(file)
 
 .PHONY: build
 build:

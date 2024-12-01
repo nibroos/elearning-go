@@ -3,7 +3,7 @@
 FROM golang:1.23-alpine AS base
 
 # Install necessary packages including Make
-RUN apk add --no-cache make curl
+RUN apk add --no-cache make curl postgresql-client
 
 # Install Air for hot-reloading
 RUN go install github.com/air-verse/air@latest

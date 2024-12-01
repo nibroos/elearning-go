@@ -14,11 +14,6 @@ type MockDB struct {
 	mock.Mock
 }
 
-func (m *MockDB) Commit() *gorm.DB {
-	m.Called()
-	return &gorm.DB{}
-}
-
 func (m *MockDB) Rollback() *gorm.DB {
 	m.Called()
 	return &gorm.DB{}
@@ -76,5 +71,10 @@ func (m *MockUserRepository) DeleteRolesByUserID(tx *gorm.DB, userID uint) error
 
 func (m *MockUserRepository) RestoreUser(tx *gorm.DB, id uint) error {
 	args := m.Called(tx, id)
+	return args.Error(0)
+}
+
+func (m *MockUserRepository) Commit(tx *gorm.DB) error {
+	args := m.Called(tx)
 	return args.Error(0)
 }
