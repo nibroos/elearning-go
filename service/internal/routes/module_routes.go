@@ -15,7 +15,7 @@ func SetupModuleRoutes(modules fiber.Router, gormDB *gorm.DB, sqlDB *sqlx.DB) {
 	moduleController := rest.NewModuleController(moduleService)
 
 	// prefix /modules
-
+	// modules.Post("/index-module", middleware.PermissionMiddleware("index-module"), moduleController.GetModules)
 	modules.Post("/index-module", moduleController.GetModules)
 	modules.Post("/show-module", moduleController.GetModuleByID)
 	modules.Post("/create-module", moduleController.CreateModule)

@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/nibroos/elearning-go/service/internal/utils"
 )
 
 // ErrorHandler middleware
@@ -42,6 +43,7 @@ func ErrorHandler(ctx *fiber.Ctx, err error) error {
 		// "stack":   stackTrace, // Optionally include stack trace
 	})
 }
+
 func ConvertRequestToFilters() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		// Check if the content type is JSON
@@ -116,6 +118,18 @@ func ConvertEmptyStringsToNull() fiber.Handler {
 		// Replace the request body with the modified body
 		ctx.Request().SetBody(modifiedBody)
 
+		return ctx.Next()
+	}
+}
+
+// PermissionMiddleware checks if the user has the required permission
+func PermissionMiddleware(requiredPermission string) fiber.Handler {
+	log.Printf("Checking permission: %s", requiredPermission)
+	return func(ctx *fiber.Ctx) error {
+		log.Println("Checking permission 2")
+		if !utils.HasPermission(ctx, requiredPermission) {
+			return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{"message": "Forbidden"})
+		}
 		return ctx.Next()
 	}
 }

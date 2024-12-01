@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -431,4 +432,24 @@ func GetStringOrDefaultFromArray(value interface{}, allowedValues []string, defa
 
 func Ptr(s string) *string {
 	return &s
+}
+
+// HasPermission checks if the user has the required permission
+func HasPermission(ctx *fiber.Ctx, requiredPermission string) bool {
+	userClaims, ok := ctx.Locals("user").(jwt.MapClaims)
+	if !ok {
+		return false
+	}
+
+	permissions, ok := userClaims["permissions"].([]interface{})
+	if !ok {
+		return false
+	}
+
+	for _, permission := range permissions {
+		if perm, ok := permission.(string); ok && perm == requiredPermission {
+			return true
+		}
+	}
+	return false
 }
