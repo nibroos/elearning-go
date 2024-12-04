@@ -8,7 +8,9 @@ endif
 
 # Variables
 DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
+DB_URL_TEST=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB_TEST)?sslmode=disable
 MIGRATE=migrate -path=internal/database/migrations -database $(DB_URL)
+MIGRATE_TEST=migrate -path=internal/database/migrations -database $(DB_URL_TEST)
 PROTO_DIR=internal/proto
 GENERATED_PROTO_DIR=internal/proto/generated
 PROTO_FILES=$(wildcard $(PROTO_DIR)/*.proto)
@@ -59,6 +61,39 @@ migrate-force:
 	-e POSTGRES_PORT=$(POSTGRES_PORT) \
 	service \
 	$(MIGRATE) force $(v-force)
+
+.PHONY: migrate-test-up
+migrate-test-up:
+	@echo "Running migrations up inside Docker container"
+	docker compose -f ../docker/docker-compose-test.yml run --rm \
+	-e POSTGRES_USER=$(POSTGRES_USER) \
+	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	-e POSTGRES_DB=$(POSTGRES_DB_TEST) \
+	-e POSTGRES_PORT=$(POSTGRES_PORT) \
+	service \
+	$(MIGRATE_TEST) up
+
+.PHONY: migrate-test-down
+migrate-test-down:
+	@echo "Running migrations down inside Docker container"
+	docker compose -f ../docker/docker-compose-test.yml run --rm \
+	-e POSTGRES_USER=$(POSTGRES_USER) \
+	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	-e POSTGRES_DB=$(POSTGRES_DB_TEST) \
+	-e POSTGRES_PORT=$(POSTGRES_PORT) \
+	service \
+	$(MIGRATE_TEST) down 1
+
+.PHONY: migrate-test-force
+migrate-test-force:
+	@echo "Running migrations force inside Docker container"
+	docker compose -f ../docker/docker-compose-test.yml run --rm \
+	-e POSTGRES_USER=$(POSTGRES_USER) \
+	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	-e POSTGRES_DB=$(POSTGRES_DB_TEST) \
+	-e POSTGRES_PORT=$(POSTGRES_PORT) \
+	service \
+	$(MIGRATE_TEST) force $(v-force)
 
 .PHONY: seed-create
 seed-create:

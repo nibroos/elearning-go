@@ -10,6 +10,7 @@ pipeline {
     POSTGRES_USER = credentials('vps-postgres-username-elearningbe-27')
     POSTGRES_PASSWORD = credentials('vps-postgres-password-elearningbe-27')
     POSTGRES_DB = credentials('vps-postgres-elearningbe-27')
+    POSTGRES_DB_TEST = credentials('vps-postgres-test-elearningbe-27')
     POSTGRES_PORT = credentials('vps-postgres-port-elearningbe-27')
     POSTGRES_HOST = credentials('vps-postgres-host-elearningbe-27')
 
@@ -58,6 +59,7 @@ pipeline {
                 echo "POSTGRES_USER=${POSTGRES_USER}" > ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "POSTGRES_DB=${POSTGRES_DB}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "POSTGRES_DB_TEST=${POSTGRES_DB_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "POSTGRES_PORT=${POSTGRES_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "POSTGRES_HOST=${POSTGRES_HOST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "GATEWAY_PORT=${GATEWAY_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
@@ -70,6 +72,42 @@ pipeline {
                 echo "JWT_SECRET=${JWT_SECRET}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/service/.env &&
                 cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/gateway/.env
+              '
+            """
+          }
+        }
+      }
+    }
+
+    stage('Running Tests') {
+      steps {
+        script {
+          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
+            sh """
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+                cd ${VPS_DEPLOY_DIR} &&
+                docker compose -f docker/docker-compose-test.yml down &&
+                docker compose -f docker/docker-compose-test.yml up --build -d &&
+                docker exec \$(docker ps --filter "name=service" --format "{{.ID}}" | head -n 1) go test ./... > test_output.log 2>&1 &&
+                cat test_output.log &&
+                docker compose -f docker/docker-compose-test.yml down
+              '
+            """
+          }
+        }
+      }
+    }
+
+    stage('Run Migrations on Test DB') {
+      steps {
+        script {
+          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
+            sh """
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+                cd ${VPS_DEPLOY_DIR}/service &&
+                make migrate-test-up && 
+                cd ${VPS_DEPLOY_DIR} &&
+                docker compose -f docker/docker-compose-test.yml down
               '
             """
           }
@@ -94,7 +132,7 @@ pipeline {
       }
     }
 
-    stage('Run Migrations') {
+    stage('Run Migrations on Prod DB') {
       steps {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {

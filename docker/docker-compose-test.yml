@@ -1,39 +1,36 @@
-name: learning-go
+name: learning-go-test
 
 services:
 
-  load-balancer-learninggo:
+  load-balancer-learninggo-test:
     build:
       context: ../gateway
       dockerfile: Dockerfile
     volumes:
-      - ./logs/nginx:/var/log/nginx
+      - ./nginx-test.conf:/etc/nginx/nginx.conf # Use test NGINX config
     ports:
-      - "50061:50051" # Expose gRPC port
-      - "4011:4001"   # Expose HTTP REST port
+      - "50071:50051" # Expose gRPC port
+      - "4071:4001"   # Expose HTTP REST port
     networks:
       - learning-network
     depends_on:
-      - service
+      - service-test
 
-  service:
+  service-test:
     build: 
       context: ../service
       dockerfile: Dockerfile
     networks:
       - learning-network
     depends_on:
-      - postgres
-    volumes:
-      - public-data:/apps/public
+      - postgres-test
     ports:
       - "50051"
       - "4001"
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_DB_TEST: ${POSTGRES_DB_TEST}
+      POSTGRES_DB: ${POSTGRES_DB_TEST} # Use test DB
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_HOST: ${POSTGRES_HOST}
       GATEWAY_PORT: ${GATEWAY_PORT}
@@ -45,25 +42,17 @@ services:
       ACTIVITIES_SERVICE_REST_PORT: ${ACTIVITIES_SERVICE_REST_PORT}
       JWT_SECRET: ${JWT_SECRET}
 
-  postgres:
+  postgres-test:
     image: postgres:13-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
-      POSTGRES_DB: ${POSTGRES_DB:-learningdb}
-    container_name: postgres-prod-learninggo
+      POSTGRES_DB: ${POSTGRES_DB_TEST:-learningdb-test} # Use test DB
+    container_name: postgres-test-learninggo # Different container name
     networks:
       - learning-network
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-
-volumes:
-  postgres-data:
-  public-data:
-
-
 
 networks:
   learning-network:
