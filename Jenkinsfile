@@ -10,8 +10,10 @@ pipeline {
     POSTGRES_USER = credentials('vps-postgres-username-elearningbe-27')
     POSTGRES_PASSWORD = credentials('vps-postgres-password-elearningbe-27')
     POSTGRES_DB = credentials('vps-postgres-elearningbe-27')
+    POSTGRES_DB_TEST = credentials('vps-postgres-test-elearningbe-27')
     POSTGRES_PORT = credentials('vps-postgres-port-elearningbe-27')
     POSTGRES_HOST = credentials('vps-postgres-host-elearningbe-27')
+    POSTGRES_HOST_TEST = credentials('vps-postgres-host-test-elearningbe-27')
 
     GATEWAY_PORT = credentials('vps-gateway-elearningbe-27')
     SERVICE_GRPC_PORT = credentials('vps-service-grpc-elearningbe-27')
@@ -58,8 +60,10 @@ pipeline {
                 echo "POSTGRES_USER=${POSTGRES_USER}" > ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "POSTGRES_DB=${POSTGRES_DB}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "POSTGRES_DB_TEST=${POSTGRES_DB_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "POSTGRES_PORT=${POSTGRES_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "POSTGRES_HOST=${POSTGRES_HOST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "POSTGRES_HOST_TEST=${POSTGRES_HOST_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "GATEWAY_PORT=${GATEWAY_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "SERVICE_GRPC_PORT=${SERVICE_GRPC_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "SERVICE_REST_PORT=${SERVICE_REST_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
@@ -77,6 +81,52 @@ pipeline {
       }
     }
 
+    stage('Running Tests') {
+      steps {
+        script {
+          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
+            sh """
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+                cd ${VPS_DEPLOY_DIR} &&
+                docker compose -f docker/docker-compose-test.yml down --remove-orphans &&
+                docker compose -f docker/docker-compose-test.yml up --build -d &&
+                sleep 5 && # Wait for containers to start
+                docker logs service-test &&
+                echo "Running tests..." &&
+                docker exec -it service-test sh -c "cd /apps/internal/tests && go test -v ./..." > test_output.log 2>&1 &&
+                cat test_output.log &&
+                echo "Tests completed."
+                docker compose -f docker/docker-compose-test.yml down --remove-orphans
+              '
+            """
+          }
+        }
+      }
+    }
+
+    // stage('Run Migrations on Test DB') {
+    //   steps {
+    //     script {
+    //       sshagent(credentials: [SSH_CREDENTIALS_ID]) {
+    //         sh """
+    //           ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+    //             cd ${VPS_DEPLOY_DIR}/service &&
+
+    //             echo "Running test migrations on test database..." &&
+    //             make migrate-test-up &&
+
+    //             echo "Migrations completed."
+    //             echo "Downing test migrations..."
+
+    //             echo "Removing test containers..."
+    //             docker compose -f docker/docker-compose-test.yml down --remove-orphans
+    //           '
+    //         """
+    //       }
+    //     }
+    //   }
+    // }
+
     stage('Build & Deploy') {
       steps {
         script {
@@ -84,7 +134,7 @@ pipeline {
             sh """
               ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
                 cd ${VPS_DEPLOY_DIR} &&
-                docker compose -f docker/docker-compose.yml down &&
+                docker compose -f docker/docker-compose.yml down --remove-orphans &&
                 docker compose -f docker/docker-compose.yml up --build -d > build_output.log 2>&1
               '
               ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cat ${VPS_DEPLOY_DIR}/build_output.log'
@@ -94,7 +144,7 @@ pipeline {
       }
     }
 
-    stage('Run Migrations') {
+    stage('Run Migrations on Prod DB') {
       steps {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {

@@ -1,0 +1,46 @@
+name: learning-go-test
+
+services:
+
+  load-balancer-learninggo-test:
+    build:
+      context: ../gateway
+      dockerfile: Dockerfile
+    volumes:
+      - ../gateway/nginx-test.conf:/etc/nginx/nginx.conf # Use test NGINX config
+    ports:
+      - "50071:50051" # Expose gRPC port
+      - "4071:4001"   # Expose HTTP REST port
+    networks:
+      - learning-network
+    depends_on:
+      - service-test
+
+  service-test:
+    build: 
+      context: ../service
+      dockerfile: Dockerfile.test
+    networks:
+      - learning-network
+    ports:
+      - "50051"
+      - "4001"
+    container_name: service-test
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_TEST} # Use test DB
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST_TEST}
+      GATEWAY_PORT: ${GATEWAY_PORT}
+      SERVICE_GRPC_PORT: ${SERVICE_GRPC_PORT}
+      SERVICE_REST_PORT: ${SERVICE_REST_PORT}
+      MASTER_SERVICE_GRPC_PORT: ${MASTER_SERVICE_GRPC_PORT}
+      MASTER_SERVICE_REST_PORT: ${MASTER_SERVICE_REST_PORT}
+      ACTIVITIES_SERVICE_GRPC_PORT: ${ACTIVITIES_SERVICE_GRPC_PORT}
+      ACTIVITIES_SERVICE_REST_PORT: ${ACTIVITIES_SERVICE_REST_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+
+networks:
+  learning-network:
+    driver: bridge
