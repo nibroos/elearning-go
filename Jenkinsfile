@@ -90,42 +90,44 @@ pipeline {
                 cd ${VPS_DEPLOY_DIR} &&
                 docker compose -f docker/docker-compose-test.yml down --remove-orphans &&
                 docker compose -f docker/docker-compose-test.yml up --build -d &&
-                sleep 5 && # Wait for containers to start
-                docker logs service-test &&
-                echo "Running tests..." &&
-                docker exec -it service-test sh -c "cd /apps/internal/tests && go test -v ./..." > test_output.log 2>&1 &&
-                cat test_output.log &&
-                echo "Tests completed."
-                docker compose -f docker/docker-compose-test.yml down --remove-orphans
+                sleep 5 # Wait for containers to start
               '
+
+              echo "Running tests.."
+
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+                docker exec service-test go test -v /app/internal/tests/... > test_output.log 2>&1 &&
+                cat test_output.log
+              '
+              echo "Tests completed."
             """
           }
         }
       }
     }
 
-    // stage('Run Migrations on Test DB') {
-    //   steps {
-    //     script {
-    //       sshagent(credentials: [SSH_CREDENTIALS_ID]) {
-    //         sh """
-    //           ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
-    //             cd ${VPS_DEPLOY_DIR}/service &&
+    stage('Run Migrations on Test DB') {
+      steps {
+        script {
+          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
+            sh """
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+                cd ${VPS_DEPLOY_DIR}/service &&
 
-    //             echo "Running test migrations on test database..." &&
-    //             make migrate-test-up &&
+                echo "Running test migrations on test database..." &&
+                make migrate-test-up &&
 
-    //             echo "Migrations completed."
-    //             echo "Downing test migrations..."
+                echo "Migrations completed."
+                echo "Downing test migrations..."
 
-    //             echo "Removing test containers..."
-    //             docker compose -f docker/docker-compose-test.yml down --remove-orphans
-    //           '
-    //         """
-    //       }
-    //     }
-    //   }
-    // }
+                echo "Removing test containers..."
+                docker compose -f ${VPS_DEPLOY_DIR}/docker/docker-compose-test.yml down --remove-orphans
+              '
+            """
+          }
+        }
+      }
+    }
 
     stage('Build & Deploy') {
       steps {
