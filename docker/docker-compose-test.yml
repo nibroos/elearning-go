@@ -12,7 +12,7 @@ services:
       - "50071:50051" # Expose gRPC port
       - "4071:4001"   # Expose HTTP REST port
     networks:
-      - learning-network
+      - learning-go_learning-network
     depends_on:
       - service-test
 
@@ -21,7 +21,7 @@ services:
       context: ../service
       dockerfile: Dockerfile.test
     networks:
-      - learning-network
+      - learning-go_learning-network
     ports:
       - "50051"
       - "4001"
@@ -42,5 +42,5 @@ services:
       JWT_SECRET: ${JWT_SECRET}
 
 networks:
-  learning-network:
-    driver: bridge
+  learning-go_learning-network:
+    external: true  # Use existing network from prod
