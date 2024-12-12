@@ -453,3 +453,10 @@ func HasPermission(ctx *fiber.Ctx, requiredPermission string) bool {
 	}
 	return false
 }
+
+// ContainsIgnoreCase checks if a substring is present in a string, ignoring case.
+func ContainsIgnoreCase(str, substr string) bool {
+	str = strings.ToLower(str)
+	substr = strings.ToLower(substr)
+	return strings.Contains(str, substr)
+}

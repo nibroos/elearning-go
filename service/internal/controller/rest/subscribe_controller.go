@@ -35,6 +35,23 @@ func (c *SubscribeController) GetSubscribes(ctx *fiber.Ctx) error {
 
 	return utils.GetResponse(ctx, subscribes, paginationMeta, "Subscribes fetched successfully", http.StatusOK, nil, nil)
 }
+
+func (c *SubscribeController) GetSubscribesFromRedis(ctx *fiber.Ctx) error {
+	filters, ok := ctx.Locals("filters").(map[string]string)
+	if !ok {
+		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, "Invalid filters", http.StatusBadRequest), http.StatusBadRequest)
+	}
+
+	subscribes, total, err := c.service.GetSubscribesFromRedis(ctx.Context(), filters)
+	if err != nil {
+		return utils.SendResponse(ctx, utils.WrapResponse(nil, nil, err.Error(), http.StatusInternalServerError), http.StatusInternalServerError)
+	}
+
+	paginationMeta := utils.CreatePaginationMeta(filters, total)
+
+	return utils.GetResponse(ctx, subscribes, paginationMeta, "Subscribes fetched successfully", http.StatusOK, nil, nil)
+}
+
 func (c *SubscribeController) CreateSubscribe(ctx *fiber.Ctx) error {
 	var req dtos.CreateSubscribeRequest
 

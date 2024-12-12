@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"sync"
 	"time"
@@ -49,6 +50,12 @@ func main() {
 	sqlDBGorm.SetMaxOpenConns(100)          // Maximum number of open connections
 	sqlDBGorm.SetMaxIdleConns(10)           // Maximum number of idle connections
 	sqlDBGorm.SetConnMaxLifetime(time.Hour) // Maximum lifetime of a connection
+
+	// Initialize the Redis client
+	config.InitRedisClient()
+
+	// Fetch needed data from the database and cache it in Redis
+	config.FetchCachedData(context.Background(), sqlDB)
 
 	// Initialize the validator with the database connection
 	validators.InitValidator(sqlDB)
