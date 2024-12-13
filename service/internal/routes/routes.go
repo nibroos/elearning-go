@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
-	"github.com/nibroos/elearning-go/service/internal/cache"
 	"github.com/nibroos/elearning-go/service/internal/controller/rest"
 	"github.com/nibroos/elearning-go/service/internal/middleware"
 	"github.com/nibroos/elearning-go/service/internal/repository"
@@ -12,7 +11,7 @@ import (
 )
 
 // SetupRoutes sets up the REST routes for the user service.
-func SetupRoutes(app *fiber.App, gormDB *gorm.DB, sqlDB *sqlx.DB, redisCache *cache.RedisCache) {
+func SetupRoutes(app *fiber.App, gormDB *gorm.DB, sqlDB *sqlx.DB) {
 	// Public routes
 	app.Get("/api/v1/users/test", func(c *fiber.Ctx) error {
 		return c.SendString("REST Users Service!")
@@ -39,7 +38,7 @@ func SetupRoutes(app *fiber.App, gormDB *gorm.DB, sqlDB *sqlx.DB, redisCache *ca
 	SetupUserRoutes(users, gormDB, sqlDB)
 
 	subscribes := version.Group("/subscribes")
-	SetupSubscribeRoutes(subscribes, gormDB, sqlDB, redisCache)
+	SetupSubscribeRoutes(subscribes, gormDB, sqlDB)
 
 	classes := version.Group("/classes")
 	SetupClassRoutes(classes, gormDB, sqlDB)

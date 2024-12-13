@@ -2,7 +2,10 @@ package config
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
+	"strconv"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -12,9 +15,15 @@ var ctx = context.Background()
 
 func InitRedisClient() {
 	RedisClient = redis.NewClient(&redis.Options{
-		Addr:     "redis:6379", // Redis container name and port
-		Password: "",           // No password set
-		DB:       0,            // Use default DB
+		Addr:     fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
+		Password: os.Getenv("REDIS_PASSWORD"),
+		DB: func() int {
+			db, err := strconv.Atoi(os.Getenv("REDIS_DB"))
+			if err != nil {
+				log.Fatalf("Invalid REDIS_DB value: %v", err)
+			}
+			return db
+		}(),
 	})
 
 	// Test the Redis connection

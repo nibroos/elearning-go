@@ -23,6 +23,12 @@ pipeline {
     ACTIVITIES_SERVICE_GRPC_PORT = credentials('vps-activities-service-grpc-elearningbe-27')
     ACTIVITIES_SERVICE_REST_PORT = credentials('vps-activities-service-rest-elearningbe-27')
 
+    REDIS_HOST = credentials('vps-redis-host-elearningbe-27')
+    REDIS_PORT = credentials('vps-redis-port-elearningbe-27')
+    REDIS_PASSWORD = credentials('vps-redis-password-elearningbe-27')
+    REDIS_DB = credentials('vps-redis-db-elearningbe-27')
+    REDIS_DB_TEST = credentials('vps-redis-db-test-elearningbe-27')
+
     JWT_SECRET = credentials('vps-jwt-secret-elearning-27')
     BUILD_DIR = "build-${env.BUILD_ID}"
   }
@@ -72,6 +78,11 @@ pipeline {
                 echo "ACTIVITIES_SERVICE_GRPC_PORT=${ACTIVITIES_SERVICE_GRPC_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "ACTIVITIES_SERVICE_REST_PORT=${ACTIVITIES_SERVICE_REST_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "JWT_SECRET=${JWT_SECRET}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "REDIS_HOST=${REDIS_HOST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "REDIS_PORT=${REDIS_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "REDIS_PASSWORD=${REDIS_PASSWORD}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "REDIS_DB=${REDIS_DB}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "REDIS_DB_TEST=${REDIS_DB_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/service/.env &&
                 cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/gateway/.env
               '

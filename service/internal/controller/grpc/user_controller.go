@@ -1,12 +1,10 @@
 package controller
 
 import (
-	"context"
 	"log"
 	"net"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/nibroos/elearning-go/service/internal/models"
 	pb "github.com/nibroos/elearning-go/service/internal/proto"
 	"github.com/nibroos/elearning-go/service/internal/service"
 	"google.golang.org/grpc"
@@ -43,68 +41,68 @@ type GRPCUserController struct {
 	userService *service.UserService
 }
 
-// CreateUser handles the gRPC request to create a user.
-func (c *GRPCUserController) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
-	user := &models.User{
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: req.Password,
-		Address:  req.Address,
-	}
+// // CreateUser handles the gRPC request to create a user.
+// func (c *GRPCUserController) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
+// 	user := &models.User{
+// 		Name:     req.Name,
+// 		Email:    req.Email,
+// 		Password: req.Password,
+// 		Address:  req.Address,
+// 	}
 
-	createdUser, err := c.userService.CreateUser(ctx, user, req.GetRoleIds())
-	if err != nil {
-		return nil, err
-	}
+// 	createdUser, err := c.userService.CreateUser(ctx, user, req.GetRoleIds())
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return &pb.CreateUserResponse{
-		Id:    uint32(createdUser.ID),
-		Name:  createdUser.Name,
-		Email: createdUser.Email,
-	}, nil
-}
+// 	return &pb.CreateUserResponse{
+// 		Id:    uint32(createdUser.ID),
+// 		Name:  createdUser.Name,
+// 		Email: createdUser.Email,
+// 	}, nil
+// }
 
-// GetUsers handles the gRPC request to get users.
-func (c *GRPCUserController) GetUsers(ctx context.Context, req *pb.GetUsersRequest) (*pb.GetUsersResponse, error) {
-	searchParams := map[string]string{
-		"global": req.GetGlobal(),
-		"name":   req.GetName(),
-		"email":  req.GetEmail(),
-	}
+// // GetUsers handles the gRPC request to get users.
+// func (c *GRPCUserController) GetUsers(ctx context.Context, req *pb.GetUsersRequest) (*pb.GetUsersResponse, error) {
+// 	searchParams := map[string]string{
+// 		"global": req.GetGlobal(),
+// 		"name":   req.GetName(),
+// 		"email":  req.GetEmail(),
+// 	}
 
-	users, total, err := c.userService.GetUsers(ctx, searchParams)
-	if err != nil {
-		return nil, err
-	}
+// 	users, total, err := c.userService.GetUsers(ctx, searchParams)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	var pbUsers []*pb.User
-	for _, user := range users {
-		pbUsers = append(pbUsers, &pb.User{
-			Id:       uint32(user.ID),
-			Name:     user.Name,
-			Username: user.Username,
-			Email:    user.Email,
-		})
-	}
+// 	var pbUsers []*pb.User
+// 	for _, user := range users {
+// 		pbUsers = append(pbUsers, &pb.User{
+// 			Id:       uint32(user.ID),
+// 			Name:     user.Name,
+// 			Username: user.Username,
+// 			Email:    user.Email,
+// 		})
+// 	}
 
-	return &pb.GetUsersResponse{Users: pbUsers, Total: int32(total)}, nil
-}
+// 	return &pb.GetUsersResponse{Users: pbUsers, Total: int32(total)}, nil
+// }
 
-// GetUserByID handles the gRPC request to get a user by ID.
-func (c *GRPCUserController) GetUserByID(ctx context.Context, req *pb.GetUserRequest) (*pb.UserResponse, error) {
-	user, err := c.userService.GetUserByID(ctx, uint32(req.Id))
-	if err != nil {
-		return nil, err
-	}
+// // GetUserByID handles the gRPC request to get a user by ID.
+// func (c *GRPCUserController) GetUserByID(ctx context.Context, req *pb.GetUserRequest) (*pb.UserResponse, error) {
+// 	user, err := c.userService.GetUserByID(ctx, uint32(req.Id))
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	return &pb.UserResponse{
-		User: &pb.User{
-			Id:            uint32(user.ID),
-			Name:          user.Name,
-			Email:         user.Email,
-			Address:       user.Address,
-			RoleIds:       user.RoleIDs,
-			PermissionIds: user.PermissionIDs,
-		},
-	}, nil
-}
+// 	return &pb.UserResponse{
+// 		User: &pb.User{
+// 			Id:            uint32(user.ID),
+// 			Name:          user.Name,
+// 			Email:         user.Email,
+// 			Address:       user.Address,
+// 			RoleIds:       user.RoleIDs,
+// 			PermissionIds: user.PermissionIDs,
+// 		},
+// 	}, nil
+// }
