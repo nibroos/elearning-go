@@ -685,3 +685,25 @@ type ListQuizesResult struct {
 	Total  int
 	Err    error
 }
+
+// type Scheduler struct {
+// 	ID          uint       `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+// 	Name        string     `json:"name" gorm:"column:name"`
+// 	Description string     `json:"description" gorm:"column:description"`
+// 	Cron        string     `json:"cron" gorm:"column:cron"`
+// 	Payload     string     `json:"payload" gorm:"column:payload"`
+// 	Status      string     `json:"status" gorm:"column:status"`
+// 	StartAt     time.Time  `json:"start_at" gorm:"column:start_at"`
+// 	EndAt       *time.Time `json:"end_at" gorm:"column:end_at"`
+// }
+
+type SchedulerListDTO struct {
+	ID          int     `json:"id" db:"id"`
+	Name        string  `json:"name" db:"name"`
+	Description string  `json:"description" db:"description"`
+	Cron        string  `json:"cron" db:"cron"`
+	Payload     string  `json:"payload" db:"payload"`
+	Status      string  `json:"status" db:"status"`
+	StartAt     *string `json:"start_at" db:"start_at"`
+	EndAt       *string `json:"end_at" db:"end_at"`
+}

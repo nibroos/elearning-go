@@ -11,9 +11,11 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/nibroos/elearning-go/service/internal/config"
+	"github.com/nibroos/elearning-go/service/internal/controller/rest"
 	"github.com/nibroos/elearning-go/service/internal/middleware"
 	"github.com/nibroos/elearning-go/service/internal/routes"
 	"github.com/nibroos/elearning-go/service/internal/validators"
+	"github.com/robfig/cron/v3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -76,6 +78,25 @@ func main() {
 	// app.Use(middleware.JWTMiddleware())
 
 	var wg sync.WaitGroup
+
+	// Start the scheduler in a separate goroutine
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		// Initialize the cron scheduler
+		cron := cron.New()
+		schedulerController := rest.NewSchedulerController(cron, gormDB, sqlDB)
+
+		// Reload schedules from the database
+		if err := schedulerController.ReloadSchedules(); err != nil {
+			log.Printf("Failed to reload schedules: %v", err)
+			return
+		}
+
+		// Start the cron scheduler
+		cron.Start()
+		log.Println("Scheduler started successfully")
+	}()
 
 	// Start REST server
 	wg.Add(1)
