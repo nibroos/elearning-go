@@ -33,6 +33,22 @@ func (s *SubscribeService) GetSubscribes(ctx context.Context, filters map[string
 	}
 }
 
+func (s *SubscribeService) GetSubscribesFromRedis(ctx context.Context, filters map[string]string) ([]dtos.SubscribeListDTO, int, error) {
+	resultChan := make(chan dtos.GetSubscribesResult, 1)
+
+	go func() {
+		subscribes, total, err := s.repo.GetSubscribesFromRedis(ctx, filters)
+		resultChan <- dtos.GetSubscribesResult{Subscribes: subscribes, Total: total, Err: err}
+	}()
+
+	select {
+	case res := <-resultChan:
+		return res.Subscribes, res.Total, res.Err
+	case <-ctx.Done():
+		return nil, 0, ctx.Err()
+	}
+}
+
 func (s *SubscribeService) CreateSubscribe(ctx context.Context, subscribe *models.Subscribe) (*models.Subscribe, error) {
 	// Transaction handling
 	tx := s.repo.BeginTransaction()

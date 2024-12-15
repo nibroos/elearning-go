@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"runtime"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/nibroos/elearning-go/service/internal/utils"
@@ -131,5 +132,42 @@ func PermissionMiddleware(requiredPermission string) fiber.Handler {
 			return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{"message": "Forbidden"})
 		}
 		return ctx.Next()
+	}
+}
+
+func ConvertToClientTimezone() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		clientTimezone := c.Get("X-Client-Timezone", "Asia/Jakarta")
+		location, err := time.LoadLocation(clientTimezone)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid timezone"})
+		}
+
+		// Convert start_at and end_at if they exist in the request body
+		var body map[string]interface{}
+		if err := c.BodyParser(&body); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+		}
+
+		if startAt, ok := body["start_at"].(string); ok {
+			if parsedTime, err := time.ParseInLocation("2006-01-02 15:04", startAt, location); err == nil {
+				body["start_at"] = parsedTime
+			}
+		}
+
+		if endAt, ok := body["end_at"].(string); ok {
+			if parsedTime, err := time.ParseInLocation("2006-01-02 15:04", endAt, location); err == nil {
+				body["end_at"] = parsedTime
+			}
+		}
+
+		// Replace the request body with the modified one
+		modifiedBody, err := json.Marshal(body)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to process request body"})
+		}
+		c.Request().SetBody(modifiedBody)
+
+		return c.Next()
 	}
 }

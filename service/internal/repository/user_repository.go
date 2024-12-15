@@ -108,6 +108,59 @@ func (r *userRepository) GetUsers(ctx context.Context, filters map[string]string
 	return users, total, nil
 }
 
+// func (r *userRepository) GetUsers(ctx context.Context, filters map[string]string) ([]dtos.UserListDTO, string, error) {
+// 	users := []dtos.UserListDTO{}
+
+// 	query := `SELECT id, username, name, email FROM users WHERE 1=1`
+// 	var args []interface{}
+
+// 	i := 1
+// 	for key, value := range filters {
+// 		switch key {
+// 		case "username", "name", "email":
+// 			if value != "" {
+// 				query += fmt.Sprintf(" AND %s ILIKE $%d", key, i)
+// 				args = append(args, "%"+value+"%")
+// 				i++
+// 			}
+// 		}
+// 	}
+
+// 	if value, ok := filters["global"]; ok && value != "" {
+// 		query += fmt.Sprintf(" AND (username ILIKE $%d OR name ILIKE $%d OR email ILIKE $%d)", i, i+1, i+2)
+// 		args = append(args, "%"+value+"%", "%"+value+"%", "%"+value+"%")
+// 		i += 3
+// 	}
+
+// 	allowedOrderColumns := []string{"id", "name", "description", "threshold", "created_at", "updated_at"}
+// 	orderColumn := utils.GetStringOrDefaultFromArray(filters["order_column"], allowedOrderColumns, "id")
+// 	orderDirection := utils.GetStringOrDefault(filters["order_direction"], "asc")
+// 	query += fmt.Sprintf(" ORDER BY %s %s", orderColumn, orderDirection)
+
+// 	cursor := filters["cursor"]
+// 	if cursor != "" {
+// 		query += fmt.Sprintf(" AND id > $%d", i)
+// 		args = append(args, cursor)
+// 		i++
+// 	}
+
+// 	perPage := utils.GetIntOrDefault(filters["per_page"], 10)
+// 	query += fmt.Sprintf(" LIMIT $%d", i)
+// 	args = append(args, perPage)
+
+// 	err := r.sqlDB.SelectContext(ctx, &users, query, args...)
+// 	if err != nil {
+// 		return nil, "", err
+// 	}
+
+// 	var nextCursor string
+// 	if len(users) > 0 {
+// 		nextCursor = fmt.Sprintf("%d", users[len(users)-1].ID)
+// 	}
+
+// 	return users, nextCursor, nil
+// }
+
 func (r *userRepository) GetUserByID(ctx context.Context, params *dtos.GetUserByIDParams) (*dtos.UserDetailDTO, error) {
 	var user dtos.UserDetailDTO
 

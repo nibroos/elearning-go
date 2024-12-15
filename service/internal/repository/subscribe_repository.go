@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/nibroos/elearning-go/service/internal/config"
 	"github.com/nibroos/elearning-go/service/internal/dtos"
 	"github.com/nibroos/elearning-go/service/internal/models"
 	"github.com/nibroos/elearning-go/service/internal/utils"
@@ -22,6 +24,7 @@ func NewSubscribeRepository(db *gorm.DB, sqlDB *sqlx.DB) *SubscribeRepository {
 		sqlDB: sqlDB,
 	}
 }
+
 func (r *SubscribeRepository) GetSubscribes(ctx context.Context, filters map[string]string) ([]dtos.SubscribeListDTO, int, error) {
 	subscribes := []dtos.SubscribeListDTO{}
 	var total int
@@ -111,6 +114,83 @@ func (r *SubscribeRepository) GetSubscribes(ctx context.Context, filters map[str
 
 	return subscribes, total, nil
 }
+
+func (r *SubscribeRepository) GetSubscribesFromRedis(ctx context.Context, filters map[string]string) ([]dtos.SubscribeListDTO, int, error) {
+	var subscribes []dtos.SubscribeListDTO
+	var total int
+
+	// Fetch data from Redis
+	data, err := config.RedisClient.Get(ctx, "subscribes").Result()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Unmarshal the data
+	if err := json.Unmarshal([]byte(data), &subscribes); err != nil {
+		return nil, 0, err
+	}
+
+	// Apply filters
+	filteredSubscribes := []dtos.SubscribeListDTO{}
+	for _, subscribe := range subscribes {
+		match := true
+		for key, value := range filters {
+			switch key {
+			case "name":
+				if value != "" && !utils.ContainsIgnoreCase(subscribe.Name, value) {
+					match = false
+				}
+			case "description":
+				if value != "" && !utils.ContainsIgnoreCase(subscribe.Description, value) {
+					match = false
+				}
+			case "global":
+				if value != "" && !utils.ContainsIgnoreCase(subscribe.Name, value) && !utils.ContainsIgnoreCase(subscribe.Description, value) {
+					match = false
+				}
+			}
+		}
+		if match {
+			filteredSubscribes = append(filteredSubscribes, subscribe)
+		}
+	}
+
+	total = len(filteredSubscribes)
+
+	// Apply pagination
+	perPage := utils.GetIntOrDefault(filters["per_page"], 10)
+	currentPage := utils.GetIntOrDefault(filters["page"], 1)
+	start := (currentPage - 1) * perPage
+	end := start + perPage
+	if start > total {
+		start = total
+	}
+	if end > total {
+		end = total
+	}
+	paginatedSubscribes := filteredSubscribes[start:end]
+
+	return paginatedSubscribes, total, nil
+}
+
+// func (r *SubscribeRepository) FetchAndCacheSubscribes(ctx context.Context) error {
+// 	var subscribes []dtos.SubscribeListDTO
+
+// 	query := `SELECT s.id, s.name, s.description, s.created_at, s.updated_at, s.deleted_at,
+//         cu.name as created_by_name,
+//         uu.name as updated_by_name
+//     FROM subscribes s
+//     JOIN users cu ON s.created_by_id = cu.id
+//     LEFT JOIN users uu ON s.updated_by_id = uu.id
+//     WHERE s.deleted_at IS NULL`
+
+// 	err := r.sqlDB.SelectContext(ctx, &subscribes, query)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return r.redisCache.FetchAndCacheSubscribes(ctx, subscribes)
+// }
 
 func (r *SubscribeRepository) GetSubscribeByID(ctx context.Context, id uint) (*dtos.SubscribeDetailDTO, error) {
 	var subscribe dtos.SubscribeDetailDTO

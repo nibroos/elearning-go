@@ -3,7 +3,11 @@
 FROM golang:1.23-alpine AS base
 
 # Install necessary packages including Make
-RUN apk add --no-cache make curl postgresql-client
+RUN apk add --no-cache make curl postgresql-client tzdata
+
+# Set the timezone to GMT+7
+RUN cp /usr/share/zoneinfo/Asia/Bangkok /etc/localtime && \
+    echo "Asia/Bangkok" > /etc/timezone
 
 # Install Air for hot-reloading
 RUN go install github.com/air-verse/air@latest

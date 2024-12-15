@@ -7,6 +7,7 @@ import (
 	"github.com/nibroos/elearning-go/service/internal/middleware"
 	"github.com/nibroos/elearning-go/service/internal/repository"
 	"github.com/nibroos/elearning-go/service/internal/service"
+	"github.com/robfig/cron/v3"
 	"gorm.io/gorm"
 )
 
@@ -32,6 +33,7 @@ func SetupRoutes(app *fiber.App, gormDB *gorm.DB, sqlDB *sqlx.DB) {
 
 	// Protected routes
 	app.Use(middleware.JWTMiddleware())
+	app.Use(middleware.ConvertToClientTimezone())
 
 	// Grouped routes
 	users := version.Group("/users")
@@ -66,4 +68,14 @@ func SetupRoutes(app *fiber.App, gormDB *gorm.DB, sqlDB *sqlx.DB) {
 
 	// Seeder route
 	version.Post("/seeders/run", rest.NewSeederController(sqlDB.DB).RunSeeders)
+
+	// Scheduler route
+	cron := cron.New()
+	schedulerController := rest.NewSchedulerController(cron, gormDB, sqlDB)
+	version.Post("/scheduler/schedule", schedulerController.Schedule)
+
+	version.Post("/scheduler/list", schedulerController.ListSchedules)
+
+	// Start the cron scheduler
+	cron.Start()
 }
