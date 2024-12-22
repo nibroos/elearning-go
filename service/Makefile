@@ -9,8 +9,9 @@ endif
 # Variables
 DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
 DB_URL_TEST=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB_TEST)?sslmode=disable
-MIGRATE=migrate -path=internal/database/migrations -database $(DB_URL)
-MIGRATE_TEST=migrate -path=internal/database/migrations -database $(DB_URL_TEST)
+MIGRATE_DIR=internal/database/migrations
+MIGRATE=migrate -path=$(MIGRATE_DIR) -database $(DB_URL)
+MIGRATE_TEST=migrate -path=$(MIGRATE_DIR) -database $(DB_URL_TEST)
 PROTO_DIR=internal/proto
 GENERATED_PROTO_DIR=internal/proto/generated
 PROTO_FILES=$(wildcard $(PROTO_DIR)/*.proto)
@@ -117,19 +118,22 @@ endif
 	service \
 	psql postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@postgres:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable -f internal/database/seeders/$(file)
 
+# Build the Go application
 .PHONY: build
 build:
 	go build -o bin/app cmd/main.go
 
+# Run the application
 .PHONY: run
 run: build
 	./bin/app
 
+# Generate Go code from proto files
 .PHONY: proto
 proto:
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative $(PROTO_FILES)
 
-# Command to initialize the environment
+# This target sets up environment variables and runs the migrations up
 .PHONY: init-env
 init-env:
 	@echo "Setting up environment variables..."
