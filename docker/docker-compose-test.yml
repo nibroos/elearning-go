@@ -2,10 +2,11 @@ name: learning-go-test
 
 services:
 
-  load-balancer-learninggo-test:
+  load-balancer-learninggo:
     build:
       context: ../gateway
       dockerfile: Dockerfile
+    container_name: load-balancer-learninggo-test
     volumes:
       - ../gateway/nginx-test.conf:/etc/nginx/nginx.conf # Use test NGINX config
     ports:
@@ -16,7 +17,7 @@ services:
     depends_on:
       - service-test
 
-  service-test:
+  service:
     build: 
       context: ../service
       dockerfile: Dockerfile.test
@@ -40,11 +41,42 @@ services:
       ACTIVITIES_SERVICE_GRPC_PORT: ${ACTIVITIES_SERVICE_GRPC_PORT}
       ACTIVITIES_SERVICE_REST_PORT: ${ACTIVITIES_SERVICE_REST_PORT}
       JWT_SECRET: ${JWT_SECRET}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST_TEST}
+      REDIS_PORT: ${REDIS_PORT_TEST}
+      REDIS_PASSWORD: ${REDIS_PASSWORD_TEST}
       REDIS_DB: ${REDIS_DB_TEST} # Use test Redis DB
+  
+  postgres:
+    image: postgres:13-alpine
+    container_name: postgres-learninggo-test
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER_TEST:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_TEST:-secret}
+      POSTGRES_DB: ${POSTGRES_DB_TEST:-learningdb}
+    container_name: postgres-prod-learninggo
+    networks:
+      - learning-network
+    ports:
+      - "${POSTGRES_PORT_TEST:-5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: "redis:alpine"
+    container_name: redis-learninggo-test
+    networks:
+      - learning-network
+    ports:
+      - "${REDIS_PORT_TEST:-6380}:6379"
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--requirepass", "${REDIS_PASSWORD_TEST}"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD_TEST} # Use test Redis password
+
+volumes:
+  postgres-test-data:
 
 networks:
-  learning-go_learning-network:
-    external: true  # Use existing network from prod
+  learning-go-test-network:
+    driver: bridge

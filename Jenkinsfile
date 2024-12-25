@@ -10,9 +10,13 @@ pipeline {
     POSTGRES_USER = credentials('vps-postgres-username-elearningbe-27')
     POSTGRES_PASSWORD = credentials('vps-postgres-password-elearningbe-27')
     POSTGRES_DB = credentials('vps-postgres-elearningbe-27')
-    POSTGRES_DB_TEST = credentials('vps-postgres-test-elearningbe-27')
     POSTGRES_PORT = credentials('vps-postgres-port-elearningbe-27')
     POSTGRES_HOST = credentials('vps-postgres-host-elearningbe-27')
+
+    POSTGRES_USER_TEST = credentials('vps-postgres-username-test-elearningbe-27')
+    POSTGRES_PASSWORD_TEST = credentials('vps-postgres-password-test-elearningbe-27')
+    POSTGRES_DB_TEST = credentials('vps-postgres-test-elearningbe-27')
+    POSTGRES_PORT_TEST = credentials('vps-postgres-port-test-elearningbe-27')
     POSTGRES_HOST_TEST = credentials('vps-postgres-host-test-elearningbe-27')
 
     GATEWAY_PORT = credentials('vps-gateway-elearningbe-27')
@@ -27,6 +31,10 @@ pipeline {
     REDIS_PORT = credentials('vps-redis-port-elearningbe-27')
     REDIS_PASSWORD = credentials('vps-redis-password-elearningbe-27')
     REDIS_DB = credentials('vps-redis-db-elearningbe-27')
+
+    REDIS_HOST_TEST = credentials('vps-redis-host-test-elearningbe-27')
+    REDIS_PORT_TEST = credentials('vps-redis-port-test-elearningbe-27')
+    REDIS_PASSWORD_TEST = credentials('vps-redis-password-test-elearningbe-27')
     REDIS_DB_TEST = credentials('vps-redis-db-test-elearningbe-27')
 
     JWT_SECRET = credentials('vps-jwt-secret-elearning-27')
