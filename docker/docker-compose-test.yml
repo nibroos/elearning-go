@@ -13,7 +13,7 @@ services:
       - "50071:50051" # Expose gRPC port
       - "4071:4001"   # Expose HTTP REST port
     networks:
-      - learning-go_learning-network
+      - learning-go-test-network
     depends_on:
       - service-test
 
@@ -22,7 +22,7 @@ services:
       context: ../service
       dockerfile: Dockerfile.test
     networks:
-      - learning-go_learning-network
+      - learning-go-test-network
     ports:
       - "50051"
       - "4001"
@@ -54,7 +54,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_TEST:-secret}
       POSTGRES_DB: ${POSTGRES_DB_TEST:-learningdb}
     networks:
-      - learning-network
+      - learning-go-test-network
     ports:
       - "${POSTGRES_PORT_TEST:-5433}:5432"
     volumes:
@@ -64,7 +64,7 @@ services:
     image: "redis:alpine"
     container_name: redis-learninggo-test
     networks:
-      - learning-network
+      - learning-go-test-network
     ports:
       - "${REDIS_PORT_TEST:-6380}:6379"
     volumes:
