@@ -58,7 +58,7 @@ services:
     ports:
       - "${POSTGRES_PORT_TEST:-5433}:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-test-data:/var/lib/postgresql/data
 
   redis:
     image: "redis:alpine"
