@@ -78,6 +78,9 @@ pipeline {
                 echo "POSTGRES_PORT=${POSTGRES_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "POSTGRES_HOST=${POSTGRES_HOST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "POSTGRES_HOST_TEST=${POSTGRES_HOST_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "POSTGRES_USER_TEST=${POSTGRES_USER_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "POSTGRES_PASSWORD_TEST=${POSTGRES_PASSWORD_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "POSTGRES_PORT_TEST=${POSTGRES_PORT_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "GATEWAY_PORT=${GATEWAY_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "SERVICE_GRPC_PORT=${SERVICE_GRPC_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "SERVICE_REST_PORT=${SERVICE_REST_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
@@ -90,6 +93,9 @@ pipeline {
                 echo "REDIS_PORT=${REDIS_PORT}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "REDIS_PASSWORD=${REDIS_PASSWORD}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "REDIS_DB=${REDIS_DB}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "REDIS_HOST_TEST=${REDIS_HOST_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "REDIS_PORT_TEST=${REDIS_PORT_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "REDIS_PASSWORD_TEST=${REDIS_PASSWORD_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "REDIS_DB_TEST=${REDIS_DB_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/service/.env &&
                 cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/gateway/.env
