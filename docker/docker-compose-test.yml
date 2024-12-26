@@ -15,7 +15,7 @@ services:
     networks:
       - learning-go-test-network
     depends_on:
-      - service-test
+      - service
 
   service:
     build: 
