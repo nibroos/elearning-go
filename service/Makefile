@@ -8,7 +8,7 @@ endif
 
 # Variables
 DB_URL=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable
-DB_URL_TEST=postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB_TEST)?sslmode=disable
+DB_URL_TEST=postgres://$(POSTGRES_USER_TEST):$(POSTGRES_PASSWORD_TEST)@$(POSTGRES_HOST_TEST):$(POSTGRES_PORT_TEST)/$(POSTGRES_DB_TEST)?sslmode=disable
 MIGRATE_DIR=internal/database/migrations
 MIGRATE=migrate -path=$(MIGRATE_DIR) -database $(DB_URL)
 MIGRATE_TEST=migrate -path=$(MIGRATE_DIR) -database $(DB_URL_TEST)
@@ -67,10 +67,10 @@ migrate-force:
 migrate-test-up:
 	@echo "Running test migrations up inside Docker container"
 	docker compose -f ../docker/docker-compose-test.yml run --rm \
-	-e POSTGRES_USER=$(POSTGRES_USER) \
-	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	-e POSTGRES_USER=$(POSTGRES_USER_TEST) \
+	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD_TEST) \
 	-e POSTGRES_DB=$(POSTGRES_DB_TEST) \
-	-e POSTGRES_PORT=$(POSTGRES_PORT) \
+	-e POSTGRES_PORT=$(POSTGRES_PORT_TEST) \
 	service-test \
 	$(MIGRATE_TEST) up
 
@@ -78,10 +78,10 @@ migrate-test-up:
 migrate-test-down:
 	@echo "Running test migrations down inside Docker container"
 	docker compose -f ../docker/docker-compose-test.yml run --rm \
-	-e POSTGRES_USER=$(POSTGRES_USER) \
-	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	-e POSTGRES_USER=$(POSTGRES_USER_TEST) \
+	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD_TEST) \
 	-e POSTGRES_DB=$(POSTGRES_DB_TEST) \
-	-e POSTGRES_PORT=$(POSTGRES_PORT) \
+	-e POSTGRES_PORT=$(POSTGRES_PORT_TEST) \
 	service-test \
 	$(MIGRATE_TEST) down 1
 
@@ -89,10 +89,10 @@ migrate-test-down:
 migrate-test-force:
 	@echo "Running test migrations force inside Docker container"
 	docker compose -f ../docker/docker-compose-test.yml run --rm \
-	-e POSTGRES_USER=$(POSTGRES_USER) \
-	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+	-e POSTGRES_USER=$(POSTGRES_USER_TEST) \
+	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD_TEST) \
 	-e POSTGRES_DB=$(POSTGRES_DB_TEST) \
-	-e POSTGRES_PORT=$(POSTGRES_PORT) \
+	-e POSTGRES_PORT=$(POSTGRES_PORT_TEST) \
 	service-test \
 	$(MIGRATE_TEST) force $(v-force)
 
