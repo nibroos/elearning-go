@@ -2,14 +2,13 @@ package unit_test
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/nibroos/elearning-go/service/internal/config"
 	"github.com/nibroos/elearning-go/service/internal/mocks"
 	"github.com/nibroos/elearning-go/service/internal/service"
 	"github.com/stretchr/testify/assert"
@@ -31,15 +30,8 @@ func TestDeleteUser(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	// Retrieve database credentials from environment variables
-	configDBTest := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_HOST"),
-		os.Getenv("POSTGRES_PORT"),
-		os.Getenv("POSTGRES_DB_TEST"),
-	)
+	// Retrieve database credentials from environment variables using GetTestDatabaseURL
+	configDBTest := config.GetTestDatabaseURL()
 
 	mockDB, err := gorm.Open(postgres.Open(configDBTest), &gorm.Config{})
 	if err != nil {
