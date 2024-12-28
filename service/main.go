@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"sync"
 	"time"
 
@@ -27,8 +28,17 @@ func main() {
 		log.Println("No .env file found")
 	}
 
+	// Determine the environment (production or test)
+	env := os.Getenv("APP_ENV")
+	var dbURL string
+	if env == "test" {
+		dbURL = config.GetTestDatabaseURL()
+	} else {
+		dbURL = config.GetDatabaseURL()
+	}
+
 	// Initialize the SQLx database connection
-	sqlDB, err := sqlx.Connect("postgres", config.GetDatabaseURL())
+	sqlDB, err := sqlx.Connect("postgres", dbURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to the SQL database: %v", err)
 	}
@@ -39,7 +49,7 @@ func main() {
 	sqlDB.SetConnMaxLifetime(time.Hour) // Maximum lifetime of a connection
 
 	// Initialize the Gorm database connection
-	gormDB, err := gorm.Open(postgres.Open(config.GetDatabaseURL()), &gorm.Config{})
+	gormDB, err := gorm.Open(postgres.Open(dbURL), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to the Gorm database: %v", err)
 	}
@@ -54,7 +64,11 @@ func main() {
 	sqlDBGorm.SetConnMaxLifetime(time.Hour) // Maximum lifetime of a connection
 
 	// Initialize the Redis client
-	config.InitRedisClient()
+	if env == "test" {
+		config.InitRedisClientTest()
+	} else {
+		config.InitRedisClient()
+	}
 
 	// Fetch needed data from the database and cache it in Redis
 	config.FetchCachedData(context.Background(), sqlDB)

@@ -38,6 +38,7 @@ pipeline {
     REDIS_DB_TEST = credentials('vps-redis-db-test-elearningbe-27')
 
     JWT_SECRET = credentials('vps-jwt-secret-elearning-27')
+    APP_ENV = "test"
     BUILD_DIR = "build-${env.BUILD_ID}"
   }
 
@@ -97,6 +98,7 @@ pipeline {
                 echo "REDIS_PORT_TEST=${REDIS_PORT_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "REDIS_PASSWORD_TEST=${REDIS_PASSWORD_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
                 echo "REDIS_DB_TEST=${REDIS_DB_TEST}" >> ${VPS_DEPLOY_DIR}/docker/.env &&
+                echo "APP_ENV=${APP_ENV}" >> ${VPS_DEPLOY_DIR}/docker/.env
                 cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/service/.env &&
                 cp ${VPS_DEPLOY_DIR}/docker/.env ${VPS_DEPLOY_DIR}/gateway/.env
               '
@@ -106,7 +108,7 @@ pipeline {
       }
     }
 
-    stage('Running Tests') {
+    stage('Build Docker Test Image') {
       steps {
         script {
           sshagent(credentials: [SSH_CREDENTIALS_ID]) {
@@ -117,14 +119,6 @@ pipeline {
                 docker compose -f docker/docker-compose-test.yml up --build -d &&
                 sleep 5 # Wait for containers to start
               '
-
-              echo "Running tests.."
-
-              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
-                docker exec service-test go test -v /app/internal/tests/... > test_output.log 2>&1 &&
-                cat test_output.log
-              '
-              echo "Tests completed."
             """
           }
         }
@@ -143,10 +137,6 @@ pipeline {
                 make migrate-test-up &&
 
                 echo "Migrations completed."
-                echo "Downing test migrations..."
-
-                echo "Removing test containers..."
-                docker compose -f ${VPS_DEPLOY_DIR}/docker/docker-compose-test.yml down --remove-orphans
               '
             """
           }
@@ -154,6 +144,42 @@ pipeline {
       }
     }
 
+    stage('Running Tests') {
+      steps {
+        script {
+          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
+            sh """
+              echo "Running tests.."
+
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+                docker exec service-test go test -v /app/internal/tests/... > test_output.log 2>&1 &&
+                cat test_output.log
+              '
+              echo "Tests completed."
+
+              echo "Removing test containers..."
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} 'cd ${VPS_DEPLOY_DIR} && docker compose -f docker/docker-compose-test.yml down --remove-orphans'
+            """
+          }
+        }
+      }
+    }
+
+    stage('Switch to Production Environment') {
+      steps {
+        script {
+          APP_ENV = 'production'
+          sshagent(credentials: [SSH_CREDENTIALS_ID]) {
+            sh """
+              ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+                  sed -i "s/APP_ENV=test/APP_ENV=production/" ${VPS_DEPLOY_DIR}/docker/.env
+              '
+            """
+          }
+        }
+      }
+    }
+    
     stage('Build & Deploy') {
       steps {
         script {
@@ -195,6 +221,17 @@ pipeline {
     failure {
       script {
         echo 'Build failed. Keeping the previous build up and running.'
+      }
+
+      script {
+        APP_ENV = 'production'
+        sshagent(credentials: [SSH_CREDENTIALS_ID]) {
+          sh """
+            ssh -A -o StrictHostKeyChecking=no ${VPS_USER}@${VPS_HOST} '
+                sed -i "s/APP_ENV=test/APP_ENV=production/" ${VPS_DEPLOY_DIR}/docker/.env
+            '
+          """
+        }
       }
     }
   }

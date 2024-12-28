@@ -71,7 +71,7 @@ migrate-test-up:
 	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD_TEST) \
 	-e POSTGRES_DB=$(POSTGRES_DB_TEST) \
 	-e POSTGRES_PORT=$(POSTGRES_PORT_TEST) \
-	service-test \
+	service \
 	$(MIGRATE_TEST) up
 
 .PHONY: migrate-test-down
@@ -82,7 +82,7 @@ migrate-test-down:
 	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD_TEST) \
 	-e POSTGRES_DB=$(POSTGRES_DB_TEST) \
 	-e POSTGRES_PORT=$(POSTGRES_PORT_TEST) \
-	service-test \
+	service \
 	$(MIGRATE_TEST) down 1
 
 .PHONY: migrate-test-force
@@ -93,7 +93,7 @@ migrate-test-force:
 	-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD_TEST) \
 	-e POSTGRES_DB=$(POSTGRES_DB_TEST) \
 	-e POSTGRES_PORT=$(POSTGRES_PORT_TEST) \
-	service-test \
+	service \
 	$(MIGRATE_TEST) force $(v-force)
 
 .PHONY: seed-create

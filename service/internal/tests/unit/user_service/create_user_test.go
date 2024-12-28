@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/nibroos/elearning-go/service/internal/config"
 	"github.com/nibroos/elearning-go/service/internal/mocks"
 	"github.com/nibroos/elearning-go/service/internal/models"
 	"github.com/nibroos/elearning-go/service/internal/service"
@@ -63,15 +63,8 @@ func TestCreateUser(t *testing.T) {
 		Address:  utils.Ptr("TAddress"),
 	}
 
-	// Retrieve database credentials from environment variables
-	configDBTest := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_HOST"),
-		os.Getenv("POSTGRES_PORT"),
-		os.Getenv("POSTGRES_DB_TEST"),
-	)
+	// Retrieve database credentials from environment variables using GetTestDatabaseURL
+	configDBTest := config.GetTestDatabaseURL()
 
 	// mockDB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 	mockDB, err := gorm.Open(postgres.Open(configDBTest), &gorm.Config{})
