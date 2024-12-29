@@ -27,6 +27,25 @@ services:
       - "50051"
       - "4001"
     container_name: service-test
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_TEST} # Use test DB
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST_TEST}
+      GATEWAY_PORT: ${GATEWAY_PORT}
+      SERVICE_GRPC_PORT: ${SERVICE_GRPC_PORT}
+      SERVICE_REST_PORT: ${SERVICE_REST_PORT}
+      MASTER_SERVICE_GRPC_PORT: ${MASTER_SERVICE_GRPC_PORT}
+      MASTER_SERVICE_REST_PORT: ${MASTER_SERVICE_REST_PORT}
+      ACTIVITIES_SERVICE_GRPC_PORT: ${ACTIVITIES_SERVICE_GRPC_PORT}
+      ACTIVITIES_SERVICE_REST_PORT: ${ACTIVITIES_SERVICE_REST_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_HOST: ${REDIS_HOST_TEST}
+      REDIS_PORT: ${REDIS_PORT_TEST}
+      REDIS_PASSWORD: ${REDIS_PASSWORD_TEST}
+      REDIS_DB: ${REDIS_DB_TEST} # Use test Redis DB
+      SERVICE_TYPE: main
   
   postgres:
     image: postgres:13-alpine
@@ -54,6 +73,34 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--requirepass", "${REDIS_PASSWORD_TEST}"]
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD_TEST} # Use test Redis password
+
+  scheduler:
+    build:
+      context: ../service
+      dockerfile: Dockerfile
+    networks:
+      - learning-test-network
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_TEST} # Use test DB
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST_TEST}
+      GATEWAY_PORT: ${GATEWAY_PORT}
+      SERVICE_GRPC_PORT: ${SERVICE_GRPC_PORT}
+      SERVICE_REST_PORT: ${SERVICE_REST_PORT}
+      MASTER_SERVICE_GRPC_PORT: ${MASTER_SERVICE_GRPC_PORT}
+      MASTER_SERVICE_REST_PORT: ${MASTER_SERVICE_REST_PORT}
+      ACTIVITIES_SERVICE_GRPC_PORT: ${ACTIVITIES_SERVICE_GRPC_PORT}
+      ACTIVITIES_SERVICE_REST_PORT: ${ACTIVITIES_SERVICE_REST_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_HOST: ${REDIS_HOST_TEST}
+      REDIS_PORT: ${REDIS_PORT_TEST}
+      REDIS_PASSWORD: ${REDIS_PASSWORD_TEST}
+      REDIS_DB: ${REDIS_DB_TEST} # Use test Redis DB
+      SERVICE_TYPE: scheduler
 
 volumes:
   postgres-test-data:

@@ -48,6 +48,7 @@ services:
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_DB: ${REDIS_DB}
+      SERVICE_TYPE: main
 
   postgres:
     image: postgres:13-alpine
@@ -75,6 +76,35 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf", "--requirepass", "${REDIS_PASSWORD}"]
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+  scheduler:
+    build:
+      context: ../service
+      dockerfile: Dockerfile
+    networks:
+      - learning-network
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DB_TEST: ${POSTGRES_DB_TEST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      GATEWAY_PORT: ${GATEWAY_PORT}
+      SERVICE_GRPC_PORT: ${SERVICE_GRPC_PORT}
+      SERVICE_REST_PORT: ${SERVICE_REST_PORT}
+      MASTER_SERVICE_GRPC_PORT: ${MASTER_SERVICE_GRPC_PORT}
+      MASTER_SERVICE_REST_PORT: ${MASTER_SERVICE_REST_PORT}
+      ACTIVITIES_SERVICE_GRPC_PORT: ${ACTIVITIES_SERVICE_GRPC_PORT}
+      ACTIVITIES_SERVICE_REST_PORT: ${ACTIVITIES_SERVICE_REST_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: ${REDIS_DB}
+      SERVICE_TYPE: scheduler
 
 volumes:
   postgres-data:

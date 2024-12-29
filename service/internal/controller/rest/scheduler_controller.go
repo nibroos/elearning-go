@@ -115,68 +115,6 @@ func (sc *SchedulerController) startTask(c *fiber.Ctx, req ScheduleRequest) erro
 	return c.JSON(fiber.Map{"message": "Task scheduled successfully"})
 }
 
-// func (sc *SchedulerController) Schedule(c *fiber.Ctx) error {
-// 	var req ScheduleRequest
-// 	if err := c.BodyParser(&req); err != nil {
-// 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error(), "message": "Invalid request"})
-// 	}
-
-// 	// Validate process name
-// 	task, exists := availableProcesses[req.Name]
-// 	if !exists {
-// 		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "Invalid process name", "message": "Process not found"})
-// 	}
-
-// 	// Check if the process is already running
-// 	var scheduler models.Scheduler
-// 	if err := sc.SqlDB.Get(&scheduler, "SELECT * FROM schedulers WHERE name = $1 AND status = $2", req.Name, "running"); err == nil {
-// 		return c.Status(http.StatusConflict).JSON(fiber.Map{"error": "Process is already running", "message": "Process is already running"})
-// 	}
-
-// 	// Schedule the task
-// 	entryID, err := sc.Cron.AddFunc(req.Cron, func() {
-// 		task()
-// 		if req.EndAt != nil && time.Now().After(*req.EndAt) {
-// 			sc.StopCron(req.Name)
-// 		}
-// 	})
-// 	if err != nil {
-// 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error(), "message": "Failed to schedule task"})
-// 	}
-
-// 	payload := map[string]interface{}{
-// 		"name":     req.Name,
-// 		"cron":     req.Cron,
-// 		"action":   req.Action,
-// 		"start_at": req.StartAt,
-// 		"end_at":   req.EndAt,
-// 	}
-
-// 	payloadJSON, err := json.Marshal(payload)
-// 	if err != nil {
-// 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error(), "message": "Failed to marshal payload"})
-// 	}
-
-// 	// Save the scheduler to the database
-// 	newScheduler := models.Scheduler{
-// 		Name:        req.Name,
-// 		Cron:        req.Cron,
-// 		Status:      "running",
-// 		StartAt:     req.StartAt,
-// 		EndAt:       req.EndAt,
-// 		Description: req.Description,
-// 		Payload:     string(payloadJSON),
-// 		EntryID:     int(entryID), // Store the EntryID
-// 	}
-
-// 	if err := sc.DB.Create(&newScheduler).Error; err != nil {
-// 		sc.Cron.Remove(entryID)
-// 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error(), "message": "Failed to save scheduler"})
-// 	}
-
-// 	return c.JSON(fiber.Map{"message": "Task scheduled successfully"})
-// }
-
 func (sc *SchedulerController) StopCron(name string) error {
 	var scheduler models.Scheduler
 	if err := sc.DB.Where("name = ? AND status = ?", name, "running").First(&scheduler).Error; err != nil {
