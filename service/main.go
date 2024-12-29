@@ -93,42 +93,47 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	// Start the scheduler in a separate goroutine
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		// Initialize the cron scheduler
-		cron := cron.New()
-		schedulerController := rest.NewSchedulerController(cron, gormDB, sqlDB)
+	// Check if the service type is "scheduler"
+	if os.Getenv("SERVICE_TYPE") == "scheduler" {
+		// Start the scheduler in a separate goroutine
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			// Initialize the cron scheduler
+			cron := cron.New()
+			schedulerController := rest.NewSchedulerController(cron, gormDB, sqlDB)
 
-		// Reload schedules from the database
-		if err := schedulerController.ReloadSchedules(); err != nil {
-			log.Printf("Failed to reload schedules: %v", err)
-			return
-		}
+			// Reload schedules from the database
+			if err := schedulerController.ReloadSchedules(); err != nil {
+				log.Printf("Failed to reload schedules: %v", err)
+				return
+			}
 
-		// Start the cron scheduler
-		cron.Start()
-		log.Println("Scheduler started successfully")
-	}()
+			// Start the cron scheduler
+			cron.Start()
+			log.Println("Scheduler started successfully")
+		}()
+	} else {
+		// Start REST server
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := app.Listen(":4001"); err != nil {
+				log.Fatalf("Failed to start REST server: %v", err)
+			}
 
-	// Start REST server
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := app.Listen(":4001"); err != nil {
-			log.Fatalf("Failed to start REST server: %v", err)
-		}
-	}()
+			println("Server started on :4001")
+		}()
 
-	// Start gRPC server
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	// 	if err := runGRPCServer(grpcUserController); err != nil {
-	// 		log.Fatalf("Failed to run gRPC server: %v", err)
-	// 	}
-	// }()
+		// Start gRPC server
+		// wg.Add(1)
+		// go func() {
+		// 	defer wg.Done()
+		// 	if err := runGRPCServer(grpcUserController); err != nil {
+		// 		log.Fatalf("Failed to run gRPC server: %v", err)
+		// 	}
+		// }()
+	}
 
 	// Wait for all servers to exit
 	wg.Wait()
