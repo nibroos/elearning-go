@@ -6,9 +6,11 @@ services:
     build:
       context: ../gateway
       dockerfile: Dockerfile
+      network: host
     ports:
       - "${GATEWAY_PORT:-80}:80"
-    container_name: gateway-learninggo
+    container_name: gateway-learninggo:1.0.250202
+    image: nibroos/elearning-gateway
     networks:
       - learning-network
     depends_on:
@@ -40,7 +42,9 @@ services:
     build: 
       context: ../service
       dockerfile: Dockerfile.dev
-    container_name: service-learninggo
+      network: host
+    container_name: service-learninggo:1.0.250202
+    image: nibroos/elearning-service
     networks:
       - learning-network
     ports:
@@ -105,7 +109,9 @@ services:
     build:
       context: ../service
       dockerfile: Dockerfile.dev
+      network: host
     container_name: client-learninggo
+    image: nibroos/elearning-asynq-client:1.0.250202
     networks:
       - learning-network
     depends_on:
@@ -121,7 +127,9 @@ services:
     build:
       context: ../service
       dockerfile: Dockerfile.dev
+      network: host
     container_name: server-learninggo
+    image: nibroos/elearning-asynq-server:1.0.250202
     networks:
       - learning-network
     depends_on:
